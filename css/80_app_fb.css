@@ -791,7 +791,7 @@ hide this one and style something on top of it.  */
 
 
 .modal-view-manage .modal-section.rapid-view-manage-pages {
-    justify-content: center;
+    overflow-x: scroll;
 }
 .rapid-view-manage-page {
     font-size: 9px;

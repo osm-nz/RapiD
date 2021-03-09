@@ -155,7 +155,7 @@ export function coreLocalizer() {
         }
 
         let locale = _localeCode;
-        if (locale.toLowerCase() === 'en-us') locale = 'en';
+        if (locale.toLowerCase().startsWith('en')) locale = 'en';
         _languageNames = _localeStrings[locale].languageNames;
         _scriptNames = _localeStrings[locale].scriptNames;
 
@@ -174,7 +174,7 @@ export function coreLocalizer() {
         let locale = requested;
 
         // US English is the default
-        if (locale.toLowerCase() === 'en-us') locale = 'en';
+        if (locale.toLowerCase().startsWith('en')) locale = 'en';
 
         if (!_dataLocales[locale]) {
             return Promise.reject(`Unsupported locale: ${requested}`);
@@ -235,8 +235,8 @@ export function coreLocalizer() {
 
         let stringsKey = locale;
         // US English is the default
-        if (stringsKey.toLowerCase() === 'en-us') stringsKey = 'en';
-        let result = _localeStrings[stringsKey];
+        if (stringsKey.toLowerCase().startsWith('en')) stringsKey = 'en';
+        let result = Object.values(_localeStrings)[0];
 
         while (result !== undefined && path.length) {
           result = result[path.pop()];

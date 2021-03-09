@@ -241,7 +241,7 @@ export function svgRapidFeatures(projection, context, dispatch) {
       /* Facebook AI/ML */
       if (dataset.service === 'fbml') {
 
-        service.loadTiles(internalID, projection, rapidContext.getTaskExtent());
+        service.loadTiles(internalID, projection, rapidContext.getTaskExtent(), context);
         let pathData = service
           .intersects(internalID, context.map().extent())
           .filter(d => d.type === 'way' && !_actioned.has(d.id) && !_actioned.has(d.__origid__) )  // see onHistoryRestore()
@@ -277,7 +277,7 @@ export function svgRapidFeatures(projection, context, dispatch) {
 
       /* ESRI ArcGIS */
       } else if (dataset.service === 'esri') {
-        service.loadTiles(internalID, projection);
+        service.loadTiles(internalID, projection, null, context);
         let visibleData = service
           .intersects(internalID, context.map().extent())
           .filter(d => !_actioned.has(d.id) && !_actioned.has(d.__origid__) );  // see onHistoryRestore()

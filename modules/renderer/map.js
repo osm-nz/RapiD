@@ -174,6 +174,8 @@ export function rendererMap(context) {
             .call(drawLayers)
             .selectAll('.surface');
 
+        surface.classed('highlight-edited', true);
+
         surface
             .call(drawLabels.observe)
             .call(_doubleUpHandler)
@@ -654,7 +656,7 @@ export function rendererMap(context) {
     function drawMapGrid() {
         // Add bounding box to imported OSM file layer
         var d3Path = d3_geoPath(projection),
-            mapBoundsExtent = context.rapidContext().getTaskExtent(); 
+            mapBoundsExtent = context.rapidContext().getTaskExtent();
         var minlat = mapBoundsExtent[0][1],
             minlon = mapBoundsExtent[0][0],
             maxlat = mapBoundsExtent[1][1],
@@ -664,13 +666,13 @@ export function rendererMap(context) {
         var gridsSvg = surface.selectAll('.grids-svg')
             .data([0]);
 
-        // Since there is no z-order within an svg, 
-        // and we want the grid to appear on top of everything else, 
-        // insert(), not append(), it at the start of the data layer. 
+        // Since there is no z-order within an svg,
+        // and we want the grid to appear on top of everything else,
+        // insert(), not append(), it at the start of the data layer.
         gridsSvg.enter()
             .insert('svg', ':first-child')
             .attr('class', 'grids-svg');
-        
+
         gridsSvg.exit()
             .remove();
 
@@ -690,15 +692,15 @@ export function rendererMap(context) {
         }
 
         var gridsPath = gridsSvg.selectAll('.map-grids')
-            .data(gridsData); 
+            .data(gridsData);
 
         gridsPath.attr('d', d3Path);
 
         gridsPath.enter()
             .append('path')
             .attr('class', 'map-grids')
-            .attr('d', d3Path); 
-    
+            .attr('d', d3Path);
+
         gridsPath.exit()
             .remove();
     }

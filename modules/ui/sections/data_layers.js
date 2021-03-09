@@ -415,7 +415,7 @@ export function uiSectionDataLayers(context) {
 
         historyPanelLabelEnter
             .append('span')
-            .html(t.html('map_data.history_panel.title'));
+            .html('✨ Show Status Panel');
 
         var measurementPanelLabelEnter = panelsListEnter
             .append('li')

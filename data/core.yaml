@@ -1021,11 +1021,11 @@ en:
     lose_changes: "You have unsaved changes. Switching the map server will discard them. Are you sure you want to switch servers?"
     dev: dev
   rapid_splash:
-    welcome: Introducing AI-assisted mapping!
-    text: "Select the {rapidicon} option to start the RapiD walkthrough. If you're new to OSM and haven't mapped before, select the first {walkthrough} option. Finally, click the last {edit} option if you want to get straight to mapping. You can always access the walkthrough later from the help menu."
+    welcome: LINZ Street Address Import
+    text: "Once you close this popup, click the {rapidicon} icon to select a suburb and start adding data. **NOTE: Don't waste your time yet!** Uploading to OSM is disabled until this project proposal is accepted by the community. See the [wiki page](https://wiki.openstreetmap.org/wiki/Import/New_Zealand_Street_Addresses_(2021)) for more info."
     walkthrough: "Start the whole walkthrough"
     skip_to_rapid: "Learn about RapiD!"
-    start: "No thanks, just start mapping"
+    start: "Start"
   rapid_whats_new:
     welcome: What's New- Esri Datasets in {rapidicon}
     text: "Come check out our latest experimental feature - Esri datasets that are useable from within {rapidicon}!\nLearn more about it [here](https://tech.fb.com/osm-ready-data-sets/)."
@@ -1067,14 +1067,14 @@ en:
       label: Microsoft Buildings
       license_markdown: "[license](https://github.com/microsoft/USBuildingFootprints/blob/master/LICENCE-DATA)"
     esri:
-      title: ArcGIS Datasets
-      about: "These datasets have been provided as open data by the ArcGIS user community for the purpose of improving OpenStreetMap.<br/>You can learn more by visiting [the RapiD Guide](https://github.com/facebookmicrosites/Open-Mapping-At-Facebook/wiki/Esri-ArcGIS-FAQ) or [Esri/ArcGIS dataset page on the OSM Wiki](https://wiki.openstreetmap.org/wiki/Esri/ArcGIS_Datasets)."
+      title: LINZ Address Points
+      about: "This data has been grouped into suburbs."
       fetching_datasets: Fetching available datasets...
       no_datasets: No datasets available.
       remove: Remove
       add_to_map: Add To Map
       more_info: More Info
-      license_markdown: "[license](https://wiki.openstreetmap.org/wiki/Esri/ArcGIS_Datasets#License)"
+      license_markdown: "[license](https://wiki.openstreetmap.org/wiki/LINZ#Data_License)"
   rapid_poweruser_features:
     beta: Beta Feature
     heading:

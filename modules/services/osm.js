@@ -45,6 +45,9 @@ var _userChangesets;
 var _userDetails;
 var _off;
 
+const _seenAddresses = {};
+window._seenAddresses= _seenAddresses; // temporary escape hatch
+
 // set a default but also load this from the API status
 var _maxWayNodes = 2000;
 
@@ -1023,6 +1026,12 @@ export default {
         );
 
         function tileCallback(err, parsed) {
+            parsed.forEach(node => {
+                if (node.tags && node.tags['ref:linz:address_id']) {
+                    _seenAddresses[node.tags['ref:linz:address_id']] = node;
+                }
+            });
+
             delete _tileCache.inflight[tile.id];
             if (!err) {
                 delete _tileCache.toLoad[tile.id];

@@ -63,7 +63,9 @@
           // disable boundaries (unless we have an explicit disable_features list)
           var q = iD.utilStringQs(window.location.hash);
           if (!q.hasOwnProperty('disable_features')) {
-            context.features().disable('boundaries');
+            'traffic_roads,service_roads,paths,building_parts,indoor,landuse,boundaries,water,rail,pistes,aerialways,power,past_future,others'
+              .split(",")
+              .map(context.features().disable)
           }
         }
       }

@@ -7,15 +7,18 @@ import { osmNode, osmRelation, osmWay } from '../osm';
 import { utilRebind, utilTiler } from '../util';
 
 
-const GROUPID = 'bdf6c800b3ae453b9db239e03d7c1727';
-const APIROOT = 'https://openstreetmap.maps.arcgis.com/sharing/rest/content';
-const HOMEROOT = 'https://openstreetmap.maps.arcgis.com/home';
+const APIROOT = 'https://linz-addr.kyle.kiwi';
 const TILEZOOM = 14;
 const tiler = utilTiler().zoomExtent([TILEZOOM, TILEZOOM]);
 const dispatch = d3_dispatch('loadedData');
 
 let _datasets = {};
 let _off;
+let _fields = {};
+let _loaded = {};
+
+window._dsState = {};
+window._mostRecentDsId = null;
 
 
 function abortRequest(controller) {
@@ -25,7 +28,7 @@ function abortRequest(controller) {
 
 // API
 function searchURL() {
-  return `${APIROOT}/groups/${GROUPID}/search?num=100&start=1&sortField=title&sortOrder=asc&f=json`;
+  return `${APIROOT}/index.json`;
   // use to get
   // .results[]
   //   .extent
@@ -36,23 +39,10 @@ function searchURL() {
   //   .url (featureServer)
 }
 
-function layerURL(featureServerURL) {
-  return `${featureServerURL}/layers?f=json`;
-  // should return single layer(?)
-  // .layers[0]
-  //   .copyrightText
-  //   .fields
-  //   .geometryType   "esriGeometryPoint" or "esriGeometryPolygon" ?
-}
-
-function itemURL(itemID) {
-  return `${HOMEROOT}/item.html?id=${itemID}`;
-}
 
 function tileURL(dataset, extent) {
-  const layerId = dataset.layer.id;
   const bbox = extent.toParam();
-  return `${dataset.url}/${layerId}/query?f=geojson&outfields=*&outSR=4326&geometryType=esriGeometryEnvelope&geometry=${bbox}`;
+  return `${dataset.url}?geometry=${bbox}`;
 }
 
 
@@ -75,8 +65,15 @@ function parseFeature(feature, dataset) {
   const props = feature.properties;
   if (!geom || !props) return null;
 
+
+
   const featureID = props[dataset.layer.idfield] || props.OBJECTID || props.FID || props.id;
   if (!featureID) return null;
+
+  // the OSM service has already seen this linz ref, so skip it - it must already be mapped
+  if (window._seenAddresses[featureID]) return;
+
+  window._dsState[dataset.id][featureID] = geom.coordinates;
 
   // skip if we've seen this feature already on another tile
   if (dataset.cache.seen[featureID]) return null;
@@ -158,7 +155,7 @@ function parseFeature(feature, dataset) {
       }
     });
 
-    tags.source = `esri/${dataset.name}`;
+    // tags.source = `esri/${dataset.name}`;
     return tags;
   }
 
@@ -208,8 +205,10 @@ export default {
   },
 
 
-  loadTiles: function (datasetID, projection) {
+  loadTiles: function (datasetID, projection, _taskExtent, context) {
     if (_off) return;
+
+    window._mostRecentDsId = datasetID;
 
     // `loadDatasets` and `loadLayer` are asynchronous,
     // so ensure both have completed before we start requesting tiles.
@@ -230,6 +229,39 @@ export default {
       }
     });
 
+    if (!_loaded[datasetID]) {
+      setTimeout(() => {
+        const [[minLng, minLat], [maxLng, maxLat]] = ds.extent;
+        const xml= `<gpx xmlns="http://www.topografix.com/GPX/1/1" creator="LINZ Addr" version="1.1">
+        <metadata>
+          <link href="https://github.com/hotosm/tasking-manager">
+            <text>LINZ Addr</text>
+          </link>
+          <time>2021-03-08T22:14:43.088005</time>
+        </metadata>
+        <trk>
+          <name>Extent of the ${ds.id} data</name>
+          <trkseg>
+          <trkpt lat="${minLat-0.0003}" lon="${minLng-0.0003}"/>
+          <trkpt lat="${maxLat+0.0003}" lon="${minLng-0.0003}"/>
+          <trkpt lat="${maxLat+0.0003}" lon="${maxLng+0.0003}"/>
+          <trkpt lat="${minLat-0.0003}" lon="${maxLng+0.0003}"/>
+          <trkpt lat="${minLat-0.0003}" lon="${minLng-0.0003}"/>
+          </trkseg>
+        </trk>
+        <wpt lat="${minLat-0.0003}" lon="${minLng-0.0003}"/>
+        <wpt lat="${maxLat+0.0003}" lon="${minLng-0.0003}"/>
+        <wpt lat="${maxLat+0.0003}" lon="${maxLng+0.0003}"/>
+        <wpt lat="${minLat-0.0003}" lon="${maxLng+0.0003}"/>
+        <wpt lat="${minLat-0.0003}" lon="${minLng-0.0003}"/>
+        </gpx>`;
+        const url = 'data:text/xml;base64,' + btoa(xml);
+
+        const layer = context.layers().layer('data');
+        layer.url(url);
+      }, 2000);
+    }
+
     tiles.forEach(tile => {
       if (cache.loaded[tile.id] || cache.inflight[tile.id]) return;
 
@@ -238,6 +270,8 @@ export default {
 
       d3_json(url, { signal: controller.signal })
         .then(geojson => {
+          _loaded[datasetID] = true;
+
           delete cache.inflight[tile.id];
           if (!geojson) throw new Error('no geojson');
           parseTile(ds, tile, geojson, (err, results) => {
@@ -248,7 +282,7 @@ export default {
             dispatch.call('loadedData');
           });
         })
-        .catch(() => { /* ignore */ });
+        .catch(console.error); // eslint-disable-line no-console
 
       cache.inflight[tile.id] = controller;
     });
@@ -263,9 +297,11 @@ export default {
     const that = this;
     return d3_json(searchURL())
       .then(json => {
+        _fields = json.fields;
         (json.results || []).forEach(ds => {   // add each one to _datasets, create internal state
           if (_datasets[ds.id]) return;        // unless we've seen it already
           _datasets[ds.id] = ds;
+          window._dsState[ds.id] = {};
           ds.graph = coreGraph();
           ds.tree = coreTree(ds.graph);
           ds.cache = { inflight: {}, loaded: {}, seen: {}, origIdTile: {} };
@@ -278,9 +314,6 @@ export default {
             .attr('size', null);
           ds.license_html = license.html();   // get innerHtml
 
-          // generate public link to this item
-          ds.itemURL = itemURL(ds.id);
-
           // preload the layer info (or we could wait do this once the user actually clicks 'add to map')
           that.loadLayer(ds.id);
         });
@@ -288,6 +321,8 @@ export default {
       })
       .catch(() => { /* ignore */ });
   },
+
+  getLoadedDatasets: () => Object.keys(_loaded),
 
 
   loadLayer: function (datasetID) {
@@ -298,13 +333,9 @@ export default {
       return Promise.resolve(ds.layer);
     }
 
-    return d3_json(layerURL(ds.url))
-      .then(json => {
-        if (!json.layers || !json.layers.length) {
-          throw new Error(`Missing layer info for datasetID: ${datasetID}`);
-        }
-
-        ds.layer = json.layers[0];  // should return a single layer
+    return Promise.resolve(_fields)
+      .then(fields => {
+        ds.layer = { fields };
 
         // Use the field metadata to map to OSM tags
         let tagmap = {};

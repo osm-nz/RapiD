@@ -292,7 +292,7 @@ export function uiRapidViewManageDatasets(context, parentModal) {
     thumbsEnter
       .append('img')
       .attr('class', 'rapid-view-manage-dataset-thumbnail')
-      .attr('src', d => `https://openstreetmap.maps.arcgis.com/sharing/rest/content/items/${d.id}/info/${d.thumbnail}?w=400`);
+      .attr('src', d => d.thumbnail);
 
     // update
     datasets = datasets

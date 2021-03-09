@@ -43,6 +43,9 @@ export function uiRapidFeatureInspector(context, keybinding) {
       return;
     }
 
+    const id = _datum.__origid__.split('-')[1];
+    delete window._dsState[_datum.__datasetid__][id];
+
     // In place of a string annotation, this introduces an "object-style"
     // annotation, where "type" and "description" are standard keys,
     // and there may be additional properties. Note that this will be
@@ -70,11 +73,12 @@ export function uiRapidFeatureInspector(context, keybinding) {
     if (window.sessionStorage.getItem('acknowledgedLogin') === 'true') return;
     window.sessionStorage.setItem('acknowledgedLogin', 'true');
 
-    const osm = context.connection();
-    if (!osm.authenticated()) {
-      context.container()
-        .call(uiRapidFirstEditDialog(context));
-    }
+    // disabling beacuse it's broken (TypeError: Cannot read property 'undefined' of undefined) in rapid_first_edit_dialog.js:49
+    // const osm = context.connection();
+    // if (!osm.authenticated()) {
+    //   context.container()
+    //     .call(uiRapidFirstEditDialog(context));
+    // }
   }
 
 
@@ -89,6 +93,9 @@ export function uiRapidFeatureInspector(context, keybinding) {
     };
     context.perform(actionNoop(), annotation);
     context.enter(modeBrowse(context));
+
+    const id = _datum.__origid__.split('-')[1];
+    delete window._dsState[_datum.__datasetid__][id];
   }
 
 

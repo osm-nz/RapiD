@@ -87,11 +87,12 @@ export function uiCommit(context) {
             prefs('commentDate', Date.now());
         }
 
-        var detected = utilDetect();
         var tags = {
-            comment: prefs('comment') || '',
-            created_by: context.cleanTagValue('RapiD ' + context.rapidContext().version),
-            host: context.cleanTagValue(detected.host),
+            comment: prefs('comment') || `LINZ address import for ${services.esriData.getLoadedDatasets().join(', ')}`,
+            created_by: context.cleanTagValue('LINZ Address Import ' + context.rapidContext().version),
+            host: context.cleanTagValue('https://github.com/k-yle/linz-address-import'),
+            source: context.cleanTagValue('https://data.linz.govt.nz/layer/3353'),
+            attribution: context.cleanTagValue('https://wiki.openstreetmap.org/wiki/Contributors#LINZ'),
             locale: context.cleanTagValue(localizer.localeCode())
         };
 
@@ -359,7 +360,8 @@ export function uiCommit(context) {
 
         var uploadButton = buttonEnter
             .append('button')
-            .attr('class', 'action button save-button');
+            .attr('class', 'action button save-button')
+            .attr('disabled', true);
 
         uploadButton.append('span')
             .attr('class', 'label')

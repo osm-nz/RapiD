@@ -457,31 +457,20 @@ export function svgData(projection, context, dispatch) {
     };
 
 
-    drawData.url = function(url, defaultExtension) {
+    drawData.url = function(url) {
         _template = null;
         _fileList = null;
         _geojson = null;
         _src = null;
 
-        // strip off any querystring/hash from the url before checking extension
-        var testUrl = url.split(/[?#]/)[0];
-        var extension = getExtension(testUrl) || defaultExtension;
-        if (extension) {
-            _template = null;
-            d3_text(url)
-                .then(function(data) {
-                    drawData.setFile(extension, data);
-                    var isTaskBoundsUrl = extension === '.gpx' && url.indexOf('project') > 0 && url.indexOf('task') > 0;
-                    if (isTaskBoundsUrl) {
-                        context.rapidContext().setTaskExtentByGpxData(data);
-                    }
-                })
-                .catch(function() {
-                    /* ignore */
-                });
-        } else {
-            drawData.template(url);
-        }
+        d3_text(url)
+            .then(function(data) {
+                drawData.setFile('.gpx', data);
+                context.rapidContext().setTaskExtentByGpxData(data);
+            })
+            .catch(function() {
+                /* ignore */
+            });
 
         return this;
     };

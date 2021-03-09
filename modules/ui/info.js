@@ -18,7 +18,7 @@ export function uiInfo(context) {
     ids.forEach(function(k) {
         if (!panels[k]) {
             panels[k] = uiInfoPanels[k](context);
-            active[k] = false;
+            active[k] = k === 'history';
         }
     });
 
