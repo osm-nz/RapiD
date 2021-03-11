@@ -47,11 +47,11 @@ export function modeDragNode(context) {
     var _lastLoc;
 
 
-    function startNudge(d3_event, entity, nudge) {
+    function startNudge(d3_event, entity, nudge, rapidOverideLoc) {
         if (_nudgeInterval) window.clearInterval(_nudgeInterval);
         _nudgeInterval = window.setInterval(function() {
             context.map().pan(nudge);
-            doMove(d3_event, entity, nudge);
+            doMove(d3_event, entity, nudge, rapidOverideLoc);
         }, 50);
     }
 
@@ -168,6 +168,28 @@ export function modeDragNode(context) {
         context.enter(mode);
     }
 
+    /**
+     * Very hacky hook into this context to move a node
+     * @param {[lng: number, lat: number ]} fromLoc
+     * @param {[lng: number, lat: number ]} toLoc
+     * @returns {boolean} okay
+     */
+    window.__moveNodeHook = (entity, fromLoc, toLoc) => {
+        if (!entity) {
+            alert('Node hasn\'t loaded yet, try again once it loads');
+            return false;
+        }
+        const d3_event = {
+            point: fromLoc,
+            target: {},
+            stopPropagation: () => {},
+        };
+        start(d3_event, entity);
+        move(d3_event, entity, toLoc, toLoc);
+        end(d3_event, entity);
+        return true;
+    };
+
 
     // related code
     // - `behavior/draw.js` `datum()`
@@ -183,7 +205,7 @@ export function modeDragNode(context) {
     }
 
 
-    function doMove(d3_event, entity, nudge) {
+    function doMove(d3_event, entity, nudge, rapidOverideLoc) {
         nudge = nudge || [0, 0];
 
         var currPoint = (d3_event && d3_event.point) || context.projection(_lastLoc);
@@ -214,6 +236,9 @@ export function modeDragNode(context) {
                 }
             }
         }
+
+        let originalLoc = [...loc];
+        if (rapidOverideLoc) loc = rapidOverideLoc;
 
         context.replace(
             actionMoveNode(entity.id, loc)
@@ -269,7 +294,7 @@ export function modeDragNode(context) {
                 .classed('nope-suppressed', false);
         }
 
-        _lastLoc = loc;
+        _lastLoc = originalLoc;
     }
 
 
@@ -350,7 +375,10 @@ export function modeDragNode(context) {
     }
 
 
-    function move(d3_event, entity, point) {
+    function move(d3_event, entity, point, arg4) {
+        // the d3 event handler implicitly provides a 4th argument - [0, 0] if real drag, [toLng, toLat] if our hack
+        const rapidOverideLoc = (Array.isArray(arg4) && arg4[0] && arg4[1]) ? arg4 : undefined;
+
         if (_isCancelled) return;
         d3_event.stopPropagation();
 
@@ -358,10 +386,10 @@ export function modeDragNode(context) {
 
         _lastLoc = context.projection.invert(point);
 
-        doMove(d3_event, entity);
+        doMove(d3_event, entity, undefined, rapidOverideLoc);
         var nudge = geoViewportEdge(point, context.map().dimensions());
         if (nudge) {
-            startNudge(d3_event, entity, nudge);
+            startNudge(d3_event, entity, nudge, rapidOverideLoc);
         } else {
             stopNudge();
         }

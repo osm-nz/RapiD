@@ -11,16 +11,19 @@ export function uiPanelHistory(context) {
         if (!window._mostRecentDsId) {
             selection
                 .append('span')
-                .html('No dataset selected');
+                .html('No active dataset. If you\'ve selected one, you need to zoom in to level 16+ to active it');
             return;
         }
         panel.label = 'Status of ' + window._mostRecentDsId;
 
         const data = window._dsState[window._mostRecentDsId];
-        const { 0: next, length } = Object.values(data);
-
+        let { 0: next, length } = Object.values(data).filter(x => x !== 'done');
 
         if (length) {
+            // it's a way so next = [lng, lat][] not [lng, lat]
+            if (typeof next[0] === 'object') next = next[0];
+
+
             selection
                 .append('span')
                 .html(length + ' addresses remaining');

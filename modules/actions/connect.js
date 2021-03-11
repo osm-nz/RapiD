@@ -82,6 +82,9 @@ export function actionConnect(nodeIDs) {
             node = graph.entity(nodeIDs[i]);
             relations = graph.parentRelations(node);
 
+            // don't allow linz addresses to be merged
+            if (node.tags && node.tags['ref:linz:address_id']) return 'relation';
+
             for (j = 0; j < relations.length; j++) {
                 relation = relations[j];
                 role = relation.memberById(node.id).role || '';

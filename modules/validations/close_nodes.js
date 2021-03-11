@@ -9,7 +9,7 @@ import { geoExtent } from '../geo/extent';
 export function validationCloseNodes(context) {
     var type = 'close_nodes';
 
-    var pointThresholdMeters = 0.2;
+    var pointThresholdMeters = 0.5;
 
     var validation = function(entity, graph) {
         if (entity.type === 'node') {
@@ -149,7 +149,7 @@ export function validationCloseNodes(context) {
                     geoSphericalDistance(node.loc, nearby.loc) < pointThresholdMeters) {
 
                     // allow very close points if tags indicate the z-axis might vary
-                    var zAxisKeys = { layer: true, level: true, 'addr:housenumber': true, 'addr:unit': true };
+                    var zAxisKeys = { layer: true, level: true, 'addr:unit': true };
                     var zAxisDifferentiates = false;
                     for (var key in zAxisKeys) {
                         var nodeValue = node.tags[key] || '0';

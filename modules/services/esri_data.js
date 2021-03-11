@@ -73,7 +73,9 @@ function parseFeature(feature, dataset) {
   // the OSM service has already seen this linz ref, so skip it - it must already be mapped
   if (window._seenAddresses[featureID]) return;
 
-  window._dsState[dataset.id][featureID] = geom.coordinates;
+  if (window._dsState[dataset.id][featureID] !== 'done') {
+    window._dsState[dataset.id][featureID] = geom.coordinates;
+  }
 
   // skip if we've seen this feature already on another tile
   if (dataset.cache.seen[featureID]) return null;

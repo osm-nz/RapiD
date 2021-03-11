@@ -1,20 +1,20 @@
 import { select as d3_select } from 'd3-selection';
 import { t } from '../core/localizer';
 
-import { actionNoop, actionRapidAcceptFeature } from '../actions';
+import { actionNoop, actionRapidAcceptFeature, actionChangeTags } from '../actions';
 import { modeBrowse, modeSelect } from '../modes';
 import { services } from '../services';
 import { svgIcon } from '../svg';
 import { uiFlash } from './flash';
 import { uiTooltip } from './tooltip';
 import { utilStringQs } from '../util';
-import { uiRapidFirstEditDialog } from './rapid_first_edit_dialog';
+
+const PREFIX = 'LOCATION_WRONG_SPECIAL_';
 
 
 export function uiRapidFeatureInspector(context, keybinding) {
   const rapidContext = context.rapidContext();
-  const showPowerUser = rapidContext.showPowerUser;
-  const ACCEPT_FEATURES_LIMIT = showPowerUser ? Infinity : 50;
+  const ACCEPT_FEATURES_LIMIT = Infinity;
   let _datum;
 
 
@@ -32,6 +32,28 @@ export function uiRapidFeatureInspector(context, keybinding) {
   function onAcceptFeature() {
     if (!_datum) return;
 
+    if (_datum.__datasetid__ === 'ZZ Special Location Wrong') {
+      const prefixedLinzRef =
+        _datum &&
+        _datum.tags &&
+        _datum.tags['ref:linz:address_id'];
+      const linzRef = prefixedLinzRef && prefixedLinzRef.slice(PREFIX.length);
+
+      if (!linzRef) {
+        alert('failed to find linzRef for move action');
+        return;
+      }
+
+      const [fromLoc, toLoc] = window._dsState[_datum.__datasetid__][prefixedLinzRef];
+      const realAddrEntity = window._seenAddresses[linzRef];
+
+      const ok = window.__moveNodeHook(realAddrEntity, fromLoc, toLoc);
+
+      // switch to the ingore case because we don't want to actually create this line as an OSM way
+      if (ok) onIgnoreFeature(true);
+      return;
+    }
+
     if (isAddFeatureDisabled()) {
       const flash = uiFlash(context)
         .duration(5000)
@@ -44,7 +66,8 @@ export function uiRapidFeatureInspector(context, keybinding) {
     }
 
     const id = _datum.__origid__.split('-')[1];
-    delete window._dsState[_datum.__datasetid__][id];
+    window._dsState[_datum.__datasetid__][id] = 'done';
+
 
     // In place of a string annotation, this introduces an "object-style"
     // annotation, where "type" and "description" are standard keys,
@@ -82,7 +105,7 @@ export function uiRapidFeatureInspector(context, keybinding) {
   }
 
 
-  function onIgnoreFeature() {
+  function onIgnoreFeature(fromAccept) {
     if (!_datum) return;
 
     const annotation = {
@@ -94,8 +117,31 @@ export function uiRapidFeatureInspector(context, keybinding) {
     context.perform(actionNoop(), annotation);
     context.enter(modeBrowse(context));
 
+    if (fromAccept !== true && _datum.__datasetid__ === 'ZZ Special Location Wrong') {
+      const prefixedLinzRef =
+        _datum &&
+        _datum.tags &&
+        _datum.tags['ref:linz:address_id'];
+      const linzRef = prefixedLinzRef && prefixedLinzRef.slice(PREFIX.length);
+
+      if (!linzRef) {
+        alert('failed to find linzRef for move action');
+        return;
+      }
+
+      const realAddrEntity = window._seenAddresses[linzRef];
+
+      context.perform(
+        actionChangeTags(realAddrEntity.id, Object.assign({
+          check_date: new Date().toISOString().split('T')[0]
+        }, realAddrEntity.tags)),
+        t('operations.change_tags.annotation')
+      );
+
+    }
+
     const id = _datum.__origid__.split('-')[1];
-    delete window._dsState[_datum.__datasetid__][id];
+    window._dsState[_datum.__datasetid__][id] = 'done';
   }
 
 
@@ -230,18 +276,25 @@ export function uiRapidFeatureInspector(context, keybinding) {
       .call(tagInfo);
 
 
+    /** @type {string | undefined} */
+    const isMove =
+      _datum &&
+      _datum.tags &&
+      _datum.tags['ref:linz:address_id'] &&
+      _datum.tags['ref:linz:address_id'].startsWith(PREFIX);
+
     // Choices
     const choiceData = [
       {
         key: 'accept',
         iconName: '#iD-icon-rapid-plus-circle',
-        label: t('rapid_feature_inspector.option_accept.label'),
-        description: t('rapid_feature_inspector.option_accept.description'),
+        label: isMove ? 'Move this address' : t('rapid_feature_inspector.option_accept.label'),
+        description: isMove ? 'Move the existing node to the new proposed location' : t('rapid_feature_inspector.option_accept.description'),
         onClick: onAcceptFeature
       }, {
         key: 'ignore',
         iconName: '#iD-icon-rapid-minus-circle',
-        label: t('rapid_feature_inspector.option_ignore.label'),
+        label: isMove ? 'Do not move' : t('rapid_feature_inspector.option_ignore.label'),
         description: t('rapid_feature_inspector.option_ignore.description'),
         onClick: onIgnoreFeature
       }
@@ -257,7 +310,7 @@ export function uiRapidFeatureInspector(context, keybinding) {
 
     choicesEnter
       .append('p')
-      .text(t('rapid_feature_inspector.prompt'));
+      .text(isMove ? '❗✨ This node is in the wrong location! Do you want to move it?' : t('rapid_feature_inspector.prompt'));
 
     choicesEnter.selectAll('.rapid-inspector-choice')
       .data(choiceData, d => d.key)

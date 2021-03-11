@@ -191,6 +191,10 @@ export function utilDisplayName(entity) {
         }
     }
 
+    if (!name && entity.tags['ref:linz:address_id']) {
+        name = `${entity.tags['ref:linz:address_id']} 🥝 ${entity.tags['addr:housenumber']} ${entity.tags['addr:street']}`;
+    }
+
     return name;
 }
 
