@@ -420,6 +420,12 @@ export function svgRapidFeatures(projection, context, dispatch) {
     // enter
     let enter = points.enter()
       .append('g')
+      .attr('style', d => {
+        if (d.tags && d.tags['ref:linz:address_id'] && d.tags['ref:linz:address_id'].startsWith('SPECIAL_DELETE_')) {
+          return 'color:#f44336';
+        }
+        return '';
+      })
       .attr('class', d => `node point data${d.__fbid__}`);
 
     enter

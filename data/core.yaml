@@ -268,7 +268,7 @@ en:
           to_vertex: Merged a point with a point in a way.
           to_line: Moved a point to a line.
           to_area: Moved a point to an area.
-      relation: These features can't be connected because they have conflicting relation roles.
+      relation: These features can't be connected because they're 🥝 LINZ addresses or have conflicting relation roles.
       restriction: "These features can't be connected because it would damage a \"{relation}\" relation."
     disconnect:
       title: Disconnect

@@ -1,7 +1,7 @@
 import { select as d3_select } from 'd3-selection';
 import { t } from '../core/localizer';
 
-import { actionNoop, actionRapidAcceptFeature, actionChangeTags } from '../actions';
+import { actionNoop, actionRapidAcceptFeature, actionChangeTags, actionDeleteNode } from '../actions';
 import { modeBrowse, modeSelect } from '../modes';
 import { services } from '../services';
 import { svgIcon } from '../svg';
@@ -9,7 +9,8 @@ import { uiFlash } from './flash';
 import { uiTooltip } from './tooltip';
 import { utilStringQs } from '../util';
 
-const PREFIX = 'LOCATION_WRONG_SPECIAL_';
+const MOVE_PREFIX = 'LOCATION_WRONG_SPECIAL_';
+const DELETE_PREFIX = 'SPECIAL_DELETE_';
 
 
 export function uiRapidFeatureInspector(context, keybinding) {
@@ -28,16 +29,40 @@ export function uiRapidFeatureInspector(context, keybinding) {
     return aiFeatureAccepts.length >= ACCEPT_FEATURES_LIMIT;
   }
 
+  /** @param {string} linzRef */
+  function addCheckDate(linzRef) {
+    const realAddrEntity = window._seenAddresses[linzRef];
+
+    context.perform(
+      actionChangeTags(realAddrEntity.id, Object.assign({
+        check_date: new Date().toISOString().split('T')[0]
+      }, realAddrEntity.tags)),
+      t('operations.change_tags.annotation')
+    );
+  }
+
+  /** @param {string} linzRef */
+  function deleteAddr(linzRef) {
+    const realAddrEntity = window._seenAddresses[linzRef];
+
+    context.perform(
+      actionDeleteNode(realAddrEntity.id),
+      t('operations.delete.annotation.point')
+    );
+
+  }
+
 
   function onAcceptFeature() {
     if (!_datum) return;
 
+    const prefixedLinzRef =
+      _datum &&
+      _datum.tags &&
+      _datum.tags['ref:linz:address_id'];
+
     if (_datum.__datasetid__ === 'ZZ Special Location Wrong') {
-      const prefixedLinzRef =
-        _datum &&
-        _datum.tags &&
-        _datum.tags['ref:linz:address_id'];
-      const linzRef = prefixedLinzRef && prefixedLinzRef.slice(PREFIX.length);
+      const linzRef = prefixedLinzRef && prefixedLinzRef.slice(MOVE_PREFIX.length);
 
       if (!linzRef) {
         alert('failed to find linzRef for move action');
@@ -67,6 +92,15 @@ export function uiRapidFeatureInspector(context, keybinding) {
 
     const id = _datum.__origid__.split('-')[1];
     window._dsState[_datum.__datasetid__][id] = 'done';
+
+    if (prefixedLinzRef.startsWith(DELETE_PREFIX)) {
+      // delete
+      const linzRef = prefixedLinzRef.slice(DELETE_PREFIX.length);
+      deleteAddr(linzRef);
+      // switch to the ingore case because we don't want to actually create anything in the OSM graph
+      onIgnoreFeature(true);
+      return;
+    }
 
 
     // In place of a string annotation, this introduces an "object-style"
@@ -117,31 +151,32 @@ export function uiRapidFeatureInspector(context, keybinding) {
     context.perform(actionNoop(), annotation);
     context.enter(modeBrowse(context));
 
-    if (fromAccept !== true && _datum.__datasetid__ === 'ZZ Special Location Wrong') {
-      const prefixedLinzRef =
-        _datum &&
-        _datum.tags &&
-        _datum.tags['ref:linz:address_id'];
-      const linzRef = prefixedLinzRef && prefixedLinzRef.slice(PREFIX.length);
+    const prefixedLinzRef =
+      _datum &&
+      _datum.tags &&
+      _datum.tags['ref:linz:address_id'];
+
+    const id = _datum.__origid__.split('-')[1];
+    window._dsState[_datum.__datasetid__][id] = 'done';
+
+    if (fromAccept === true) return;
+
+    if (prefixedLinzRef.startsWith(DELETE_PREFIX)) {
+      const linzRef = prefixedLinzRef && prefixedLinzRef.slice(DELETE_PREFIX.length);
+      addCheckDate(linzRef);
+    }
+
+    if (prefixedLinzRef.startsWith(MOVE_PREFIX)) {
+      const linzRef = prefixedLinzRef && prefixedLinzRef.slice(MOVE_PREFIX.length);
 
       if (!linzRef) {
         alert('failed to find linzRef for move action');
         return;
       }
 
-      const realAddrEntity = window._seenAddresses[linzRef];
-
-      context.perform(
-        actionChangeTags(realAddrEntity.id, Object.assign({
-          check_date: new Date().toISOString().split('T')[0]
-        }, realAddrEntity.tags)),
-        t('operations.change_tags.annotation')
-      );
+      addCheckDate(linzRef);
 
     }
-
-    const id = _datum.__origid__.split('-')[1];
-    window._dsState[_datum.__datasetid__][id] = 'done';
   }
 
 
@@ -277,24 +312,45 @@ export function uiRapidFeatureInspector(context, keybinding) {
 
 
     /** @type {string | undefined} */
-    const isMove =
-      _datum &&
-      _datum.tags &&
-      _datum.tags['ref:linz:address_id'] &&
-      _datum.tags['ref:linz:address_id'].startsWith(PREFIX);
+    const linzRef = _datum && _datum.tags &&_datum.tags['ref:linz:address_id'];
+    const isMove = linzRef && linzRef.startsWith(MOVE_PREFIX);
+    const isDelete = linzRef && linzRef.startsWith(DELETE_PREFIX);
+    const type = isMove ? 'move' : isDelete ? 'delete' : 'normal';
+
+    const acceptMessages = {
+      move: 'Move this address',
+      normal: t('rapid_feature_inspector.option_accept.label'),
+      delete: 'Delete this address'
+    };
+    const acceptDescriptions = {
+      move: 'Move the existing node to the new proposed location',
+      normal: t('rapid_feature_inspector.option_accept.description'),
+      delete: 'Remove this node from OSM'
+    };
+    const ignoreMessages = {
+      move: 'Do not move',
+      normal:  t('rapid_feature_inspector.option_ignore.label'),
+      delete: 'Do not delete',
+    };
+    const mainMessages = {
+      move: '❗✨ This node is in the wrong location! Do you want to move it?',
+      delete: '❗🚮 This node has been deleted by LINZ! Do you want to delete it from OSM?',
+      normal: t('rapid_feature_inspector.prompt')
+    };
 
     // Choices
     const choiceData = [
       {
         key: 'accept',
         iconName: '#iD-icon-rapid-plus-circle',
-        label: isMove ? 'Move this address' : t('rapid_feature_inspector.option_accept.label'),
-        description: isMove ? 'Move the existing node to the new proposed location' : t('rapid_feature_inspector.option_accept.description'),
-        onClick: onAcceptFeature
+        label: acceptMessages[type],
+        description: acceptDescriptions[type],
+        onClick: onAcceptFeature,
+        isDelete,
       }, {
         key: 'ignore',
         iconName: '#iD-icon-rapid-minus-circle',
-        label: isMove ? 'Do not move' : t('rapid_feature_inspector.option_ignore.label'),
+        label: ignoreMessages[type],
         description: t('rapid_feature_inspector.option_ignore.description'),
         onClick: onIgnoreFeature
       }
@@ -310,7 +366,7 @@ export function uiRapidFeatureInspector(context, keybinding) {
 
     choicesEnter
       .append('p')
-      .text(isMove ? '❗✨ This node is in the wrong location! Do you want to move it?' : t('rapid_feature_inspector.prompt'));
+      .text(mainMessages[type]);
 
     choicesEnter.selectAll('.rapid-inspector-choice')
       .data(choiceData, d => d.key)
@@ -339,7 +395,7 @@ export function uiRapidFeatureInspector(context, keybinding) {
     const onClick = d.onClick;
     let choiceButton = choiceWrap
       .append('button')
-      .attr('class', `choice-button choice-button-${d.key} ${disableClass}`)
+      .attr('class', `choice-button choice-button-${d.key} ${disableClass} ${d.isDelete ? 'del-btn' : ''}`)
       .on('click', onClick);
 
     // build tooltips

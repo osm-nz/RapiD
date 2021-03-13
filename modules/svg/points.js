@@ -76,6 +76,12 @@ export function svgPoints(projection, context) {
 
         // Points with a direction will render as vertices at higher zooms..
         function renderAsPoint(entity) {
+            // don't render nodes that are meant to be deleted
+            const linzRef = entity.tags && entity.tags['ref:linz:address_id'];
+            /** @type {"done" | [lng: number, lat: number]} */
+            const coordsOrDone = ((window._dsState || {})[window._mostRecentDsId] || {})['SPECIAL_DELETE_' + linzRef];
+            if (linzRef && coordsOrDone && coordsOrDone !== 'done') return false;
+
             return entity.geometry(graph) === 'point' &&
                 !(zoom >= 18 && entity.directions(graph, projection).length);
         }
