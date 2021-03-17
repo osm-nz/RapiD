@@ -89569,7 +89569,7 @@
 	  return context;
 	}
 
-	var APIROOT = 'https://linz-addr.kyle.kiwi';
+	var APIROOT = 'https://linz-addr-cdn.kyle.kiwi';
 	var TILEZOOM = 14;
 	var tiler = utilTiler().zoomExtent([TILEZOOM, TILEZOOM]);
 	var dispatch$1 = dispatch('loadedData');

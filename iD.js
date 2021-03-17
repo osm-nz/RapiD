@@ -89895,7 +89895,7 @@
     return context;
   }
 
-  const APIROOT = 'https://linz-addr.kyle.kiwi';
+  const APIROOT = 'https://linz-addr-cdn.kyle.kiwi';
   const TILEZOOM = 14;
   const tiler = utilTiler().zoomExtent([TILEZOOM, TILEZOOM]);
   const dispatch$1 = dispatch('loadedData');
