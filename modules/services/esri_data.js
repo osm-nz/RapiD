@@ -7,7 +7,7 @@ import { osmNode, osmRelation, osmWay } from '../osm';
 import { utilRebind, utilTiler } from '../util';
 
 
-const APIROOT = 'https://linz-addr.kyle.kiwi';
+const APIROOT = 'https://linz-addr-cdn.kyle.kiwi';
 const TILEZOOM = 14;
 const tiler = utilTiler().zoomExtent([TILEZOOM, TILEZOOM]);
 const dispatch = d3_dispatch('loadedData');
