@@ -1308,7 +1308,7 @@
         },
         "rapid_splash": {
             "welcome": "LINZ Street Address Import",
-            "text": "Once you close this popup, click the {rapidicon} icon to select a suburb and start adding data. **NOTE: Don't waste your time yet!** Uploading to OSM is disabled until this project proposal is accepted by the community. See the [wiki page](https://wiki.openstreetmap.org/wiki/Import/New_Zealand_Street_Addresses_(2021)) for more info.",
+            "text": "Once you close this popup, click the {rapidicon} icon to select a suburb and start adding data. See the [wiki page](https://wiki.openstreetmap.org/wiki/Import/New_Zealand_Street_Addresses_(2021)) for more info.",
             "walkthrough": "Start the whole walkthrough",
             "skip_to_rapid": "Learn about RapiD!",
             "start": "Start"

@@ -82921,10 +82921,18 @@
 	        return d === '/Categories/Preview';
 	      });
 	    }).enter().append('div').attr('class', 'rapid-view-manage-dataset-beta beta').attr('title', _t('rapid_poweruser_features.beta'));
-	    labelsEnter.append('div').text(function (d) {
-	      return d.snippet;
+
+	    var extra = function extra(d) {
+	      var v = window.__locked[d.id];
+	      return v ? '<span style="color:red">Someone else is working on this dataset!</span>' : '';
+	    };
+
+	    labelsEnter.append('div').html(function (d) {
+	      return d.snippet + '<br />' + extra(d);
 	    });
-	    labelsEnter.append('button').attr('class', 'rapid-view-manage-dataset-action').on('click', toggleDataset);
+	    labelsEnter.append('button').attr('class', function (d) {
+	      return 'rapid-view-manage-dataset-action ' + (window.__locked[d.id] ? 'locked' : '');
+	    }).on('click', toggleDataset);
 	    var thumbsEnter = datasetsEnter.append('div').attr('class', 'rapid-view-manage-dataset-thumb');
 	    thumbsEnter.append('img').attr('class', 'rapid-view-manage-dataset-thumbnail').attr('src', function (d) {
 	      return d.thumbnail;
@@ -82961,6 +82969,18 @@
 	      ds.added = !ds.added;
 	    } else {
 	      // hasn't been added yet
+	      // warn if someone else is editting
+	      var inUse = window.__locked[d.id];
+
+	      if (inUse) {
+	        var _inUse = _slicedToArray(inUse, 2),
+	            user = _inUse[0],
+	            minutesAgo = _inUse[1];
+
+	        var msg = "Someone else (".concat(user, ") started editing ").concat(d.id, " ").concat(minutesAgo, " minutes ago. If you continue, you might override or duplicate their work!");
+	        if (!confirm(msg)) return;
+	      }
+
 	      var isBeta = d.groupCategories.some(function (d) {
 	        return d === '/Categories/Preview';
 	      });
@@ -89581,6 +89601,12 @@
 	var _loaded = {};
 	window._dsState = {};
 	window._mostRecentDsId = null;
+	window.__locked = {};
+	fetch(APIROOT + '/__locked').then(function (r) {
+	  return r.json();
+	}).then(function (obj) {
+	  return window.__locked = obj;
+	})["catch"](console.error);
 
 	function abortRequest(controller) {
 	  controller.abort();
@@ -89600,7 +89626,7 @@
 
 	function tileURL(dataset, extent) {
 	  var bbox = extent.toParam();
-	  return "".concat(dataset.url, "?geometry=").concat(bbox);
+	  return "".concat(dataset.url, "?geometry=").concat(bbox, "&u=").concat((window.__user || {}).display_name);
 	}
 
 	function parseTile(dataset, tile, geojson, callback) {
@@ -97197,6 +97223,9 @@
 	var serviceOsm = {
 	  init: function init() {
 	    utilRebind(this, dispatch$8, 'on');
+	    this.userDetails(function (_err, data) {
+	      return window.__user = data;
+	    });
 	  },
 	  reset: function reset() {
 	    Array.from(_deferred).forEach(function (handle) {

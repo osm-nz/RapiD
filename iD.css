@@ -4416,6 +4416,9 @@ hide this one and style something on top of it.  */
     margin: 10px 0;
     padding: 0 15px;
 }
+.ideditor .rapid-view-manage-dataset button.rapid-view-manage-dataset-action.locked {
+    background: #f44336!important;
+}
 .ideditor .rapid-view-manage-dataset-name {
     font-weight: bold;
 }

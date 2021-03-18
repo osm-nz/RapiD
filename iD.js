@@ -81115,13 +81115,18 @@
         .attr('class', 'rapid-view-manage-dataset-beta beta')
         .attr('title', _t('rapid_poweruser_features.beta'));
 
+      const extra = d => {
+        const v = window.__locked[d.id];
+        return v ? '<span style="color:red">Someone else is working on this dataset!</span>' : '';
+      };
+
       labelsEnter
         .append('div')
-        .text(d => d.snippet);
+        .html(d => d.snippet + '<br />' + extra(d));
 
       labelsEnter
         .append('button')
-        .attr('class', 'rapid-view-manage-dataset-action')
+        .attr('class', d => 'rapid-view-manage-dataset-action ' + (window.__locked[d.id] ? 'locked' : ''))
         .on('click', toggleDataset);
 
       let thumbsEnter = datasetsEnter
@@ -81177,6 +81182,16 @@
         ds.added = !ds.added;
 
       } else {  // hasn't been added yet
+
+        // warn if someone else is editting
+        const inUse = window.__locked[d.id];
+        if (inUse) {
+          const [user, minutesAgo] = inUse;
+          const msg = `Someone else (${user}) started editing ${d.id} ${minutesAgo} minutes ago. If you continue, you might override or duplicate their work!`;
+
+          if (!confirm(msg)) return;
+        }
+
         const isBeta = d.groupCategories.some(d => d === '/Categories/Preview');
         const isBuildings = d.groupCategories.some(d => d === '/Categories/Buildings');
 
@@ -89908,6 +89923,12 @@
   window._dsState = {};
   window._mostRecentDsId = null;
 
+  window.__locked = {};
+  fetch(APIROOT+'/__locked')
+    .then(r => r.json())
+    .then(obj => window.__locked = obj)
+    .catch(console.error);
+
 
   function abortRequest(controller) {
     controller.abort();
@@ -89930,7 +89951,7 @@
 
   function tileURL(dataset, extent) {
     const bbox = extent.toParam();
-    return `${dataset.url}?geometry=${bbox}`;
+    return `${dataset.url}?geometry=${bbox}&u=${(window.__user || {}).display_name}`;
   }
 
 
@@ -97707,6 +97728,8 @@
 
       init: function() {
           utilRebind(this, dispatch$8, 'on');
+
+          this.userDetails((_err, data) => window.__user = data);
       },
 
 
