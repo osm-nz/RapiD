@@ -388,6 +388,8 @@ export function uiCommit(context) {
                         if (!key) delete context.changeset.tags[key];
                     }
 
+                    fetch(window.APIROOT+'/__done/'+services.esriData.getLoadedDatasets().join(',').replace(/ /g, '-'));
+
                     context.uploader().save(context.changeset);
                 }
             });

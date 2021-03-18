@@ -278,7 +278,7 @@ export function uiRapidViewManageDatasets(context, parentModal) {
 
     const extra = d => {
       const v = window.__locked[d.id];
-      return v ? '<span style="color:red">Someone else is working on this dataset!</span>' : '';
+      return v ? `<span style="color:red">Someone else ${v[1] === 'done' ? 'may have already uploaded' : 'is working on'} this dataset!</span>` : '';
     };
 
     labelsEnter
@@ -348,7 +348,9 @@ export function uiRapidViewManageDatasets(context, parentModal) {
       const inUse = window.__locked[d.id];
       if (inUse) {
         const [user, minutesAgo] = inUse;
-        const msg = `Someone else (${user}) started editing ${d.id} ${minutesAgo} minutes ago. If you continue, you might override or duplicate their work!`;
+        const msg = minutesAgo === 'done'
+          ? 'This dataset may already have been uploaded by someone else!'
+          : `Someone else (${user}) started editing ${d.id} ${minutesAgo} minutes ago. If you continue, you might override or duplicate their work!`;
 
         if (!confirm(msg)) return;
       }

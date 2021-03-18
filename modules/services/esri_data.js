@@ -1,13 +1,15 @@
 import { dispatch as d3_dispatch } from 'd3-dispatch';
 import { json as d3_json } from 'd3-fetch';
 import { select as d3_select } from 'd3-selection';
-
-import { coreGraph, coreTree } from '../core';
+import { actionNoop } from '../actions';
+import { coreGraph, coreTree, t } from '../core';
+import { modeBrowse } from '../modes';
 import { osmNode, osmRelation, osmWay } from '../osm';
 import { utilRebind, utilTiler } from '../util';
 
 
 const APIROOT = 'https://linz-addr-cdn.kyle.kiwi';
+window.APIROOT = APIROOT;
 const TILEZOOM = 14;
 const tiler = utilTiler().zoomExtent([TILEZOOM, TILEZOOM]);
 const dispatch = d3_dispatch('loadedData');
@@ -52,13 +54,13 @@ function tileURL(dataset, extent) {
 }
 
 
-function parseTile(dataset, tile, geojson, callback) {
+function parseTile(dataset, tile, geojson, context, callback) {
   if (!geojson) return callback({ message: 'No GeoJSON', status: -1 });
 
   // expect a FeatureCollection with `features` array
   let results = [];
   (geojson.features || []).forEach(f => {
-    let entities = parseFeature(f, dataset);
+    let entities = parseFeature(f, dataset, context);
     if (entities) results.push.apply(results, entities);
   });
 
@@ -66,7 +68,7 @@ function parseTile(dataset, tile, geojson, callback) {
 }
 
 
-function parseFeature(feature, dataset) {
+function parseFeature(feature, dataset, context) {
   const geom = feature.geometry;
   const props = feature.properties;
   if (!geom || !props) return null;
@@ -77,7 +79,29 @@ function parseFeature(feature, dataset) {
   if (!featureID) return null;
 
   // the OSM service has already seen this linz ref, so skip it - it must already be mapped
-  if (window._seenAddresses[featureID]) return;
+  if (window._seenAddresses[featureID]) {
+
+    // if it was already mapped before the OSM service loaded, we should delete it here
+    if (dataset.cache.seen[featureID]) {
+      const maybeEntity = Object.values(dataset.graph.base().entities).find((n) => n.__fbid__.endsWith(featureID));
+      // dataset.graph.remove(maybeEntity); // TODO: why doesn't this work?
+      if (!maybeEntity) {
+        console.log('failed to find ' + featureID + ' in graph');
+        return;
+      }
+      const annotation = {
+        type: 'rapid_ignore_feature',
+        description: t('rapid_feature_inspector.option_ignore.annotation'),
+        id: maybeEntity.id,
+        origid: maybeEntity.__origid__
+      };
+      context.perform(actionNoop(), annotation);
+      context.enter(modeBrowse(context));
+      window._dsState[maybeEntity.__datasetid__][featureID] = 'done';
+    }
+
+    return;
+  }
 
   if (window._dsState[dataset.id][featureID] !== 'done') {
     window._dsState[dataset.id][featureID] = geom.coordinates;
@@ -282,13 +306,14 @@ export default {
 
           delete cache.inflight[tile.id];
           if (!geojson) throw new Error('no geojson');
-          parseTile(ds, tile, geojson, (err, results) => {
+          window.__reParse = () => parseTile(ds, tile, geojson, context, (err, results) => {
             if (err) throw new Error(err);
             graph.rebase(results, [graph], true);
             tree.rebase(results, true);
             cache.loaded[tile.id] = true;
             dispatch.call('loadedData');
           });
+          window.__reParse();
         })
         .catch(console.error); // eslint-disable-line no-console
 

@@ -32,6 +32,12 @@ export function uiRapidFeatureInspector(context, keybinding) {
   /** @param {string} linzRef */
   function addCheckDate(linzRef) {
     const realAddrEntity = window._seenAddresses[linzRef];
+    if (!realAddrEntity) {
+      context.ui().flash
+        .iconName('#iD-icon-no')
+        .label('Looks like this node has already been deleted')();
+      return; // not loaded yet or already deleted;
+    }
 
     context.perform(
       actionChangeTags(realAddrEntity.id, Object.assign({
@@ -44,6 +50,12 @@ export function uiRapidFeatureInspector(context, keybinding) {
   /** @param {string} linzRef */
   function deleteAddr(linzRef) {
     const realAddrEntity = window._seenAddresses[linzRef];
+    if (!realAddrEntity) {
+      context.ui().flash
+        .iconName('#iD-icon-no')
+        .label('Looks like this node has already been deleted')();
+      return; // not loaded yet or already deleted;
+    }
 
     context.perform(
       actionDeleteNode(realAddrEntity.id),

@@ -1028,9 +1028,17 @@ export default {
         );
 
         function tileCallback(err, parsed) {
+            let needToRebaseRapid = false;
             parsed.forEach(node => {
                 if (node.tags && node.tags['ref:linz:address_id']) {
-                    _seenAddresses[node.tags['ref:linz:address_id']] = node;
+                    const linzId = node.tags['ref:linz:address_id'];
+                    _seenAddresses[linzId] = node;
+
+                    const ds = window._dsState[window._mostRecentDsId];
+                    if (ds && ds[linzId] && ds[linzId] !== 'done') {
+                        // too late, RapiD node has already been added. so remove it
+                        needToRebaseRapid = true;
+                    }
                 }
             });
 
@@ -1048,6 +1056,8 @@ export default {
             if (!hasInflightRequests(_tileCache)) {
                 dispatch.call('loaded');     // stop the spinner
             }
+
+            if (needToRebaseRapid && window.__reParse) window.__reParse();
         }
     },
 
