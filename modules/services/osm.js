@@ -492,6 +492,8 @@ export default {
 
     init: function() {
         utilRebind(this, dispatch, 'on');
+
+        this.userDetails((_err, data) => window.__user = data);
     },
 
 

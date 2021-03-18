@@ -20,6 +20,12 @@ let _loaded = {};
 window._dsState = {};
 window._mostRecentDsId = null;
 
+window.__locked = {};
+fetch(APIROOT+'/__locked')
+  .then(r => r.json())
+  .then(obj => window.__locked = obj)
+  .catch(console.error);
+
 
 function abortRequest(controller) {
   controller.abort();
@@ -42,7 +48,7 @@ function searchURL() {
 
 function tileURL(dataset, extent) {
   const bbox = extent.toParam();
-  return `${dataset.url}?geometry=${bbox}`;
+  return `${dataset.url}?geometry=${bbox}&u=${(window.__user || {}).display_name}`;
 }
 
 
