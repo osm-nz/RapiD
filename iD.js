@@ -58767,8 +58767,7 @@
 
           var uploadButton = buttonEnter
               .append('button')
-              .attr('class', 'action button save-button')
-              .attr('disabled', true);
+              .attr('class', 'action button save-button');
 
           uploadButton.append('span')
               .attr('class', 'label')
@@ -58795,6 +58794,8 @@
                           // remove any empty keys before upload
                           if (!key) delete context.changeset.tags[key];
                       }
+
+                      fetch(window.APIROOT+'/__done/'+services.esriData.getLoadedDatasets().join(',').replace(/ /g, '-'));
 
                       context.uploader().save(context.changeset);
                   }
@@ -78986,6 +78987,12 @@
     /** @param {string} linzRef */
     function addCheckDate(linzRef) {
       const realAddrEntity = window._seenAddresses[linzRef];
+      if (!realAddrEntity) {
+        context.ui().flash
+          .iconName('#iD-icon-no')
+          .label('Looks like this node has already been deleted')();
+        return; // not loaded yet or already deleted;
+      }
 
       context.perform(
         actionChangeTags(realAddrEntity.id, Object.assign({
@@ -78998,6 +79005,12 @@
     /** @param {string} linzRef */
     function deleteAddr(linzRef) {
       const realAddrEntity = window._seenAddresses[linzRef];
+      if (!realAddrEntity) {
+        context.ui().flash
+          .iconName('#iD-icon-no')
+          .label('Looks like this node has already been deleted')();
+        return; // not loaded yet or already deleted;
+      }
 
       context.perform(
         actionDeleteNode(realAddrEntity.id),
@@ -81117,7 +81130,7 @@
 
       const extra = d => {
         const v = window.__locked[d.id];
-        return v ? '<span style="color:red">Someone else is working on this dataset!</span>' : '';
+        return v ? `<span style="color:red">Someone else ${v[1] === 'done' ? 'may have already uploaded' : 'is working on'} this dataset!</span>` : '';
       };
 
       labelsEnter
@@ -81187,7 +81200,9 @@
         const inUse = window.__locked[d.id];
         if (inUse) {
           const [user, minutesAgo] = inUse;
-          const msg = `Someone else (${user}) started editing ${d.id} ${minutesAgo} minutes ago. If you continue, you might override or duplicate their work!`;
+          const msg = minutesAgo === 'done'
+            ? 'This dataset may already have been uploaded by someone else!'
+            : `Someone else (${user}) started editing ${d.id} ${minutesAgo} minutes ago. If you continue, you might override or duplicate their work!`;
 
           if (!confirm(msg)) return;
         }
@@ -89911,6 +89926,7 @@
   }
 
   const APIROOT = 'https://linz-addr-cdn.kyle.kiwi';
+  window.APIROOT = APIROOT;
   const TILEZOOM = 14;
   const tiler = utilTiler().zoomExtent([TILEZOOM, TILEZOOM]);
   const dispatch$1 = dispatch('loadedData');
@@ -89955,13 +89971,13 @@
   }
 
 
-  function parseTile(dataset, tile, geojson, callback) {
+  function parseTile(dataset, tile, geojson, context, callback) {
     if (!geojson) return callback({ message: 'No GeoJSON', status: -1 });
 
     // expect a FeatureCollection with `features` array
     let results = [];
     (geojson.features || []).forEach(f => {
-      let entities = parseFeature(f, dataset);
+      let entities = parseFeature(f, dataset, context);
       if (entities) results.push.apply(results, entities);
     });
 
@@ -89969,7 +89985,7 @@
   }
 
 
-  function parseFeature(feature, dataset) {
+  function parseFeature(feature, dataset, context) {
     const geom = feature.geometry;
     const props = feature.properties;
     if (!geom || !props) return null;
@@ -89980,7 +89996,29 @@
     if (!featureID) return null;
 
     // the OSM service has already seen this linz ref, so skip it - it must already be mapped
-    if (window._seenAddresses[featureID]) return;
+    if (window._seenAddresses[featureID]) {
+
+      // if it was already mapped before the OSM service loaded, we should delete it here
+      if (dataset.cache.seen[featureID]) {
+        const maybeEntity = Object.values(dataset.graph.base().entities).find((n) => n.__fbid__.endsWith(featureID));
+        // dataset.graph.remove(maybeEntity); // TODO: why doesn't this work?
+        if (!maybeEntity) {
+          console.log('failed to find ' + featureID + ' in graph');
+          return;
+        }
+        const annotation = {
+          type: 'rapid_ignore_feature',
+          description: _t('rapid_feature_inspector.option_ignore.annotation'),
+          id: maybeEntity.id,
+          origid: maybeEntity.__origid__
+        };
+        context.perform(actionNoop(), annotation);
+        context.enter(modeBrowse(context));
+        window._dsState[maybeEntity.__datasetid__][featureID] = 'done';
+      }
+
+      return;
+    }
 
     if (window._dsState[dataset.id][featureID] !== 'done') {
       window._dsState[dataset.id][featureID] = geom.coordinates;
@@ -90185,13 +90223,14 @@
 
             delete cache.inflight[tile.id];
             if (!geojson) throw new Error('no geojson');
-            parseTile(ds, tile, geojson, (err, results) => {
+            window.__reParse = () => parseTile(ds, tile, geojson, context, (err, results) => {
               if (err) throw new Error(err);
               graph.rebase(results, [graph], true);
               tree.rebase(results, true);
               cache.loaded[tile.id] = true;
               dispatch$1.call('loadedData');
             });
+            window.__reParse();
           })
           .catch(console.error); // eslint-disable-line no-console
 
@@ -98264,9 +98303,17 @@
           );
 
           function tileCallback(err, parsed) {
+              let needToRebaseRapid = false;
               parsed.forEach(node => {
                   if (node.tags && node.tags['ref:linz:address_id']) {
-                      _seenAddresses[node.tags['ref:linz:address_id']] = node;
+                      const linzId = node.tags['ref:linz:address_id'];
+                      _seenAddresses[linzId] = node;
+
+                      const ds = window._dsState[window._mostRecentDsId];
+                      if (ds && ds[linzId] && ds[linzId] !== 'done') {
+                          // too late, RapiD node has already been added. so remove it
+                          needToRebaseRapid = true;
+                      }
                   }
               });
 
@@ -98284,6 +98331,8 @@
               if (!hasInflightRequests(_tileCache)) {
                   dispatch$8.call('loaded');     // stop the spinner
               }
+
+              if (needToRebaseRapid && window.__reParse) window.__reParse();
           }
       },
 

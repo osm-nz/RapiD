@@ -33969,6 +33969,39 @@
 	  return mode;
 	}
 
+	var getOwnPropertyDescriptor$5 = objectGetOwnPropertyDescriptor.f;
+
+
+
+
+
+
+	var nativeEndsWith = ''.endsWith;
+	var min$9 = Math.min;
+
+	var CORRECT_IS_REGEXP_LOGIC$1 = correctIsRegexpLogic('endsWith');
+	// https://github.com/zloirock/core-js/pull/702
+	var MDN_POLYFILL_BUG$1 =  !CORRECT_IS_REGEXP_LOGIC$1 && !!function () {
+	  var descriptor = getOwnPropertyDescriptor$5(String.prototype, 'endsWith');
+	  return descriptor && !descriptor.writable;
+	}();
+
+	// `String.prototype.endsWith` method
+	// https://tc39.es/ecma262/#sec-string.prototype.endswith
+	_export({ target: 'String', proto: true, forced: !MDN_POLYFILL_BUG$1 && !CORRECT_IS_REGEXP_LOGIC$1 }, {
+	  endsWith: function endsWith(searchString /* , endPosition = @length */) {
+	    var that = String(requireObjectCoercible(this));
+	    notARegexp(searchString);
+	    var endPosition = arguments.length > 1 ? arguments[1] : undefined;
+	    var len = toLength(that.length);
+	    var end = endPosition === undefined ? len : min$9(toLength(endPosition), len);
+	    var search = String(searchString);
+	    return nativeEndsWith
+	      ? nativeEndsWith.call(that, search, end)
+	      : that.slice(end - search.length, end) === search;
+	  }
+	});
+
 	/**
 	 * Checks if `value` is the
 	 * [language type](http://www.ecma-international.org/ecma-262/7.0/#sec-ecmascript-language-types)
@@ -61627,39 +61660,6 @@
 	  return utilRebind(textarea, dispatch$1, 'on');
 	}
 
-	var getOwnPropertyDescriptor$5 = objectGetOwnPropertyDescriptor.f;
-
-
-
-
-
-
-	var nativeEndsWith = ''.endsWith;
-	var min$9 = Math.min;
-
-	var CORRECT_IS_REGEXP_LOGIC$1 = correctIsRegexpLogic('endsWith');
-	// https://github.com/zloirock/core-js/pull/702
-	var MDN_POLYFILL_BUG$1 =  !CORRECT_IS_REGEXP_LOGIC$1 && !!function () {
-	  var descriptor = getOwnPropertyDescriptor$5(String.prototype, 'endsWith');
-	  return descriptor && !descriptor.writable;
-	}();
-
-	// `String.prototype.endsWith` method
-	// https://tc39.es/ecma262/#sec-string.prototype.endswith
-	_export({ target: 'String', proto: true, forced: !MDN_POLYFILL_BUG$1 && !CORRECT_IS_REGEXP_LOGIC$1 }, {
-	  endsWith: function endsWith(searchString /* , endPosition = @length */) {
-	    var that = String(requireObjectCoercible(this));
-	    notARegexp(searchString);
-	    var endPosition = arguments.length > 1 ? arguments[1] : undefined;
-	    var len = toLength(that.length);
-	    var end = endPosition === undefined ? len : min$9(toLength(endPosition), len);
-	    var search = String(searchString);
-	    return nativeEndsWith
-	      ? nativeEndsWith.call(that, search, end)
-	      : that.slice(end - search.length, end) === search;
-	  }
-	});
-
 	function uiFieldWikidata(field, context) {
 	  var wikidata = services.wikidata;
 	  var dispatch$1 = dispatch('change');
@@ -63981,7 +63981,7 @@
 
 	    var buttonEnter = buttonSection.enter().append('div').attr('class', 'buttons fillL');
 	    buttonEnter.append('button').attr('class', 'secondary-action button cancel-button').append('span').attr('class', 'label').html(_t.html('commit.cancel'));
-	    var uploadButton = buttonEnter.append('button').attr('class', 'action button save-button').attr('disabled', true);
+	    var uploadButton = buttonEnter.append('button').attr('class', 'action button save-button');
 	    uploadButton.append('span').attr('class', 'label').html(_t.html('commit.save'));
 	    var uploadBlockerTooltipText = getUploadBlockerMessage(); // update
 
@@ -63998,6 +63998,7 @@
 	          if (!key) delete context.changeset.tags[key];
 	        }
 
+	        fetch(window.APIROOT + '/__done/' + services.esriData.getLoadedDatasets().join(',').replace(/ /g, '-'));
 	        context.uploader().save(context.changeset);
 	      }
 	    }); // remove any existing tooltip
@@ -81398,6 +81399,12 @@
 
 	  function addCheckDate(linzRef) {
 	    var realAddrEntity = window._seenAddresses[linzRef];
+
+	    if (!realAddrEntity) {
+	      context.ui().flash.iconName('#iD-icon-no').label('Looks like this node has already been deleted')();
+	      return; // not loaded yet or already deleted;
+	    }
+
 	    context.perform(actionChangeTags(realAddrEntity.id, Object.assign({
 	      check_date: new Date().toISOString().split('T')[0]
 	    }, realAddrEntity.tags)), _t('operations.change_tags.annotation'));
@@ -81407,6 +81414,12 @@
 
 	  function deleteAddr(linzRef) {
 	    var realAddrEntity = window._seenAddresses[linzRef];
+
+	    if (!realAddrEntity) {
+	      context.ui().flash.iconName('#iD-icon-no').label('Looks like this node has already been deleted')();
+	      return; // not loaded yet or already deleted;
+	    }
+
 	    context.perform(actionDeleteNode(realAddrEntity.id), _t('operations.delete.annotation.point'));
 	  }
 
@@ -82924,7 +82937,7 @@
 
 	    var extra = function extra(d) {
 	      var v = window.__locked[d.id];
-	      return v ? '<span style="color:red">Someone else is working on this dataset!</span>' : '';
+	      return v ? "<span style=\"color:red\">Someone else ".concat(v[1] === 'done' ? 'may have already uploaded' : 'is working on', " this dataset!</span>") : '';
 	    };
 
 	    labelsEnter.append('div').html(function (d) {
@@ -82977,7 +82990,7 @@
 	            user = _inUse[0],
 	            minutesAgo = _inUse[1];
 
-	        var msg = "Someone else (".concat(user, ") started editing ").concat(d.id, " ").concat(minutesAgo, " minutes ago. If you continue, you might override or duplicate their work!");
+	        var msg = minutesAgo === 'done' ? 'This dataset may already have been uploaded by someone else!' : "Someone else (".concat(user, ") started editing ").concat(d.id, " ").concat(minutesAgo, " minutes ago. If you continue, you might override or duplicate their work!");
 	        if (!confirm(msg)) return;
 	      }
 
@@ -89590,6 +89603,7 @@
 	}
 
 	var APIROOT = 'https://linz-addr-cdn.kyle.kiwi';
+	window.APIROOT = APIROOT;
 	var TILEZOOM = 14;
 	var tiler = utilTiler().zoomExtent([TILEZOOM, TILEZOOM]);
 	var dispatch$1 = dispatch('loadedData');
@@ -89629,7 +89643,7 @@
 	  return "".concat(dataset.url, "?geometry=").concat(bbox, "&u=").concat((window.__user || {}).display_name);
 	}
 
-	function parseTile(dataset, tile, geojson, callback) {
+	function parseTile(dataset, tile, geojson, context, callback) {
 	  if (!geojson) return callback({
 	    message: 'No GeoJSON',
 	    status: -1
@@ -89637,20 +89651,44 @@
 
 	  var results = [];
 	  (geojson.features || []).forEach(function (f) {
-	    var entities = parseFeature(f, dataset);
+	    var entities = parseFeature(f, dataset, context);
 	    if (entities) results.push.apply(results, entities);
 	  });
 	  callback(null, results);
 	}
 
-	function parseFeature(feature, dataset) {
+	function parseFeature(feature, dataset, context) {
 	  var geom = feature.geometry;
 	  var props = feature.properties;
 	  if (!geom || !props) return null;
 	  var featureID = props[dataset.layer.idfield] || props.OBJECTID || props.FID || props.id;
 	  if (!featureID) return null; // the OSM service has already seen this linz ref, so skip it - it must already be mapped
 
-	  if (window._seenAddresses[featureID]) return;
+	  if (window._seenAddresses[featureID]) {
+	    // if it was already mapped before the OSM service loaded, we should delete it here
+	    if (dataset.cache.seen[featureID]) {
+	      var maybeEntity = Object.values(dataset.graph.base().entities).find(function (n) {
+	        return n.__fbid__.endsWith(featureID);
+	      }); // dataset.graph.remove(maybeEntity); // TODO: why doesn't this work?
+
+	      if (!maybeEntity) {
+	        console.log('failed to find ' + featureID + ' in graph');
+	        return;
+	      }
+
+	      var annotation = {
+	        type: 'rapid_ignore_feature',
+	        description: _t('rapid_feature_inspector.option_ignore.annotation'),
+	        id: maybeEntity.id,
+	        origid: maybeEntity.__origid__
+	      };
+	      context.perform(actionNoop(), annotation);
+	      context.enter(modeBrowse(context));
+	      window._dsState[maybeEntity.__datasetid__][featureID] = 'done';
+	    }
+
+	    return;
+	  }
 
 	  if (window._dsState[dataset.id][featureID] !== 'done') {
 	    window._dsState[dataset.id][featureID] = geom.coordinates;
@@ -89849,13 +89887,18 @@
 	        _loaded[datasetID] = true;
 	        delete cache.inflight[tile.id];
 	        if (!geojson) throw new Error('no geojson');
-	        parseTile(ds, tile, geojson, function (err, results) {
-	          if (err) throw new Error(err);
-	          graph.rebase(results, [graph], true);
-	          tree.rebase(results, true);
-	          cache.loaded[tile.id] = true;
-	          dispatch$1.call('loadedData');
-	        });
+
+	        window.__reParse = function () {
+	          return parseTile(ds, tile, geojson, context, function (err, results) {
+	            if (err) throw new Error(err);
+	            graph.rebase(results, [graph], true);
+	            tree.rebase(results, true);
+	            cache.loaded[tile.id] = true;
+	            dispatch$1.call('loadedData');
+	          });
+	        };
+
+	        window.__reParse();
 	      })["catch"](console.error); // eslint-disable-line no-console
 
 	      cache.inflight[tile.id] = controller;
@@ -97761,9 +97804,17 @@
 	    _tileCache.inflight[tile.id] = this.loadFromAPI(path + tile.extent.toParam(), tileCallback, options);
 
 	    function tileCallback(err, parsed) {
+	      var needToRebaseRapid = false;
 	      parsed.forEach(function (node) {
 	        if (node.tags && node.tags['ref:linz:address_id']) {
-	          _seenAddresses[node.tags['ref:linz:address_id']] = node;
+	          var linzId = node.tags['ref:linz:address_id'];
+	          _seenAddresses[linzId] = node;
+	          var ds = window._dsState[window._mostRecentDsId];
+
+	          if (ds && ds[linzId] && ds[linzId] !== 'done') {
+	            // too late, RapiD node has already been added. so remove it
+	            needToRebaseRapid = true;
+	          }
 	        }
 	      });
 	      delete _tileCache.inflight[tile.id];
@@ -97786,6 +97837,8 @@
 	      if (!hasInflightRequests(_tileCache)) {
 	        dispatch$8.call('loaded'); // stop the spinner
 	      }
+
+	      if (needToRebaseRapid && window.__reParse) window.__reParse();
 	    }
 	  },
 	  isDataLoaded: function isDataLoaded(loc) {
