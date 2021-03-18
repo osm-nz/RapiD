@@ -360,8 +360,7 @@ export function uiCommit(context) {
 
         var uploadButton = buttonEnter
             .append('button')
-            .attr('class', 'action button save-button')
-            .attr('disabled', true);
+            .attr('class', 'action button save-button');
 
         uploadButton.append('span')
             .attr('class', 'label')
