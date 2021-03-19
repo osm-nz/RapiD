@@ -33,7 +33,7 @@ export function modeRapidSelectFeatures(context, selectedDatum) {
 
   // class the data as selected, or return to browse mode if the data is gone
   function selectData(d3_event, drawn) {
-    let selection = context.surface().selectAll('.layer-ai-features .data' + selectedDatum.__fbid__);
+    let selection = context.surface().selectAll('.layer-ai-features .data' + btoa(selectedDatum.__fbid__).replace(/\=/g, ''));
 
     if (selection.empty()) {
       // Return to browse mode if selected DOM elements have

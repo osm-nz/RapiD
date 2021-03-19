@@ -160,10 +160,10 @@ export function behaviorHover(context) {
 
                 // What are we hovering over?
                 if (datum.__fbid__) {    // hovering a RapiD feature
-                    selector += ', .data' + datum.__fbid__;
+                    selector += ', .data' + btoa(datum.__fbid__).replace(/\=/g, '');
 
                 } else if (datum.__featurehash__) {  // hovering custom data
-                    selector += ', .data' + datum.__featurehash__;
+                    selector += ', .data' + btoa(datum.__featurehash__).replace(/\=/g, '');
 
                 } else if (datum instanceof QAItem) {
                     selector += ', .' + datum.service + '.itemId-' + datum.id;

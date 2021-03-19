@@ -90,7 +90,7 @@ export function uiCommit(context) {
         var tags = {
             comment: prefs('comment') || `LINZ address import for ${services.esriData.getLoadedDatasets().join(', ')}`,
             created_by: context.cleanTagValue('LINZ Address Import ' + context.rapidContext().version),
-            host: context.cleanTagValue('https://github.com/k-yle/linz-address-import'),
+            host: context.cleanTagValue('https://github.com/osm-nz/linz-address-import'),
             source: context.cleanTagValue('https://data.linz.govt.nz/layer/3353'),
             attribution: context.cleanTagValue('https://wiki.openstreetmap.org/wiki/Contributors#LINZ'),
             locale: context.cleanTagValue(localizer.localeCode())
