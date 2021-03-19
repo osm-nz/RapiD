@@ -31056,10 +31056,10 @@
 
 	        if (datum.__fbid__) {
 	          // hovering a RapiD feature
-	          selector += ', .data' + datum.__fbid__;
+	          selector += ', .data' + btoa(datum.__fbid__).replace(/\=/g, '');
 	        } else if (datum.__featurehash__) {
 	          // hovering custom data
-	          selector += ', .data' + datum.__featurehash__;
+	          selector += ', .data' + btoa(datum.__featurehash__).replace(/\=/g, '');
 	        } else if (datum instanceof QAItem) {
 	          selector += ', .' + datum.service + '.itemId-' + datum.id;
 	        } else if (datum instanceof osmNote) {
@@ -63792,7 +63792,7 @@
 	    var tags = {
 	      comment: corePreferences('comment') || "LINZ address import for ".concat(services.esriData.getLoadedDatasets().join(', ')),
 	      created_by: context.cleanTagValue('LINZ Address Import ' + context.rapidContext().version),
-	      host: context.cleanTagValue('https://github.com/k-yle/linz-address-import'),
+	      host: context.cleanTagValue('https://github.com/osm-nz/linz-address-import'),
 	      source: context.cleanTagValue('https://data.linz.govt.nz/layer/3353'),
 	      attribution: context.cleanTagValue('https://wiki.openstreetmap.org/wiki/Contributors#LINZ'),
 	      locale: context.cleanTagValue(_mainLocalizer.localeCode())
@@ -86233,7 +86233,7 @@
 	  var behaviors = [behaviorBreathe(), behaviorHover(context), behaviorSelect(context), behaviorLasso(context), modeDragNode(context).behavior, modeDragNote(context).behavior]; // class the data as selected, or return to browse mode if the data is gone
 
 	  function selectData(d3_event, drawn) {
-	    var selection = context.surface().selectAll('.layer-ai-features .data' + selectedDatum.__fbid__);
+	    var selection = context.surface().selectAll('.layer-ai-features .data' + btoa(selectedDatum.__fbid__).replace(/\=/g, ''));
 
 	    if (selection.empty()) {
 	      // Return to browse mode if selected DOM elements have
@@ -104262,7 +104262,7 @@
 	  var behaviors = [behaviorBreathe(), behaviorHover(context), behaviorSelect(context), behaviorLasso(context), modeDragNode(context).behavior, modeDragNote(context).behavior]; // class the data as selected, or return to browse mode if the data is gone
 
 	  function selectData(d3_event, drawn) {
-	    var selection = context.surface().selectAll('.layer-mapdata .data' + selectedDatum.__featurehash__);
+	    var selection = context.surface().selectAll('.layer-mapdata .data' + btoa(selectedDatum.__featurehash__).replace(/\=/g, ''));
 
 	    if (selection.empty()) {
 	      // Return to browse mode if selected DOM elements have
