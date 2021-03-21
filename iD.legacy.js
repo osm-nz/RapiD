@@ -82769,7 +82769,7 @@
 	function uiRapidViewManageDatasets(context, parentModal) {
 	  var rapidContext = context.rapidContext();
 	  var dispatch$1 = dispatch('done');
-	  var PERPAGE = 4;
+	  var PERPAGE = 8;
 
 	  var _content = select(null);
 
@@ -82926,9 +82926,6 @@
 	    labelsEnter.append('div').attr('class', 'rapid-view-manage-dataset-name').text(function (d) {
 	      return d.title;
 	    });
-	    labelsEnter.append('div').attr('class', 'rapid-view-manage-dataset-license').append('a').attr('class', 'rapid-view-manage-dataset-link').attr('target', '_blank').attr('href', function (d) {
-	      return d.itemURL;
-	    }).text(_t('rapid_feature_toggle.esri.more_info')).call(svgIcon('#iD-icon-out-link', 'inline'));
 	    labelsEnter.selectAll('.rapid-view-manage-dataset-beta').data(function (d) {
 	      return d.groupCategories.filter(function (d) {
 	        return d === '/Categories/Preview';
@@ -82945,11 +82942,7 @@
 	    });
 	    labelsEnter.append('button').attr('class', function (d) {
 	      return 'rapid-view-manage-dataset-action ' + (window.__locked[d.id] ? 'locked' : '');
-	    }).on('click', toggleDataset);
-	    var thumbsEnter = datasetsEnter.append('div').attr('class', 'rapid-view-manage-dataset-thumb');
-	    thumbsEnter.append('img').attr('class', 'rapid-view-manage-dataset-thumbnail').attr('src', function (d) {
-	      return d.thumbnail;
-	    }); // update
+	    }).on('click', toggleDataset); // update
 
 	    datasets = datasets.merge(datasetsEnter);
 	    datasets.selectAll('.rapid-view-manage-dataset-action').classed('secondary', function (d) {
@@ -82969,7 +82962,10 @@
 
 	    dots.exit().remove(); // enter/update
 
-	    dots.enter().append('span').attr('class', 'rapid-view-manage-page').html('&#11044;').on('click', clickPage).merge(dots).classed('current', function (d) {
+	    dots.enter().append('span').attr('class', 'rapid-view-manage-page').html(function (d) {
+	      var firstChar = ((_datasetInfo[d * PERPAGE] || {}).id || '').slice(0, 2);
+	      return firstChar || '&#11044;';
+	    }).on('click', clickPage).merge(dots).classed('current', function (d) {
 	      return d === currPage;
 	    });
 	  }
@@ -83255,7 +83251,7 @@
 	    return corePreferences("rapid-internal-feature.".concat(featureFlag)) === 'true';
 	  }
 
-	  function toggleFeature(featureFlag) {
+	  function toggleFeature(_, featureFlag) {
 	    var enabled = corePreferences("rapid-internal-feature.".concat(featureFlag)) === 'true';
 	    enabled = !enabled;
 	    corePreferences("rapid-internal-feature.".concat(featureFlag), enabled); // custom on-toggle behaviors can go here

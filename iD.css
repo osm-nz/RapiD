@@ -4306,18 +4306,22 @@ hide this one and style something on top of it.  */
     overflow-x: scroll;
 }
 .ideditor .rapid-view-manage-page {
-    font-size: 9px;
-    padding: 10px 4px 13px 4px;
     margin: 5px 2px;
-    border-radius: 5px;
     cursor: pointer;
+
+    font-weight: 800;
+    font-size: 12px;
+    background-color: #999;
+    border-radius: 100%;
+    padding: 5px;
+    line-height: 10px;
 }
 .ideditor .rapid-view-manage-page:hover {
     color: #ddd;
     background: #8885;
 }
 .ideditor .rapid-view-manage-page.current {
-    color: #da26d3;
+    background-color: #da26d3;
 }
 
 
