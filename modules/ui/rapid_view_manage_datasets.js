@@ -14,7 +14,7 @@ import { utilKeybinding, utilRebind, utilWrap } from '../util';
 export function uiRapidViewManageDatasets(context, parentModal) {
   const rapidContext = context.rapidContext();
   const dispatch = d3_dispatch('done');
-  const PERPAGE = 4;
+  const PERPAGE = 8;
 
   let _content = d3_select(null);
   let _datasetInfo;
@@ -259,16 +259,6 @@ export function uiRapidViewManageDatasets(context, parentModal) {
       .attr('class', 'rapid-view-manage-dataset-name')
       .text(d => d.title);
 
-    labelsEnter
-      .append('div')
-      .attr('class', 'rapid-view-manage-dataset-license')
-      .append('a')
-      .attr('class', 'rapid-view-manage-dataset-link')
-      .attr('target', '_blank')
-      .attr('href', d => d.itemURL)
-      .text(t('rapid_feature_toggle.esri.more_info'))
-      .call(svgIcon('#iD-icon-out-link', 'inline'));
-
     labelsEnter.selectAll('.rapid-view-manage-dataset-beta')
       .data(d => d.groupCategories.filter(d => d === '/Categories/Preview'))
       .enter()
@@ -289,15 +279,6 @@ export function uiRapidViewManageDatasets(context, parentModal) {
       .append('button')
       .attr('class', d => 'rapid-view-manage-dataset-action ' + (window.__locked[d.id] ? 'locked' : ''))
       .on('click', toggleDataset);
-
-    let thumbsEnter = datasetsEnter
-      .append('div')
-      .attr('class', 'rapid-view-manage-dataset-thumb');
-
-    thumbsEnter
-      .append('img')
-      .attr('class', 'rapid-view-manage-dataset-thumbnail')
-      .attr('src', d => d.thumbnail);
 
     // update
     datasets = datasets
@@ -328,7 +309,10 @@ export function uiRapidViewManageDatasets(context, parentModal) {
     dots.enter()
       .append('span')
       .attr('class', 'rapid-view-manage-page')
-      .html('&#11044;')
+      .html(d => {
+        const firstChar = ((_datasetInfo[d*PERPAGE] || {}).id || '').slice(0,2);
+        return firstChar || '&#11044;';
+      })
       .on('click', clickPage)
       .merge(dots)
       .classed('current', d => d === currPage);
