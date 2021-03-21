@@ -21,7 +21,7 @@ export function uiPanelHistory(context) {
 
         if (length) {
             // it's a way so next = [lng, lat][] not [lng, lat]
-            if (typeof next[0] === 'object') next = next[0];
+            while (typeof next[0] === 'object') next = next[0];
 
 
             selection

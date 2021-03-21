@@ -124,6 +124,9 @@ export function svgRapidFeatures(projection, context, dispatch) {
 
 
   function isArea(d) {
+    // d.isArea() using reference equality which is why it fails for geojson. So we have an override here
+    if ((d.tags['ref:linz:address_id'] || '').startsWith('SPECIAL_EDIT_')) return true;
+
     return (d.type === 'relation' || (d.type === 'way' && d.isArea()));
   }
 
@@ -177,7 +180,7 @@ export function svgRapidFeatures(projection, context, dispatch) {
     // enter
     let dsPatternsEnter = dsPatterns.enter()
       .append('pattern')
-      .attr('id', d => `fill-${d.id}`)
+      .attr('id', d => `fill-${btoa(d.id)}`)
       .attr('class', 'rapid-fill-pattern')
       .attr('width', 5)
       .attr('height', 15)
@@ -321,7 +324,7 @@ export function svgRapidFeatures(projection, context, dispatch) {
     // enter/update
     paths = paths.enter()
       .append('path')
-      .attr('style', d => isArea(d) ? `fill: url(#fill-${dataset.id})` : null)
+      .attr('style', d => isArea(d) ? `fill: url(#fill-${btoa(dataset.id)})` : null)
       .attr('class', (d, i, nodes) => {
         const currNode = nodes[i];
         const linegroup = currNode.parentNode.__data__;
