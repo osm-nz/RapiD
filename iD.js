@@ -48924,6 +48924,9 @@
 
 
     function isArea(d) {
+      // d.isArea() using reference equality which is why it fails for geojson. So we have an override here
+      if ((d.tags['ref:linz:address_id'] || '').startsWith('SPECIAL_EDIT_')) return true;
+
       return (d.type === 'relation' || (d.type === 'way' && d.isArea()));
     }
 
@@ -48977,7 +48980,7 @@
       // enter
       let dsPatternsEnter = dsPatterns.enter()
         .append('pattern')
-        .attr('id', d => `fill-${d.id}`)
+        .attr('id', d => `fill-${btoa(d.id)}`)
         .attr('class', 'rapid-fill-pattern')
         .attr('width', 5)
         .attr('height', 15)
@@ -49121,7 +49124,7 @@
       // enter/update
       paths = paths.enter()
         .append('path')
-        .attr('style', d => isArea(d) ? `fill: url(#fill-${dataset.id})` : null)
+        .attr('style', d => isArea(d) ? `fill: url(#fill-${btoa(dataset.id)})` : null)
         .attr('class', (d, i, nodes) => {
           const currNode = nodes[i];
           const linegroup = currNode.parentNode.__data__;
@@ -65565,7 +65568,7 @@
 
           if (length) {
               // it's a way so next = [lng, lat][] not [lng, lat]
-              if (typeof next[0] === 'object') next = next[0];
+              while (typeof next[0] === 'object') next = next[0];
 
 
               selection
@@ -78966,6 +78969,7 @@
 
   const MOVE_PREFIX = 'LOCATION_WRONG_SPECIAL_';
   const DELETE_PREFIX = 'SPECIAL_DELETE_';
+  const EDIT_PREFIX = 'SPECIAL_EDIT_';
 
 
   function uiRapidFeatureInspector(context, keybinding) {
@@ -79016,7 +79020,43 @@
         actionDeleteNode(realAddrEntity.id),
         _t('operations.delete.annotation.point')
       );
+    }
 
+    /**
+     * @param {string} linzRef
+     * @param {Record<string, string>} tags
+     * @returns {boolean} OK - whether the operation was sucessful
+     */
+    function editAddr(linzRef, _tags) {
+      // clone just in case
+      const tags = Object.assign({}, _tags);
+      delete tags['ref:linz:address_id'];
+
+      // if the ref has changed, u need to specify a tag called new_linz_ref=
+      if (tags.new_linz_ref) {
+       tags['ref:linz:address_id'] = tags.new_linz_ref;
+       delete tags.new_linz_ref;
+      }
+
+      const realAddrEntity = window._seenAddresses[linzRef];
+      if (!realAddrEntity) {
+        context.ui().flash
+          .iconName('#iD-icon-no')
+          .label('Looks like this node hasn\'t downloaded yet')();
+        return false; // not loaded yet so abort
+      }
+
+      const newTags = Object.assign({}, realAddrEntity.tags, tags);
+
+      for (const k in newTags) if (newTags[k] === '🗑️') delete newTags[k];
+
+
+      context.perform(
+        actionChangeTags(realAddrEntity.id, newTags),
+        _t('operations.change_tags.annotation')
+      );
+
+      return true; // OK
     }
 
 
@@ -79059,6 +79099,15 @@
 
       const id = _datum.__origid__.split('-')[1];
       window._dsState[_datum.__datasetid__][id] = 'done';
+
+      if (prefixedLinzRef.startsWith(EDIT_PREFIX)) {
+        // edit
+        const linzRef = prefixedLinzRef.slice(EDIT_PREFIX.length);
+        const ok = editAddr(linzRef, _datum.tags);
+        // switch to the ignore case because we don't want to actually create anything in the OSM graph
+        if (ok) onIgnoreFeature(true);
+        return;
+      }
 
       if (prefixedLinzRef.startsWith(DELETE_PREFIX)) {
         // delete
@@ -79128,8 +79177,13 @@
 
       if (fromAccept === true) return;
 
+      // if the user cancels a DELETE or EDIT, add a check_date= tag
       if (prefixedLinzRef.startsWith(DELETE_PREFIX)) {
         const linzRef = prefixedLinzRef && prefixedLinzRef.slice(DELETE_PREFIX.length);
+        addCheckDate(linzRef);
+      }
+      if (prefixedLinzRef.startsWith(EDIT_PREFIX)) {
+        const linzRef = prefixedLinzRef && prefixedLinzRef.slice(EDIT_PREFIX.length);
         addCheckDate(linzRef);
       }
 
@@ -79214,7 +79268,11 @@
         .attr('class', 'tag-heading')
         .text(_t('rapid_feature_inspector.tags'));
 
-      const tagEntries = Object.keys(tags).map(k => ({ key: k, value: tags[k] }) );
+      const tagEntries = Object.keys(tags).map(k => ({ key: k, value: tags[k] }) ).filter(kv => {
+        // if a special linz ref, hide this tag
+        if (kv.key === 'ref:linz:address_id' && kv.value.includes('SPECIAL_')) return false;
+        return true;
+      });
 
       tagEntries.forEach(e => {
         let entryDiv = tagBagEnter.append('div')
@@ -79282,26 +79340,31 @@
       const linzRef = _datum && _datum.tags &&_datum.tags['ref:linz:address_id'];
       const isMove = linzRef && linzRef.startsWith(MOVE_PREFIX);
       const isDelete = linzRef && linzRef.startsWith(DELETE_PREFIX);
-      const type = isMove ? 'move' : isDelete ? 'delete' : 'normal';
+      const isEdit = linzRef && linzRef.startsWith(EDIT_PREFIX);
+      const type = isEdit ? 'edit' : isMove ? 'move' : isDelete ? 'delete' : 'normal';
 
       const acceptMessages = {
         move: 'Move this address',
         normal: _t('rapid_feature_inspector.option_accept.label'),
+        edit: 'Edit this address',
         delete: 'Delete this address'
       };
       const acceptDescriptions = {
         move: 'Move the existing node to the new proposed location',
         normal: _t('rapid_feature_inspector.option_accept.description'),
+        edit: 'Update the tags on this node with the suggested changes',
         delete: 'Remove this node from OSM'
       };
       const ignoreMessages = {
         move: 'Do not move',
         normal:  _t('rapid_feature_inspector.option_ignore.label'),
+        edit: 'Do not edit',
         delete: 'Do not delete',
       };
       const mainMessages = {
         move: '❗✨ This node is in the wrong location! Do you want to move it?',
         delete: '❗🚮 This node has been deleted by LINZ! Do you want to delete it from OSM?',
+        edit: '❗🔁 Some tags on this address need changing!',
         normal: _t('rapid_feature_inspector.prompt')
       };
 

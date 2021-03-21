@@ -55468,6 +55468,8 @@
 	  }
 
 	  function isArea(d) {
+	    // d.isArea() using reference equality which is why it fails for geojson. So we have an override here
+	    if ((d.tags['ref:linz:address_id'] || '').startsWith('SPECIAL_EDIT_')) return true;
 	    return d.type === 'relation' || d.type === 'way' && d.isArea();
 	  }
 
@@ -55507,7 +55509,7 @@
 	    dsPatterns.exit().remove(); // enter
 
 	    var dsPatternsEnter = dsPatterns.enter().append('pattern').attr('id', function (d) {
-	      return "fill-".concat(d.id);
+	      return "fill-".concat(btoa(d.id));
 	    }).attr('class', 'rapid-fill-pattern').attr('width', 5).attr('height', 15).attr('patternUnits', 'userSpaceOnUse').attr('patternTransform', function (d, i) {
 	      var r = (45 + 67 * i) % 180; // generate something different for each layer
 
@@ -55618,7 +55620,7 @@
 	    paths.exit().remove(); // enter/update
 
 	    paths = paths.enter().append('path').attr('style', function (d) {
-	      return isArea(d) ? "fill: url(#fill-".concat(dataset.id, ")") : null;
+	      return isArea(d) ? "fill: url(#fill-".concat(btoa(dataset.id), ")") : null;
 	    }).attr('class', function (d, i, nodes) {
 	      var currNode = nodes[i];
 	      var linegroup = currNode.parentNode.__data__;
@@ -70060,7 +70062,10 @@
 
 	    if (length) {
 	      // it's a way so next = [lng, lat][] not [lng, lat]
-	      if (_typeof(next[0]) === 'object') next = next[0];
+	      while (_typeof(next[0]) === 'object') {
+	        next = next[0];
+	      }
+
 	      selection.append('span').html(length + ' addresses remaining');
 	      selection.append('button').html('Zoom to next').on('click', function () {
 	        return context.map().centerZoomEase(next,
@@ -81378,6 +81383,7 @@
 
 	var MOVE_PREFIX = 'LOCATION_WRONG_SPECIAL_';
 	var DELETE_PREFIX = 'SPECIAL_DELETE_';
+	var EDIT_PREFIX = 'SPECIAL_EDIT_';
 	function uiRapidFeatureInspector(context, keybinding) {
 	  var rapidContext = context.rapidContext();
 	  var ACCEPT_FEATURES_LIMIT = Infinity;
@@ -81422,6 +81428,39 @@
 
 	    context.perform(actionDeleteNode(realAddrEntity.id), _t('operations.delete.annotation.point'));
 	  }
+	  /**
+	   * @param {string} linzRef
+	   * @param {Record<string, string>} tags
+	   * @returns {boolean} OK - whether the operation was sucessful
+	   */
+
+
+	  function editAddr(linzRef, _tags) {
+	    // clone just in case
+	    var tags = Object.assign({}, _tags);
+	    delete tags['ref:linz:address_id']; // if the ref has changed, u need to specify a tag called new_linz_ref=
+
+	    if (tags.new_linz_ref) {
+	      tags['ref:linz:address_id'] = tags.new_linz_ref;
+	      delete tags.new_linz_ref;
+	    }
+
+	    var realAddrEntity = window._seenAddresses[linzRef];
+
+	    if (!realAddrEntity) {
+	      context.ui().flash.iconName('#iD-icon-no').label('Looks like this node hasn\'t downloaded yet')();
+	      return false; // not loaded yet so abort
+	    }
+
+	    var newTags = Object.assign({}, realAddrEntity.tags, tags);
+
+	    for (var k in newTags) {
+	      if (newTags[k] === '🗑️') delete newTags[k];
+	    }
+
+	    context.perform(actionChangeTags(realAddrEntity.id, newTags), _t('operations.change_tags.annotation'));
+	    return true; // OK
+	  }
 
 	  function onAcceptFeature() {
 	    if (!_datum) return;
@@ -81460,11 +81499,22 @@
 
 	    window._dsState[_datum.__datasetid__][id] = 'done';
 
+	    if (prefixedLinzRef.startsWith(EDIT_PREFIX)) {
+	      // edit
+	      var _linzRef = prefixedLinzRef.slice(EDIT_PREFIX.length);
+
+	      var _ok = editAddr(_linzRef, _datum.tags); // switch to the ignore case because we don't want to actually create anything in the OSM graph
+
+
+	      if (_ok) onIgnoreFeature(true);
+	      return;
+	    }
+
 	    if (prefixedLinzRef.startsWith(DELETE_PREFIX)) {
 	      // delete
-	      var _linzRef = prefixedLinzRef.slice(DELETE_PREFIX.length);
+	      var _linzRef2 = prefixedLinzRef.slice(DELETE_PREFIX.length);
 
-	      deleteAddr(_linzRef); // switch to the ingore case because we don't want to actually create anything in the OSM graph
+	      deleteAddr(_linzRef2); // switch to the ingore case because we don't want to actually create anything in the OSM graph
 
 	      onIgnoreFeature(true);
 	      return;
@@ -81516,22 +81566,28 @@
 	    var id = _datum.__origid__.split('-')[1];
 
 	    window._dsState[_datum.__datasetid__][id] = 'done';
-	    if (fromAccept === true) return;
+	    if (fromAccept === true) return; // if the user cancels a DELETE or EDIT, add a check_date= tag
 
 	    if (prefixedLinzRef.startsWith(DELETE_PREFIX)) {
 	      var linzRef = prefixedLinzRef && prefixedLinzRef.slice(DELETE_PREFIX.length);
 	      addCheckDate(linzRef);
 	    }
 
-	    if (prefixedLinzRef.startsWith(MOVE_PREFIX)) {
-	      var _linzRef2 = prefixedLinzRef && prefixedLinzRef.slice(MOVE_PREFIX.length);
+	    if (prefixedLinzRef.startsWith(EDIT_PREFIX)) {
+	      var _linzRef3 = prefixedLinzRef && prefixedLinzRef.slice(EDIT_PREFIX.length);
 
-	      if (!_linzRef2) {
+	      addCheckDate(_linzRef3);
+	    }
+
+	    if (prefixedLinzRef.startsWith(MOVE_PREFIX)) {
+	      var _linzRef4 = prefixedLinzRef && prefixedLinzRef.slice(MOVE_PREFIX.length);
+
+	      if (!_linzRef4) {
 	        alert('failed to find linzRef for move action');
 	        return;
 	      }
 
-	      addCheckDate(_linzRef2);
+	      addCheckDate(_linzRef4);
 	    }
 	  } // https://www.w3.org/TR/AERT#color-contrast
 	  // https://trendct.org/2016/01/22/how-to-choose-a-label-color-to-contrast-with-background/
@@ -81582,6 +81638,10 @@
 	        key: k,
 	        value: tags[k]
 	      };
+	    }).filter(function (kv) {
+	      // if a special linz ref, hide this tag
+	      if (kv.key === 'ref:linz:address_id' && kv.value.includes('SPECIAL_')) return false;
+	      return true;
 	    });
 	    tagEntries.forEach(function (e) {
 	      var entryDiv = tagBagEnter.append('div').attr('class', 'tag-entry');
@@ -81610,25 +81670,30 @@
 	    var linzRef = _datum && _datum.tags && _datum.tags['ref:linz:address_id'];
 	    var isMove = linzRef && linzRef.startsWith(MOVE_PREFIX);
 	    var isDelete = linzRef && linzRef.startsWith(DELETE_PREFIX);
-	    var type = isMove ? 'move' : isDelete ? 'delete' : 'normal';
+	    var isEdit = linzRef && linzRef.startsWith(EDIT_PREFIX);
+	    var type = isEdit ? 'edit' : isMove ? 'move' : isDelete ? 'delete' : 'normal';
 	    var acceptMessages = {
 	      move: 'Move this address',
 	      normal: _t('rapid_feature_inspector.option_accept.label'),
+	      edit: 'Edit this address',
 	      "delete": 'Delete this address'
 	    };
 	    var acceptDescriptions = {
 	      move: 'Move the existing node to the new proposed location',
 	      normal: _t('rapid_feature_inspector.option_accept.description'),
+	      edit: 'Update the tags on this node with the suggested changes',
 	      "delete": 'Remove this node from OSM'
 	    };
 	    var ignoreMessages = {
 	      move: 'Do not move',
 	      normal: _t('rapid_feature_inspector.option_ignore.label'),
+	      edit: 'Do not edit',
 	      "delete": 'Do not delete'
 	    };
 	    var mainMessages = {
 	      move: '❗✨ This node is in the wrong location! Do you want to move it?',
 	      "delete": '❗🚮 This node has been deleted by LINZ! Do you want to delete it from OSM?',
+	      edit: '❗🔁 Some tags on this address need changing!',
 	      normal: _t('rapid_feature_inspector.prompt')
 	    }; // Choices
 
