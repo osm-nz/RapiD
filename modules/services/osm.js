@@ -1030,7 +1030,8 @@ export default {
         function tileCallback(err, parsed) {
             let needToRebaseRapid = false;
             parsed.forEach(node => {
-                if (node.tags && node.tags['ref:linz:address_id']) {
+                if (!node.tags) return;
+                if (node.tags['ref:linz:address_id']) {
                     const linzId = node.tags['ref:linz:address_id'];
                     _seenAddresses[linzId] = node;
 
@@ -1039,6 +1040,8 @@ export default {
                         // too late, RapiD node has already been added. so remove it
                         needToRebaseRapid = true;
                     }
+                } else if (node.tags['addr:housenumber'] && node.tags['addr:street']) {
+                    _seenAddresses[`noRef|${node.id}`] = node;
                 }
             });
 

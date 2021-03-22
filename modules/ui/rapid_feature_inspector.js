@@ -36,7 +36,7 @@ export function uiRapidFeatureInspector(context, keybinding) {
     if (!realAddrEntity) {
       context.ui().flash
         .iconName('#iD-icon-no')
-        .label('Looks like this node has already been deleted')();
+        .label('Looks like this node has not loaded yet or has been deleted')();
       return; // not loaded yet or already deleted;
     }
 
@@ -80,7 +80,9 @@ export function uiRapidFeatureInspector(context, keybinding) {
      delete tags.new_linz_ref;
     }
 
-    const realAddrEntity = window._seenAddresses[linzRef];
+    const realAddrEntity = window._seenAddresses[linzRef] || window._seenAddresses[`noRef|${tags.osm_id}`];
+    delete tags.osm_id;
+
     if (!realAddrEntity) {
       context.ui().flash
         .iconName('#iD-icon-no')
