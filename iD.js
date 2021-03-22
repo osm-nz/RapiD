@@ -78994,7 +78994,7 @@
       if (!realAddrEntity) {
         context.ui().flash
           .iconName('#iD-icon-no')
-          .label('Looks like this node has already been deleted')();
+          .label('Looks like this node has not loaded yet or has been deleted')();
         return; // not loaded yet or already deleted;
       }
 
@@ -79038,7 +79038,9 @@
        delete tags.new_linz_ref;
       }
 
-      const realAddrEntity = window._seenAddresses[linzRef];
+      const realAddrEntity = window._seenAddresses[linzRef] || window._seenAddresses[`noRef|${tags.osm_id}`];
+      delete tags.osm_id;
+
       if (!realAddrEntity) {
         context.ui().flash
           .iconName('#iD-icon-no')
@@ -98352,7 +98354,8 @@
           function tileCallback(err, parsed) {
               let needToRebaseRapid = false;
               parsed.forEach(node => {
-                  if (node.tags && node.tags['ref:linz:address_id']) {
+                  if (!node.tags) return;
+                  if (node.tags['ref:linz:address_id']) {
                       const linzId = node.tags['ref:linz:address_id'];
                       _seenAddresses[linzId] = node;
 
@@ -98361,6 +98364,8 @@
                           // too late, RapiD node has already been added. so remove it
                           needToRebaseRapid = true;
                       }
+                  } else if (node.tags['addr:housenumber'] && node.tags['addr:street']) {
+                      _seenAddresses[`noRef|${node.id}`] = node;
                   }
               });
 

@@ -81407,7 +81407,7 @@
 	    var realAddrEntity = window._seenAddresses[linzRef];
 
 	    if (!realAddrEntity) {
-	      context.ui().flash.iconName('#iD-icon-no').label('Looks like this node has already been deleted')();
+	      context.ui().flash.iconName('#iD-icon-no').label('Looks like this node has not loaded yet or has been deleted')();
 	      return; // not loaded yet or already deleted;
 	    }
 
@@ -81445,7 +81445,9 @@
 	      delete tags.new_linz_ref;
 	    }
 
-	    var realAddrEntity = window._seenAddresses[linzRef];
+	    var realAddrEntity = window._seenAddresses[linzRef] || window._seenAddresses["noRef|".concat(tags.osm_id)];
+
+	    delete tags.osm_id;
 
 	    if (!realAddrEntity) {
 	      context.ui().flash.iconName('#iD-icon-no').label('Looks like this node hasn\'t downloaded yet')();
@@ -97867,7 +97869,9 @@
 	    function tileCallback(err, parsed) {
 	      var needToRebaseRapid = false;
 	      parsed.forEach(function (node) {
-	        if (node.tags && node.tags['ref:linz:address_id']) {
+	        if (!node.tags) return;
+
+	        if (node.tags['ref:linz:address_id']) {
 	          var linzId = node.tags['ref:linz:address_id'];
 	          _seenAddresses[linzId] = node;
 	          var ds = window._dsState[window._mostRecentDsId];
@@ -97876,6 +97880,8 @@
 	            // too late, RapiD node has already been added. so remove it
 	            needToRebaseRapid = true;
 	          }
+	        } else if (node.tags['addr:housenumber'] && node.tags['addr:street']) {
+	          _seenAddresses["noRef|".concat(node.id)] = node;
 	        }
 	      });
 	      delete _tileCache.inflight[tile.id];
