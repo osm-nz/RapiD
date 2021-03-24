@@ -1655,16 +1655,18 @@
     if ((step = tickIncrement(start, stop, count)) === 0 || !isFinite(step)) return [];
 
     if (step > 0) {
-      start = Math.ceil(start / step);
-      stop = Math.floor(stop / step);
-      ticks = new Array(n = Math.ceil(stop - start + 1));
-      while (++i < n) ticks[i] = (start + i) * step;
+      let r0 = Math.round(start / step), r1 = Math.round(stop / step);
+      if (r0 * step < start) ++r0;
+      if (r1 * step > stop) --r1;
+      ticks = new Array(n = r1 - r0 + 1);
+      while (++i < n) ticks[i] = (r0 + i) * step;
     } else {
       step = -step;
-      start = Math.ceil(start * step);
-      stop = Math.floor(stop * step);
-      ticks = new Array(n = Math.ceil(stop - start + 1));
-      while (++i < n) ticks[i] = (start + i) / step;
+      let r0 = Math.round(start * step), r1 = Math.round(stop * step);
+      if (r0 / step < start) ++r0;
+      if (r1 / step > stop) --r1;
+      ticks = new Array(n = r1 - r0 + 1);
+      while (++i < n) ticks[i] = (r0 + i) / step;
     }
 
     if (reverse) ticks.reverse();
@@ -28737,7 +28739,7 @@
     const dispatch$1 = dispatch('task_extent_set');
     let _rapidContext = {};
     _rapidContext.version = '1.1.1';
-    _rapidContext.showPowerUser = context.initialHashParams.poweruser === 'true';
+    _rapidContext.showPowerUser = true; // context.initialHashParams.poweruser === 'true';
 
     function distinct(value, index, self) {
       return self.indexOf(value) === index;
@@ -80931,7 +80933,7 @@
   function uiRapidViewManageDatasets(context, parentModal) {
     const rapidContext = context.rapidContext();
     const dispatch$1 = dispatch('done');
-    const PERPAGE = 8;
+    const PERPAGE = 6;
 
     let _content = select(null);
     let _datasetInfo;
@@ -81740,7 +81742,7 @@
 
     function renderFeatures(selection) {
       let rows = selection.selectAll('.rapid-checkbox-feature')
-        .data(featureFlags, d => d);
+        .data(featureFlags.filter(x => x === 'previewDatasets'), d => d);
 
       // enter
       let rowsEnter = rows.enter()
@@ -89911,7 +89913,7 @@
         context.undo = withDebouncedSave(_history.undo);
         context.redo = withDebouncedSave(_history.redo);
 
-        _rapidContext = coreRapidContext(context);
+        _rapidContext = coreRapidContext();
         _validator = coreValidator(context);
         _uploader = coreUploader(context);
 

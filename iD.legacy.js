@@ -9560,21 +9560,27 @@
 	  if ((step = tickIncrement(start, stop, count)) === 0 || !isFinite(step)) return [];
 
 	  if (step > 0) {
-	    start = Math.ceil(start / step);
-	    stop = Math.floor(stop / step);
-	    ticks = new Array(n = Math.ceil(stop - start + 1));
+	    var r0 = Math.round(start / step),
+	        r1 = Math.round(stop / step);
+	    if (r0 * step < start) ++r0;
+	    if (r1 * step > stop) --r1;
+	    ticks = new Array(n = r1 - r0 + 1);
 
 	    while (++i < n) {
-	      ticks[i] = (start + i) * step;
+	      ticks[i] = (r0 + i) * step;
 	    }
 	  } else {
 	    step = -step;
-	    start = Math.ceil(start * step);
-	    stop = Math.floor(stop * step);
-	    ticks = new Array(n = Math.ceil(stop - start + 1));
+
+	    var _r = Math.round(start * step),
+	        _r2 = Math.round(stop * step);
+
+	    if (_r / step < start) ++_r;
+	    if (_r2 / step > stop) --_r2;
+	    ticks = new Array(n = _r2 - _r + 1);
 
 	    while (++i < n) {
-	      ticks[i] = (start + i) / step;
+	      ticks[i] = (_r + i) / step;
 	    }
 	  }
 
@@ -37550,7 +37556,7 @@
 	  var dispatch$1 = dispatch('task_extent_set');
 	  var _rapidContext = {};
 	  _rapidContext.version = '1.1.1';
-	  _rapidContext.showPowerUser = context.initialHashParams.poweruser === 'true';
+	  _rapidContext.showPowerUser = true; // context.initialHashParams.poweruser === 'true';
 
 	  function distinct(value, index, self) {
 	    return self.indexOf(value) === index;
@@ -82836,7 +82842,7 @@
 	function uiRapidViewManageDatasets(context, parentModal) {
 	  var rapidContext = context.rapidContext();
 	  var dispatch$1 = dispatch('done');
-	  var PERPAGE = 8;
+	  var PERPAGE = 6;
 
 	  var _content = select(null);
 
@@ -83370,7 +83376,9 @@
 	  }
 
 	  function renderFeatures(selection) {
-	    var rows = selection.selectAll('.rapid-checkbox-feature').data(featureFlags, function (d) {
+	    var rows = selection.selectAll('.rapid-checkbox-feature').data(featureFlags.filter(function (x) {
+	      return x === 'previewDatasets';
+	    }), function (d) {
 	      return d;
 	    }); // enter
 
@@ -89599,7 +89607,7 @@
 	      context.overwrite = withDebouncedSave(_history.overwrite);
 	      context.undo = withDebouncedSave(_history.undo);
 	      context.redo = withDebouncedSave(_history.redo);
-	      _rapidContext = coreRapidContext(context);
+	      _rapidContext = coreRapidContext();
 	      _validator = coreValidator(context);
 	      _uploader = coreUploader(context);
 	      _background = rendererBackground(context);

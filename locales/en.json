@@ -1374,8 +1374,8 @@
         "rapid_poweruser_features": {
             "beta": "Beta Feature",
             "heading": {
-                "label": "RapiD Power User Features",
-                "description": "for RapiD Insiders"
+                "label": "Power User Features",
+                "description": ""
             },
             "previewDatasets": {
                 "label": "Show preview datasets",
