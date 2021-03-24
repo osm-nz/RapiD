@@ -128,7 +128,7 @@ export function uiRapidPowerUserFeaturesDialog(context) {
 
   function renderFeatures(selection) {
     let rows = selection.selectAll('.rapid-checkbox-feature')
-      .data(featureFlags, d => d);
+      .data(featureFlags.filter(x => x === 'previewDatasets'), d => d);
 
     // enter
     let rowsEnter = rows.enter()

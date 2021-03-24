@@ -14,7 +14,7 @@ import { utilKeybinding, utilRebind, utilWrap } from '../util';
 export function uiRapidViewManageDatasets(context, parentModal) {
   const rapidContext = context.rapidContext();
   const dispatch = d3_dispatch('done');
-  const PERPAGE = 8;
+  const PERPAGE = 6;
 
   let _content = d3_select(null);
   let _datasetInfo;
