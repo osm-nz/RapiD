@@ -112,7 +112,7 @@ export function uiRapidFeatureInspector(context, keybinding) {
       _datum.tags &&
       _datum.tags['ref:linz:address_id'];
 
-    if (_datum.__datasetid__ === 'ZZ Special Location Wrong') {
+    if (prefixedLinzRef && prefixedLinzRef.startsWith(MOVE_PREFIX)) {
       const linzRef = prefixedLinzRef && prefixedLinzRef.slice(MOVE_PREFIX.length);
 
       if (!linzRef) {
@@ -141,10 +141,10 @@ export function uiRapidFeatureInspector(context, keybinding) {
       return;
     }
 
-    const id = _datum.__origid__.split('-')[1];
+    const id = _datum.__origid__.split('-').slice(1).join('-');
     window._dsState[_datum.__datasetid__][id] = 'done';
 
-    if (prefixedLinzRef.startsWith(EDIT_PREFIX)) {
+    if (prefixedLinzRef && prefixedLinzRef.startsWith(EDIT_PREFIX)) {
       // edit
       const linzRef = prefixedLinzRef.slice(EDIT_PREFIX.length);
       const ok = editAddr(linzRef, _datum.tags);
@@ -153,7 +153,7 @@ export function uiRapidFeatureInspector(context, keybinding) {
       return;
     }
 
-    if (prefixedLinzRef.startsWith(DELETE_PREFIX)) {
+    if (prefixedLinzRef && prefixedLinzRef.startsWith(DELETE_PREFIX)) {
       // delete
       const linzRef = prefixedLinzRef.slice(DELETE_PREFIX.length);
       deleteAddr(linzRef);
@@ -408,7 +408,7 @@ export function uiRapidFeatureInspector(context, keybinding) {
     const mainMessages = {
       move: '❗✨ This node is in the wrong location! Do you want to move it?',
       delete: '❗🚮 This node has been deleted by LINZ! Do you want to delete it from OSM?',
-      edit: '❗🔁 Some tags on this address need changing!',
+      edit: '❗🔁 Some tags need changing on the address under this diamond!',
       normal: t('rapid_feature_inspector.prompt')
     };
 

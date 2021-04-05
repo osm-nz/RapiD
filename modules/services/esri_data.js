@@ -73,9 +73,9 @@ function parseFeature(feature, dataset, context) {
   const props = feature.properties;
   if (!geom || !props) return null;
 
+  const linzRefKey = Object.keys(props).find(x => x.startsWith('ref:linz:'));
 
-
-  const featureID = props[dataset.layer.idfield] || props.OBJECTID || props.FID || props.id;
+  const featureID = props[dataset.layer.idfield] || props[linzRefKey] || props.OBJECTID || props.FID || props.id;
   if (!featureID) return null;
 
   // the OSM service has already seen this linz ref, so skip it - it must already be mapped
@@ -180,7 +180,7 @@ function parseFeature(feature, dataset, context) {
   function parseTags(props) {
     let tags = {};
     Object.keys(props).forEach(prop => {
-      const k = clean(dataset.layer.tagmap[prop]);
+      const k = clean(dataset.layer.tagmap[prop] || prop);
       const v = clean(props[prop]);
       if (k && v) {
         tags[k] = v;
@@ -366,6 +366,7 @@ export default {
       return Promise.resolve(ds.layer);
     }
 
+    // heritage, no longer used.
     return Promise.resolve(_fields)
       .then(fields => {
         ds.layer = { fields };
