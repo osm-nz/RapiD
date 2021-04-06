@@ -23174,7 +23174,7 @@
     }
 
     function scale(x) {
-      return isNaN(x = +x) ? unknown : (output || (output = piecewise(domain.map(transform), range, interpolate$1)))(transform(clamp(x)));
+      return x == null || isNaN(x = +x) ? unknown : (output || (output = piecewise(domain.map(transform), range, interpolate$1)))(transform(clamp(x)));
     }
 
     scale.invert = function(y) {
@@ -23644,7 +23644,7 @@
         unknown;
 
     function scale(x) {
-      return x <= x ? range[bisectRight(domain, x, 0, n)] : unknown;
+      return x != null && x <= x ? range[bisectRight(domain, x, 0, n)] : unknown;
     }
 
     function rescale() {
@@ -79072,7 +79072,7 @@
         _datum.tags &&
         _datum.tags['ref:linz:address_id'];
 
-      if (_datum.__datasetid__ === 'ZZ Special Location Wrong') {
+      if (prefixedLinzRef && prefixedLinzRef.startsWith(MOVE_PREFIX)) {
         const linzRef = prefixedLinzRef && prefixedLinzRef.slice(MOVE_PREFIX.length);
 
         if (!linzRef) {
@@ -79101,10 +79101,10 @@
         return;
       }
 
-      const id = _datum.__origid__.split('-')[1];
+      const id = _datum.__origid__.split('-').slice(1).join('-');
       window._dsState[_datum.__datasetid__][id] = 'done';
 
-      if (prefixedLinzRef.startsWith(EDIT_PREFIX)) {
+      if (prefixedLinzRef && prefixedLinzRef.startsWith(EDIT_PREFIX)) {
         // edit
         const linzRef = prefixedLinzRef.slice(EDIT_PREFIX.length);
         const ok = editAddr(linzRef, _datum.tags);
@@ -79113,7 +79113,7 @@
         return;
       }
 
-      if (prefixedLinzRef.startsWith(DELETE_PREFIX)) {
+      if (prefixedLinzRef && prefixedLinzRef.startsWith(DELETE_PREFIX)) {
         // delete
         const linzRef = prefixedLinzRef.slice(DELETE_PREFIX.length);
         deleteAddr(linzRef);
@@ -79368,7 +79368,7 @@
       const mainMessages = {
         move: '❗✨ This node is in the wrong location! Do you want to move it?',
         delete: '❗🚮 This node has been deleted by LINZ! Do you want to delete it from OSM?',
-        edit: '❗🔁 Some tags on this address need changing!',
+        edit: '❗🔁 Some tags need changing on the address under this diamond!',
         normal: _t('rapid_feature_inspector.prompt')
       };
 
@@ -90041,9 +90041,9 @@
     const props = feature.properties;
     if (!geom || !props) return null;
 
+    const linzRefKey = Object.keys(props).find(x => x.startsWith('ref:linz:'));
 
-
-    const featureID = props[dataset.layer.idfield] || props.OBJECTID || props.FID || props.id;
+    const featureID = props[dataset.layer.idfield] || props[linzRefKey] || props.OBJECTID || props.FID || props.id;
     if (!featureID) return null;
 
     // the OSM service has already seen this linz ref, so skip it - it must already be mapped
@@ -90148,7 +90148,7 @@
     function parseTags(props) {
       let tags = {};
       Object.keys(props).forEach(prop => {
-        const k = clean(dataset.layer.tagmap[prop]);
+        const k = clean(dataset.layer.tagmap[prop] || prop);
         const v = clean(props[prop]);
         if (k && v) {
           tags[k] = v;
@@ -90334,6 +90334,7 @@
         return Promise.resolve(ds.layer);
       }
 
+      // heritage, no longer used.
       return Promise.resolve(_fields)
         .then(fields => {
           ds.layer = { fields };
