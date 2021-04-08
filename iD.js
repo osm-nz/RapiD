@@ -80930,6 +80930,8 @@
     return utilRebind(render, dispatch$1, 'on');
   }
 
+  let popupOpen = false;
+
   function uiRapidViewManageDatasets(context, parentModal) {
     const rapidContext = context.rapidContext();
     const dispatch$1 = dispatch('done');
@@ -80971,6 +80973,14 @@
 
 
     function render() {
+      if (!popupOpen) {
+        popupOpen = true;
+        const w = window.open('https://linz-addr.kyle.kiwi/map', '', 'width=800,height=600');
+        w.onunload = () => {
+          popupOpen = false;
+        };
+      }
+
       // Unfortunately `uiModal` is written in a way that there can be only one at a time.
       // So we have to roll our own modal here instead of just creating a second `uiModal`.
       let shaded = context.container().selectAll('.shaded');  // container for the existing modal
@@ -81295,6 +81305,20 @@
       context.enter(modeBrowse(context));   // return to browse mode (in case something was selected)
       context.map().pan([0,0]);             // trigger a map redraw
     }
+
+    window.addEventListener('message', (event) => {
+      if (typeof event.data === 'string' && event.data.startsWith('ADD_SECTOR=')) {
+        const [, sector] = event.data.split('=');
+        if (!_datasetInfo) {
+          alert('please wait for datasets to load');
+          return;
+        }
+        const d = _datasetInfo.find(x => x.id === sector);
+        console.log('Loaded', d.name);
+        toggleDataset(null, d);
+        setTimeout(_myClose, 500); // short delay need because the modal needs to re-render after toggling the dataset
+      }
+    }, false);
 
 
     function datasetAdded(d) {

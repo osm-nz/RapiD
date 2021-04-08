@@ -229,7 +229,7 @@
 	(module.exports = function (key, value) {
 	  return sharedStore[key] || (sharedStore[key] = value !== undefined ? value : {});
 	})('versions', []).push({
-	  version: '3.10.0',
+	  version: '3.10.1',
 	  mode:  'global',
 	  copyright: '© 2021 Denis Pushkarev (zloirock.ru)'
 	});
@@ -2610,7 +2610,7 @@
 	  return ITERATION_SUPPORT;
 	};
 
-	var engineIsIos = /(iphone|ipod|ipad).*applewebkit/i.test(engineUserAgent);
+	var engineIsIos = /(?:iphone|ipod|ipad).*applewebkit/i.test(engineUserAgent);
 
 	var location$1 = global_1.location;
 	var set$2 = global_1.setImmediate;
@@ -5714,9 +5714,6 @@
 	};
 
 	var nativeExec = RegExp.prototype.exec;
-	// This always refers to the native implementation, because the
-	// String#replace polyfill uses ./fix-regexp-well-known-symbol-logic.js,
-	// which loads this file before patching the method.
 	var nativeReplace = shared('native-string-replace', String.prototype.replace);
 
 	var patchedExec = nativeExec;
@@ -5811,7 +5808,6 @@
 
 
 
-
 	var SPECIES$6 = wellKnownSymbol('species');
 
 	var REPLACE_SUPPORTS_NAMED_GROUPS = !fails(function () {
@@ -5900,7 +5896,7 @@
 	  ) {
 	    var nativeRegExpMethod = /./[SYMBOL];
 	    var methods = exec(SYMBOL, ''[KEY], function (nativeMethod, regexp, str, arg2, forceStringMethod) {
-	      if (regexp.exec === regexpExec) {
+	      if (regexp.exec === RegExp.prototype.exec) {
 	        if (DELEGATES_TO_SYMBOL && !forceStringMethod) {
 	          // The native String method already delegates to @@method (this
 	          // polyfilled function), leasing to infinite recursion.
@@ -6095,12 +6091,10 @@
 	  return isObject(it) && ((isRegExp = it[MATCH]) !== undefined ? !!isRegExp : classofRaw(it) == 'RegExp');
 	};
 
+	var UNSUPPORTED_Y$2 = regexpStickyHelpers.UNSUPPORTED_Y;
 	var arrayPush = [].push;
 	var min$5 = Math.min;
 	var MAX_UINT32 = 0xFFFFFFFF;
-
-	// babel-minify transpiles RegExp('x', 'y') -> /x/y and it causes SyntaxError
-	var SUPPORTS_Y = !fails(function () { return !RegExp(MAX_UINT32, 'y'); });
 
 	// @@split logic
 	fixRegexpWellKnownSymbolLogic('split', 2, function (SPLIT, nativeSplit, maybeCallNative) {
@@ -6184,11 +6178,11 @@
 	      var flags = (rx.ignoreCase ? 'i' : '') +
 	                  (rx.multiline ? 'm' : '') +
 	                  (rx.unicode ? 'u' : '') +
-	                  (SUPPORTS_Y ? 'y' : 'g');
+	                  (UNSUPPORTED_Y$2 ? 'g' : 'y');
 
 	      // ^(? + rx + ) is needed, in combination with some S slicing, to
 	      // simulate the 'y' flag.
-	      var splitter = new C(SUPPORTS_Y ? rx : '^(?:' + rx.source + ')', flags);
+	      var splitter = new C(UNSUPPORTED_Y$2 ? '^(?:' + rx.source + ')' : rx, flags);
 	      var lim = limit === undefined ? MAX_UINT32 : limit >>> 0;
 	      if (lim === 0) return [];
 	      if (S.length === 0) return regexpExecAbstract(splitter, S) === null ? [S] : [];
@@ -6196,12 +6190,12 @@
 	      var q = 0;
 	      var A = [];
 	      while (q < S.length) {
-	        splitter.lastIndex = SUPPORTS_Y ? q : 0;
-	        var z = regexpExecAbstract(splitter, SUPPORTS_Y ? S : S.slice(q));
+	        splitter.lastIndex = UNSUPPORTED_Y$2 ? 0 : q;
+	        var z = regexpExecAbstract(splitter, UNSUPPORTED_Y$2 ? S.slice(q) : S);
 	        var e;
 	        if (
 	          z === null ||
-	          (e = min$5(toLength(splitter.lastIndex + (SUPPORTS_Y ? 0 : q)), S.length)) === p
+	          (e = min$5(toLength(splitter.lastIndex + (UNSUPPORTED_Y$2 ? q : 0)), S.length)) === p
 	        ) {
 	          q = advanceStringIndex(S, q, unicodeMatching);
 	        } else {
@@ -6218,7 +6212,7 @@
 	      return A;
 	    }
 	  ];
-	}, !SUPPORTS_Y);
+	}, UNSUPPORTED_Y$2);
 
 	// a string of all valid unicode whitespaces
 	var whitespaces = '\u0009\u000A\u000B\u000C\u000D\u0020\u00A0\u1680\u2000\u2001\u2002' +
@@ -14542,9 +14536,9 @@
 	// "new" should create a new object, old webkit bug
 	var CORRECT_NEW = new NativeRegExp(re1) !== re1;
 
-	var UNSUPPORTED_Y$2 = regexpStickyHelpers.UNSUPPORTED_Y;
+	var UNSUPPORTED_Y$3 = regexpStickyHelpers.UNSUPPORTED_Y;
 
-	var FORCED$b = descriptors && isForced_1('RegExp', (!CORRECT_NEW || UNSUPPORTED_Y$2 || fails(function () {
+	var FORCED$b = descriptors && isForced_1('RegExp', (!CORRECT_NEW || UNSUPPORTED_Y$3 || fails(function () {
 	  re2[MATCH$1] = false;
 	  // RegExp constructor can alter flags and IsRegExp works correct with @@match
 	  return NativeRegExp(re1) != re1 || NativeRegExp(re2) == re2 || NativeRegExp(re1, 'i') != '/a/i';
@@ -14570,7 +14564,7 @@
 	      pattern = pattern.source;
 	    }
 
-	    if (UNSUPPORTED_Y$2) {
+	    if (UNSUPPORTED_Y$3) {
 	      sticky = !!flags && flags.indexOf('y') > -1;
 	      if (sticky) flags = flags.replace(/y/g, '');
 	    }
@@ -14581,7 +14575,7 @@
 	      RegExpWrapper
 	    );
 
-	    if (UNSUPPORTED_Y$2 && sticky) setInternalState$8(result, { sticky: sticky });
+	    if (UNSUPPORTED_Y$3 && sticky) setInternalState$8(result, { sticky: sticky });
 
 	    return result;
 	  };
@@ -29021,12 +29015,12 @@
 	  return action;
 	}
 
-	var UNSUPPORTED_Y$3 = regexpStickyHelpers.UNSUPPORTED_Y;
+	var UNSUPPORTED_Y$4 = regexpStickyHelpers.UNSUPPORTED_Y;
 
 	// `RegExp.prototype.flags` getter
 	// https://tc39.es/ecma262/#sec-get-regexp.prototype.flags
 	// eslint-disable-next-line es/no-regexp-prototype-flags -- required for testing
-	if (descriptors && (/./g.flags != 'g' || UNSUPPORTED_Y$3)) {
+	if (descriptors && (/./g.flags != 'g' || UNSUPPORTED_Y$4)) {
 	  objectDefineProperty.f(RegExp.prototype, 'flags', {
 	    configurable: true,
 	    get: regexpFlags
@@ -82893,6 +82887,7 @@
 	  return utilRebind(render, dispatch$1, 'on');
 	}
 
+	var popupOpen = false;
 	function uiRapidViewManageDatasets(context, parentModal) {
 	  var rapidContext = context.rapidContext();
 	  var dispatch$1 = dispatch('done');
@@ -82932,8 +82927,17 @@
 	  }
 
 	  function render() {
-	    // Unfortunately `uiModal` is written in a way that there can be only one at a time.
+	    if (!popupOpen) {
+	      popupOpen = true;
+	      var w = window.open('https://linz-addr.kyle.kiwi/map', '', 'width=800,height=600');
+
+	      w.onunload = function () {
+	        popupOpen = false;
+	      };
+	    } // Unfortunately `uiModal` is written in a way that there can be only one at a time.
 	    // So we have to roll our own modal here instead of just creating a second `uiModal`.
+
+
 	    var shaded = context.container().selectAll('.shaded'); // container for the existing modal
 
 	    if (shaded.empty()) return;
@@ -83159,6 +83163,27 @@
 
 	    context.map().pan([0, 0]); // trigger a map redraw
 	  }
+
+	  window.addEventListener('message', function (event) {
+	    if (typeof event.data === 'string' && event.data.startsWith('ADD_SECTOR=')) {
+	      var _event$data$split = event.data.split('='),
+	          _event$data$split2 = _slicedToArray(_event$data$split, 2),
+	          sector = _event$data$split2[1];
+
+	      if (!_datasetInfo) {
+	        alert('please wait for datasets to load');
+	        return;
+	      }
+
+	      var d = _datasetInfo.find(function (x) {
+	        return x.id === sector;
+	      });
+
+	      console.log('Loaded', d.name);
+	      toggleDataset(null, d);
+	      setTimeout(_myClose, 500); // short delay need because the modal needs to re-render after toggling the dataset
+	    }
+	  }, false);
 
 	  function datasetAdded(d) {
 	    var datasets = rapidContext.datasets();
