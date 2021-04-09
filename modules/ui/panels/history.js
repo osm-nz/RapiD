@@ -1,10 +1,33 @@
 import { t } from '../../core/localizer';
+import { utilKeybinding } from '../../util';
 
 /**
  * We've re-purposed this panel to be the status panel for addresses
  */
 
 export function uiPanelHistory(context) {
+    function getNext() {
+        const data = window._dsState[window._mostRecentDsId];
+        let { 0: next, length } = Object.values(data).filter(x => x !== 'done');
+
+        if (!next) return { length: 0 };
+
+        // it's a way or relation so next = [lng, lat][] or [lng, lat][][] not [lng, lat]
+        while (typeof next[0] === 'object') next = next[0];
+
+        return { next, length };
+    }
+    function toNext() {
+        const { next } = getNext();
+        context.map().centerZoomEase(next, /* zoom */ 18, /* transition time */ 0);
+
+        // TODO: select the RapiD feature here
+        // context
+        //     .selectedNoteID(null)
+        //     .selectedErrorID(null)
+        //     .enter(modeRapidSelectFeatures(context, datum));
+    }
+
     function redraw(selection) {
         selection.html('');
 
@@ -16,14 +39,9 @@ export function uiPanelHistory(context) {
         }
         panel.label = 'Status of ' + window._mostRecentDsId;
 
-        const data = window._dsState[window._mostRecentDsId];
-        let { 0: next, length } = Object.values(data).filter(x => x !== 'done');
 
+        const { length } = getNext();
         if (length) {
-            // it's a way so next = [lng, lat][] not [lng, lat]
-            while (typeof next[0] === 'object') next = next[0];
-
-
             selection
                 .append('span')
                 .html(length + ' addresses remaining');
@@ -31,7 +49,8 @@ export function uiPanelHistory(context) {
             selection
                 .append('button')
                 .html('Zoom to next')
-                .on('click', () => context.map().centerZoomEase(next, /* zoom */ 18, /* transition time */ 0));
+                .on('click', toNext);
+
         } else {
             selection
                 .append('span')
@@ -64,6 +83,9 @@ export function uiPanelHistory(context) {
     panel.key = t('info_panels.history.key');
 
 
+
+    const keybinding = utilKeybinding('statusPanel');
+    keybinding().on('G', toNext);
+
     return panel;
 }
-
