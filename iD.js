@@ -65554,6 +65554,25 @@
    */
 
   function uiPanelHistory(context) {
+      function getNext() {
+          const data = window._dsState[window._mostRecentDsId];
+          let { 0: next, length } = Object.values(data).filter(x => x !== 'done');
+
+          return { next, length };
+      }
+      function toNext() {
+          const { next } = getNext();
+          if (!next) return;
+
+          context.map().centerZoomEase(next.geo || next.fromLoc, /* zoom */ 18, /* transition time */ 0);
+
+          // select the RapiD feature to open the sidebar
+          context
+              .selectedNoteID(null)
+              .selectedErrorID(null)
+              .enter(modeRapidSelectFeatures(context, next.feat));
+      }
+
       function redraw(selection) {
           selection.html('');
 
@@ -65565,14 +65584,9 @@
           }
           panel.label = 'Status of ' + window._mostRecentDsId;
 
-          const data = window._dsState[window._mostRecentDsId];
-          let { 0: next, length } = Object.values(data).filter(x => x !== 'done');
 
+          const { length } = getNext();
           if (length) {
-              // it's a way so next = [lng, lat][] not [lng, lat]
-              while (typeof next[0] === 'object') next = next[0];
-
-
               selection
                   .append('span')
                   .html(length + ' addresses remaining');
@@ -65580,7 +65594,8 @@
               selection
                   .append('button')
                   .html('Zoom to next')
-                  .on('click', () => context.map().centerZoomEase(next, /* zoom */ 18, /* transition time */ 0));
+                  .on('click', toNext);
+
           } else {
               selection
                   .append('span')
@@ -65612,6 +65627,10 @@
       panel.label = 'Status';
       panel.key = _t('info_panels.history.key');
 
+
+
+      const keybinding = utilKeybinding('statusPanel');
+      keybinding().on('G', toNext);
 
       return panel;
   }
@@ -79080,7 +79099,7 @@
           return;
         }
 
-        const [fromLoc, toLoc] = window._dsState[_datum.__datasetid__][prefixedLinzRef];
+        const { fromLoc, toLoc } = window._dsState[_datum.__datasetid__][prefixedLinzRef];
         const realAddrEntity = window._seenAddresses[linzRef];
 
         const ok = window.__moveNodeHook(realAddrEntity, fromLoc, toLoc);
@@ -90095,10 +90114,6 @@
       return;
     }
 
-    if (window._dsState[dataset.id][featureID] !== 'done') {
-      window._dsState[dataset.id][featureID] = geom.coordinates;
-    }
-
     // skip if we've seen this feature already on another tile
     if (dataset.cache.seen[featureID]) return null;
     dataset.cache.seen[featureID] = true;
@@ -90110,7 +90125,14 @@
 
     // Point:  make a single node
     if (geom.type === 'Point') {
-      return [ new osmNode({ loc: geom.coordinates, tags: parseTags(props) }, meta) ];
+      const node = new osmNode({ loc: geom.coordinates, tags: parseTags(props) }, meta);
+
+      // for normal address points
+      if (window._dsState[dataset.id][featureID] !== 'done') {
+        window._dsState[dataset.id][featureID] = { feat: node, geo: geom.coordinates };
+      }
+
+      return [node];
 
     // LineString:  make nodes, single way
     } else if (geom.type === 'LineString') {
@@ -90119,6 +90141,12 @@
 
       const w = new osmWay({ nodes: nodelist, tags: parseTags(props) }, meta);
       entities.push(w);
+
+      // for the location-wrong line
+      if (window._dsState[dataset.id][featureID] !== 'done') {
+        window._dsState[dataset.id][featureID] = { feat: w, fromLoc: geom.coordinates[0], toLoc: geom.coordinates[1] };
+      }
+
       return entities;
 
     // Polygon:  make nodes, way(s), possibly a relation
@@ -90137,9 +90165,14 @@
       });
 
       if (ways.length === 1) {  // single ring, assign tags and return
-        entities.push(
-          ways[0].update( Object.assign({ tags: parseTags(props) }, meta) )
-        );
+        const updatedWay = ways[0].update( Object.assign({ tags: parseTags(props) }, meta) );
+        entities.push(updatedWay);
+
+        // for address-modification diamonds
+        if (window._dsState[dataset.id][featureID] !== 'done') {
+          window._dsState[dataset.id][featureID] = { feat: updatedWay, geo: geom.coordinates[0][0] };
+        }
+
       } else {  // multiple rings, make a multipolygon relation with inner/outer members
         const members = ways.map((w, i) => {
           entities.push(w);

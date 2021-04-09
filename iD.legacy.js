@@ -825,138 +825,6 @@
 	// https://tc39.es/ecma262/#sec-symbol.iterator
 	defineWellKnownSymbol('iterator');
 
-	var TO_STRING_TAG = wellKnownSymbol('toStringTag');
-	var test = {};
-
-	test[TO_STRING_TAG] = 'z';
-
-	var toStringTagSupport = String(test) === '[object z]';
-
-	var TO_STRING_TAG$1 = wellKnownSymbol('toStringTag');
-	// ES3 wrong here
-	var CORRECT_ARGUMENTS = classofRaw(function () { return arguments; }()) == 'Arguments';
-
-	// fallback for IE11 Script Access Denied error
-	var tryGet = function (it, key) {
-	  try {
-	    return it[key];
-	  } catch (error) { /* empty */ }
-	};
-
-	// getting tag from ES6+ `Object.prototype.toString`
-	var classof = toStringTagSupport ? classofRaw : function (it) {
-	  var O, tag, result;
-	  return it === undefined ? 'Undefined' : it === null ? 'Null'
-	    // @@toStringTag case
-	    : typeof (tag = tryGet(O = Object(it), TO_STRING_TAG$1)) == 'string' ? tag
-	    // builtinTag case
-	    : CORRECT_ARGUMENTS ? classofRaw(O)
-	    // ES3 arguments fallback
-	    : (result = classofRaw(O)) == 'Object' && typeof O.callee == 'function' ? 'Arguments' : result;
-	};
-
-	// `Object.prototype.toString` method implementation
-	// https://tc39.es/ecma262/#sec-object.prototype.tostring
-	var objectToString = toStringTagSupport ? {}.toString : function toString() {
-	  return '[object ' + classof(this) + ']';
-	};
-
-	// `Object.prototype.toString` method
-	// https://tc39.es/ecma262/#sec-object.prototype.tostring
-	if (!toStringTagSupport) {
-	  redefine(Object.prototype, 'toString', objectToString, { unsafe: true });
-	}
-
-	// `String.prototype.{ codePointAt, at }` methods implementation
-	var createMethod$1 = function (CONVERT_TO_STRING) {
-	  return function ($this, pos) {
-	    var S = String(requireObjectCoercible($this));
-	    var position = toInteger(pos);
-	    var size = S.length;
-	    var first, second;
-	    if (position < 0 || position >= size) return CONVERT_TO_STRING ? '' : undefined;
-	    first = S.charCodeAt(position);
-	    return first < 0xD800 || first > 0xDBFF || position + 1 === size
-	      || (second = S.charCodeAt(position + 1)) < 0xDC00 || second > 0xDFFF
-	        ? CONVERT_TO_STRING ? S.charAt(position) : first
-	        : CONVERT_TO_STRING ? S.slice(position, position + 2) : (first - 0xD800 << 10) + (second - 0xDC00) + 0x10000;
-	  };
-	};
-
-	var stringMultibyte = {
-	  // `String.prototype.codePointAt` method
-	  // https://tc39.es/ecma262/#sec-string.prototype.codepointat
-	  codeAt: createMethod$1(false),
-	  // `String.prototype.at` method
-	  // https://github.com/mathiasbynens/String.prototype.at
-	  charAt: createMethod$1(true)
-	};
-
-	// `ToObject` abstract operation
-	// https://tc39.es/ecma262/#sec-toobject
-	var toObject = function (argument) {
-	  return Object(requireObjectCoercible(argument));
-	};
-
-	var correctPrototypeGetter = !fails(function () {
-	  function F() { /* empty */ }
-	  F.prototype.constructor = null;
-	  // eslint-disable-next-line es/no-object-getprototypeof -- required for testing
-	  return Object.getPrototypeOf(new F()) !== F.prototype;
-	});
-
-	var IE_PROTO = sharedKey('IE_PROTO');
-	var ObjectPrototype = Object.prototype;
-
-	// `Object.getPrototypeOf` method
-	// https://tc39.es/ecma262/#sec-object.getprototypeof
-	// eslint-disable-next-line es/no-object-getprototypeof -- safe
-	var objectGetPrototypeOf = correctPrototypeGetter ? Object.getPrototypeOf : function (O) {
-	  O = toObject(O);
-	  if (has(O, IE_PROTO)) return O[IE_PROTO];
-	  if (typeof O.constructor == 'function' && O instanceof O.constructor) {
-	    return O.constructor.prototype;
-	  } return O instanceof Object ? ObjectPrototype : null;
-	};
-
-	var ITERATOR = wellKnownSymbol('iterator');
-	var BUGGY_SAFARI_ITERATORS = false;
-
-	var returnThis = function () { return this; };
-
-	// `%IteratorPrototype%` object
-	// https://tc39.es/ecma262/#sec-%iteratorprototype%-object
-	var IteratorPrototype, PrototypeOfArrayIteratorPrototype, arrayIterator;
-
-	/* eslint-disable es/no-array-prototype-keys -- safe */
-	if ([].keys) {
-	  arrayIterator = [].keys();
-	  // Safari 8 has buggy iterators w/o `next`
-	  if (!('next' in arrayIterator)) BUGGY_SAFARI_ITERATORS = true;
-	  else {
-	    PrototypeOfArrayIteratorPrototype = objectGetPrototypeOf(objectGetPrototypeOf(arrayIterator));
-	    if (PrototypeOfArrayIteratorPrototype !== Object.prototype) IteratorPrototype = PrototypeOfArrayIteratorPrototype;
-	  }
-	}
-
-	var NEW_ITERATOR_PROTOTYPE = IteratorPrototype == undefined || fails(function () {
-	  var test = {};
-	  // FF44- legacy iterators case
-	  return IteratorPrototype[ITERATOR].call(test) !== test;
-	});
-
-	if (NEW_ITERATOR_PROTOTYPE) IteratorPrototype = {};
-
-	// 25.1.2.1.1 %IteratorPrototype%[@@iterator]()
-	if ( !has(IteratorPrototype, ITERATOR)) {
-	  createNonEnumerableProperty(IteratorPrototype, ITERATOR, returnThis);
-	}
-
-	var iteratorsCore = {
-	  IteratorPrototype: IteratorPrototype,
-	  BUGGY_SAFARI_ITERATORS: BUGGY_SAFARI_ITERATORS
-	};
-
 	// `Object.keys` method
 	// https://tc39.es/ecma262/#sec-object.keys
 	// eslint-disable-next-line es/no-object-keys -- safe
@@ -983,7 +851,7 @@
 	var LT = '<';
 	var PROTOTYPE = 'prototype';
 	var SCRIPT = 'script';
-	var IE_PROTO$1 = sharedKey('IE_PROTO');
+	var IE_PROTO = sharedKey('IE_PROTO');
 
 	var EmptyConstructor = function () { /* empty */ };
 
@@ -1034,7 +902,7 @@
 	  return NullProtoObject();
 	};
 
-	hiddenKeys[IE_PROTO$1] = true;
+	hiddenKeys[IE_PROTO] = true;
 
 	// `Object.create` method
 	// https://tc39.es/ecma262/#sec-object.create
@@ -1045,24 +913,106 @@
 	    result = new EmptyConstructor();
 	    EmptyConstructor[PROTOTYPE] = null;
 	    // add "__proto__" for Object.getPrototypeOf polyfill
-	    result[IE_PROTO$1] = O;
+	    result[IE_PROTO] = O;
 	  } else result = NullProtoObject();
 	  return Properties === undefined ? result : objectDefineProperties(result, Properties);
+	};
+
+	var UNSCOPABLES = wellKnownSymbol('unscopables');
+	var ArrayPrototype = Array.prototype;
+
+	// Array.prototype[@@unscopables]
+	// https://tc39.es/ecma262/#sec-array.prototype-@@unscopables
+	if (ArrayPrototype[UNSCOPABLES] == undefined) {
+	  objectDefineProperty.f(ArrayPrototype, UNSCOPABLES, {
+	    configurable: true,
+	    value: objectCreate(null)
+	  });
+	}
+
+	// add a key to Array.prototype[@@unscopables]
+	var addToUnscopables = function (key) {
+	  ArrayPrototype[UNSCOPABLES][key] = true;
+	};
+
+	var iterators = {};
+
+	// `ToObject` abstract operation
+	// https://tc39.es/ecma262/#sec-toobject
+	var toObject = function (argument) {
+	  return Object(requireObjectCoercible(argument));
+	};
+
+	var correctPrototypeGetter = !fails(function () {
+	  function F() { /* empty */ }
+	  F.prototype.constructor = null;
+	  // eslint-disable-next-line es/no-object-getprototypeof -- required for testing
+	  return Object.getPrototypeOf(new F()) !== F.prototype;
+	});
+
+	var IE_PROTO$1 = sharedKey('IE_PROTO');
+	var ObjectPrototype = Object.prototype;
+
+	// `Object.getPrototypeOf` method
+	// https://tc39.es/ecma262/#sec-object.getprototypeof
+	// eslint-disable-next-line es/no-object-getprototypeof -- safe
+	var objectGetPrototypeOf = correctPrototypeGetter ? Object.getPrototypeOf : function (O) {
+	  O = toObject(O);
+	  if (has(O, IE_PROTO$1)) return O[IE_PROTO$1];
+	  if (typeof O.constructor == 'function' && O instanceof O.constructor) {
+	    return O.constructor.prototype;
+	  } return O instanceof Object ? ObjectPrototype : null;
+	};
+
+	var ITERATOR = wellKnownSymbol('iterator');
+	var BUGGY_SAFARI_ITERATORS = false;
+
+	var returnThis = function () { return this; };
+
+	// `%IteratorPrototype%` object
+	// https://tc39.es/ecma262/#sec-%iteratorprototype%-object
+	var IteratorPrototype, PrototypeOfArrayIteratorPrototype, arrayIterator;
+
+	/* eslint-disable es/no-array-prototype-keys -- safe */
+	if ([].keys) {
+	  arrayIterator = [].keys();
+	  // Safari 8 has buggy iterators w/o `next`
+	  if (!('next' in arrayIterator)) BUGGY_SAFARI_ITERATORS = true;
+	  else {
+	    PrototypeOfArrayIteratorPrototype = objectGetPrototypeOf(objectGetPrototypeOf(arrayIterator));
+	    if (PrototypeOfArrayIteratorPrototype !== Object.prototype) IteratorPrototype = PrototypeOfArrayIteratorPrototype;
+	  }
+	}
+
+	var NEW_ITERATOR_PROTOTYPE = IteratorPrototype == undefined || fails(function () {
+	  var test = {};
+	  // FF44- legacy iterators case
+	  return IteratorPrototype[ITERATOR].call(test) !== test;
+	});
+
+	if (NEW_ITERATOR_PROTOTYPE) IteratorPrototype = {};
+
+	// 25.1.2.1.1 %IteratorPrototype%[@@iterator]()
+	if ( !has(IteratorPrototype, ITERATOR)) {
+	  createNonEnumerableProperty(IteratorPrototype, ITERATOR, returnThis);
+	}
+
+	var iteratorsCore = {
+	  IteratorPrototype: IteratorPrototype,
+	  BUGGY_SAFARI_ITERATORS: BUGGY_SAFARI_ITERATORS
 	};
 
 	var defineProperty$1 = objectDefineProperty.f;
 
 
 
-	var TO_STRING_TAG$2 = wellKnownSymbol('toStringTag');
+	var TO_STRING_TAG = wellKnownSymbol('toStringTag');
 
 	var setToStringTag = function (it, TAG, STATIC) {
-	  if (it && !has(it = STATIC ? it : it.prototype, TO_STRING_TAG$2)) {
-	    defineProperty$1(it, TO_STRING_TAG$2, { configurable: true, value: TAG });
+	  if (it && !has(it = STATIC ? it : it.prototype, TO_STRING_TAG)) {
+	    defineProperty$1(it, TO_STRING_TAG, { configurable: true, value: TAG });
 	  }
 	};
-
-	var iterators = {};
 
 	var IteratorPrototype$1 = iteratorsCore.IteratorPrototype;
 
@@ -1190,55 +1140,9 @@
 	  return methods;
 	};
 
-	var charAt = stringMultibyte.charAt;
-
-
-
-	var STRING_ITERATOR = 'String Iterator';
-	var setInternalState = internalState.set;
-	var getInternalState = internalState.getterFor(STRING_ITERATOR);
-
-	// `String.prototype[@@iterator]` method
-	// https://tc39.es/ecma262/#sec-string.prototype-@@iterator
-	defineIterator(String, 'String', function (iterated) {
-	  setInternalState(this, {
-	    type: STRING_ITERATOR,
-	    string: String(iterated),
-	    index: 0
-	  });
-	// `%StringIteratorPrototype%.next` method
-	// https://tc39.es/ecma262/#sec-%stringiteratorprototype%.next
-	}, function next() {
-	  var state = getInternalState(this);
-	  var string = state.string;
-	  var index = state.index;
-	  var point;
-	  if (index >= string.length) return { value: undefined, done: true };
-	  point = charAt(string, index);
-	  state.index += point.length;
-	  return { value: point, done: false };
-	});
-
-	var UNSCOPABLES = wellKnownSymbol('unscopables');
-	var ArrayPrototype = Array.prototype;
-
-	// Array.prototype[@@unscopables]
-	// https://tc39.es/ecma262/#sec-array.prototype-@@unscopables
-	if (ArrayPrototype[UNSCOPABLES] == undefined) {
-	  objectDefineProperty.f(ArrayPrototype, UNSCOPABLES, {
-	    configurable: true,
-	    value: objectCreate(null)
-	  });
-	}
-
-	// add a key to Array.prototype[@@unscopables]
-	var addToUnscopables = function (key) {
-	  ArrayPrototype[UNSCOPABLES][key] = true;
-	};
-
 	var ARRAY_ITERATOR = 'Array Iterator';
-	var setInternalState$1 = internalState.set;
-	var getInternalState$1 = internalState.getterFor(ARRAY_ITERATOR);
+	var setInternalState = internalState.set;
+	var getInternalState = internalState.getterFor(ARRAY_ITERATOR);
 
 	// `Array.prototype.entries` method
 	// https://tc39.es/ecma262/#sec-array.prototype.entries
@@ -1251,7 +1155,7 @@
 	// `CreateArrayIterator` internal method
 	// https://tc39.es/ecma262/#sec-createarrayiterator
 	var es_array_iterator = defineIterator(Array, 'Array', function (iterated, kind) {
-	  setInternalState$1(this, {
+	  setInternalState(this, {
 	    type: ARRAY_ITERATOR,
 	    target: toIndexedObject(iterated), // target
 	    index: 0,                          // next index
@@ -1260,7 +1164,7 @@
 	// `%ArrayIteratorPrototype%.next` method
 	// https://tc39.es/ecma262/#sec-%arrayiteratorprototype%.next
 	}, function () {
-	  var state = getInternalState$1(this);
+	  var state = getInternalState(this);
 	  var target = state.target;
 	  var kind = state.kind;
 	  var index = state.index++;
@@ -1282,6 +1186,102 @@
 	addToUnscopables('keys');
 	addToUnscopables('values');
 	addToUnscopables('entries');
+
+	var TO_STRING_TAG$1 = wellKnownSymbol('toStringTag');
+	var test = {};
+
+	test[TO_STRING_TAG$1] = 'z';
+
+	var toStringTagSupport = String(test) === '[object z]';
+
+	var TO_STRING_TAG$2 = wellKnownSymbol('toStringTag');
+	// ES3 wrong here
+	var CORRECT_ARGUMENTS = classofRaw(function () { return arguments; }()) == 'Arguments';
+
+	// fallback for IE11 Script Access Denied error
+	var tryGet = function (it, key) {
+	  try {
+	    return it[key];
+	  } catch (error) { /* empty */ }
+	};
+
+	// getting tag from ES6+ `Object.prototype.toString`
+	var classof = toStringTagSupport ? classofRaw : function (it) {
+	  var O, tag, result;
+	  return it === undefined ? 'Undefined' : it === null ? 'Null'
+	    // @@toStringTag case
+	    : typeof (tag = tryGet(O = Object(it), TO_STRING_TAG$2)) == 'string' ? tag
+	    // builtinTag case
+	    : CORRECT_ARGUMENTS ? classofRaw(O)
+	    // ES3 arguments fallback
+	    : (result = classofRaw(O)) == 'Object' && typeof O.callee == 'function' ? 'Arguments' : result;
+	};
+
+	// `Object.prototype.toString` method implementation
+	// https://tc39.es/ecma262/#sec-object.prototype.tostring
+	var objectToString = toStringTagSupport ? {}.toString : function toString() {
+	  return '[object ' + classof(this) + ']';
+	};
+
+	// `Object.prototype.toString` method
+	// https://tc39.es/ecma262/#sec-object.prototype.tostring
+	if (!toStringTagSupport) {
+	  redefine(Object.prototype, 'toString', objectToString, { unsafe: true });
+	}
+
+	// `String.prototype.{ codePointAt, at }` methods implementation
+	var createMethod$1 = function (CONVERT_TO_STRING) {
+	  return function ($this, pos) {
+	    var S = String(requireObjectCoercible($this));
+	    var position = toInteger(pos);
+	    var size = S.length;
+	    var first, second;
+	    if (position < 0 || position >= size) return CONVERT_TO_STRING ? '' : undefined;
+	    first = S.charCodeAt(position);
+	    return first < 0xD800 || first > 0xDBFF || position + 1 === size
+	      || (second = S.charCodeAt(position + 1)) < 0xDC00 || second > 0xDFFF
+	        ? CONVERT_TO_STRING ? S.charAt(position) : first
+	        : CONVERT_TO_STRING ? S.slice(position, position + 2) : (first - 0xD800 << 10) + (second - 0xDC00) + 0x10000;
+	  };
+	};
+
+	var stringMultibyte = {
+	  // `String.prototype.codePointAt` method
+	  // https://tc39.es/ecma262/#sec-string.prototype.codepointat
+	  codeAt: createMethod$1(false),
+	  // `String.prototype.at` method
+	  // https://github.com/mathiasbynens/String.prototype.at
+	  charAt: createMethod$1(true)
+	};
+
+	var charAt = stringMultibyte.charAt;
+
+
+
+	var STRING_ITERATOR = 'String Iterator';
+	var setInternalState$1 = internalState.set;
+	var getInternalState$1 = internalState.getterFor(STRING_ITERATOR);
+
+	// `String.prototype[@@iterator]` method
+	// https://tc39.es/ecma262/#sec-string.prototype-@@iterator
+	defineIterator(String, 'String', function (iterated) {
+	  setInternalState$1(this, {
+	    type: STRING_ITERATOR,
+	    string: String(iterated),
+	    index: 0
+	  });
+	// `%StringIteratorPrototype%.next` method
+	// https://tc39.es/ecma262/#sec-%stringiteratorprototype%.next
+	}, function next() {
+	  var state = getInternalState$1(this);
+	  var string = state.string;
+	  var index = state.index;
+	  var point;
+	  if (index >= string.length) return { value: undefined, done: true };
+	  point = charAt(string, index);
+	  state.index += point.length;
+	  return { value: point, done: false };
+	});
 
 	// iterable DOM collections
 	// flag - `iterable` interface - 'entries', 'keys', 'values', 'forEach' methods
@@ -2153,12 +2153,6 @@
 	  DataView: $DataView
 	};
 
-	// `DataView` constructor
-	// https://tc39.es/ecma262/#sec-dataview-constructor
-	_export({ global: true, forced: !arrayBufferNative }, {
-	  DataView: arrayBuffer.DataView
-	});
-
 	var SPECIES$1 = wellKnownSymbol('species');
 
 	// `SpeciesConstructor` abstract operation
@@ -2195,6 +2189,12 @@
 	      viewTarget.setUint8(index++, viewSource.getUint8(first++));
 	    } return result;
 	  }
+	});
+
+	// `DataView` constructor
+	// https://tc39.es/ecma262/#sec-dataview-constructor
+	_export({ global: true, forced: !arrayBufferNative }, {
+	  DataView: arrayBuffer.DataView
 	});
 
 	var defineProperty$4 = objectDefineProperty.f;
@@ -7108,13 +7108,13 @@
 	// https://tc39.es/ecma262/#sec-symbol.tostringtag
 	defineWellKnownSymbol('toStringTag');
 
-	// Math[@@toStringTag] property
-	// https://tc39.es/ecma262/#sec-math-@@tostringtag
-	setToStringTag(Math, 'Math', true);
-
 	// JSON[@@toStringTag] property
 	// https://tc39.es/ecma262/#sec-json-@@tostringtag
 	setToStringTag(global_1.JSON, 'JSON', true);
+
+	// Math[@@toStringTag] property
+	// https://tc39.es/ecma262/#sec-math-@@tostringtag
+	setToStringTag(Math, 'Math', true);
 
 	(function (factory) {
 	   factory();
@@ -70096,6 +70096,35 @@
 	 */
 
 	function uiPanelHistory(context) {
+	  function getNext() {
+	    var data = window._dsState[window._mostRecentDsId];
+
+	    var _Object$values$filter = Object.values(data).filter(function (x) {
+	      return x !== 'done';
+	    }),
+	        next = _Object$values$filter[0],
+	        length = _Object$values$filter.length;
+
+	    return {
+	      next: next,
+	      length: length
+	    };
+	  }
+
+	  function toNext() {
+	    var _getNext = getNext(),
+	        next = _getNext.next;
+
+	    if (!next) return;
+	    context.map().centerZoomEase(next.geo || next.fromLoc,
+	    /* zoom */
+	    18,
+	    /* transition time */
+	    0); // select the RapiD feature to open the sidebar
+
+	    context.selectedNoteID(null).selectedErrorID(null).enter(modeRapidSelectFeatures(context, next.feat));
+	  }
+
 	  function redraw(selection) {
 	    selection.html('');
 
@@ -70105,28 +70134,13 @@
 	    }
 
 	    panel.label = 'Status of ' + window._mostRecentDsId;
-	    var data = window._dsState[window._mostRecentDsId];
 
-	    var _Object$values$filter = Object.values(data).filter(function (x) {
-	      return x !== 'done';
-	    }),
-	        next = _Object$values$filter[0],
-	        length = _Object$values$filter.length;
+	    var _getNext2 = getNext(),
+	        length = _getNext2.length;
 
 	    if (length) {
-	      // it's a way so next = [lng, lat][] not [lng, lat]
-	      while (_typeof(next[0]) === 'object') {
-	        next = next[0];
-	      }
-
 	      selection.append('span').html(length + ' addresses remaining');
-	      selection.append('button').html('Zoom to next').on('click', function () {
-	        return context.map().centerZoomEase(next,
-	        /* zoom */
-	        18,
-	        /* transition time */
-	        0);
-	      });
+	      selection.append('button').html('Zoom to next').on('click', toNext);
 	    } else {
 	      selection.append('span').html('🥰 Done! You\'ve added all addresses in ' + window._mostRecentDsId);
 	    }
@@ -70150,6 +70164,8 @@
 	  panel.id = 'history';
 	  panel.label = 'Status';
 	  panel.key = _t('info_panels.history.key');
+	  var keybinding = utilKeybinding('statusPanel');
+	  keybinding().on('G', toNext);
 	  return panel;
 	}
 
@@ -81530,10 +81546,9 @@
 	        return;
 	      }
 
-	      var _window$_dsState$_dat = _slicedToArray(window._dsState[_datum.__datasetid__][prefixedLinzRef], 2),
-	          fromLoc = _window$_dsState$_dat[0],
-	          toLoc = _window$_dsState$_dat[1];
-
+	      var _window$_dsState$_dat = window._dsState[_datum.__datasetid__][prefixedLinzRef],
+	          fromLoc = _window$_dsState$_dat.fromLoc,
+	          toLoc = _window$_dsState$_dat.toLoc;
 	      var realAddrEntity = window._seenAddresses[linzRef];
 
 	      var ok = window.__moveNodeHook(realAddrEntity, fromLoc, toLoc); // switch to the ingore case because we don't want to actually create this line as an OSM way
@@ -89841,10 +89856,6 @@
 	    }
 
 	    return;
-	  }
-
-	  if (window._dsState[dataset.id][featureID] !== 'done') {
-	    window._dsState[dataset.id][featureID] = geom.coordinates;
 	  } // skip if we've seen this feature already on another tile
 
 
@@ -89861,10 +89872,19 @@
 	  var nodemap = new Map(); // Point:  make a single node
 
 	  if (geom.type === 'Point') {
-	    return [new osmNode({
+	    var node = new osmNode({
 	      loc: geom.coordinates,
 	      tags: parseTags(props)
-	    }, meta)]; // LineString:  make nodes, single way
+	    }, meta); // for normal address points
+
+	    if (window._dsState[dataset.id][featureID] !== 'done') {
+	      window._dsState[dataset.id][featureID] = {
+	        feat: node,
+	        geo: geom.coordinates
+	      };
+	    }
+
+	    return [node]; // LineString:  make nodes, single way
 	  } else if (geom.type === 'LineString') {
 	    var nodelist = parseCoordinates(geom.coordinates);
 	    if (nodelist.length < 2) return null;
@@ -89872,7 +89892,16 @@
 	      nodes: nodelist,
 	      tags: parseTags(props)
 	    }, meta);
-	    entities.push(w);
+	    entities.push(w); // for the location-wrong line
+
+	    if (window._dsState[dataset.id][featureID] !== 'done') {
+	      window._dsState[dataset.id][featureID] = {
+	        feat: w,
+	        fromLoc: geom.coordinates[0],
+	        toLoc: geom.coordinates[1]
+	      };
+	    }
+
 	    return entities; // Polygon:  make nodes, way(s), possibly a relation
 	  } else if (geom.type === 'Polygon') {
 	    var ways = [];
@@ -89891,9 +89920,17 @@
 
 	    if (ways.length === 1) {
 	      // single ring, assign tags and return
-	      entities.push(ways[0].update(Object.assign({
+	      var updatedWay = ways[0].update(Object.assign({
 	        tags: parseTags(props)
-	      }, meta)));
+	      }, meta));
+	      entities.push(updatedWay); // for address-modification diamonds
+
+	      if (window._dsState[dataset.id][featureID] !== 'done') {
+	        window._dsState[dataset.id][featureID] = {
+	          feat: updatedWay,
+	          geo: geom.coordinates[0][0]
+	        };
+	      }
 	    } else {
 	      // multiple rings, make a multipolygon relation with inner/outer members
 	      var members = ways.map(function (w, i) {
