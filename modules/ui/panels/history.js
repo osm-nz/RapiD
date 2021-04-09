@@ -1,4 +1,5 @@
 import { t } from '../../core/localizer';
+import { modeRapidSelectFeatures } from '../../modes';
 import { utilKeybinding } from '../../util';
 
 /**
@@ -10,22 +11,19 @@ export function uiPanelHistory(context) {
         const data = window._dsState[window._mostRecentDsId];
         let { 0: next, length } = Object.values(data).filter(x => x !== 'done');
 
-        if (!next) return { length: 0 };
-
-        // it's a way or relation so next = [lng, lat][] or [lng, lat][][] not [lng, lat]
-        while (typeof next[0] === 'object') next = next[0];
-
         return { next, length };
     }
     function toNext() {
         const { next } = getNext();
-        context.map().centerZoomEase(next, /* zoom */ 18, /* transition time */ 0);
+        if (!next) return;
 
-        // TODO: select the RapiD feature here
-        // context
-        //     .selectedNoteID(null)
-        //     .selectedErrorID(null)
-        //     .enter(modeRapidSelectFeatures(context, datum));
+        context.map().centerZoomEase(next.geo || next.fromLoc, /* zoom */ 18, /* transition time */ 0);
+
+        // select the RapiD feature to open the sidebar
+        context
+            .selectedNoteID(null)
+            .selectedErrorID(null)
+            .enter(modeRapidSelectFeatures(context, next.feat));
     }
 
     function redraw(selection) {

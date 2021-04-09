@@ -120,7 +120,7 @@ export function uiRapidFeatureInspector(context, keybinding) {
         return;
       }
 
-      const [fromLoc, toLoc] = window._dsState[_datum.__datasetid__][prefixedLinzRef];
+      const { fromLoc, toLoc } = window._dsState[_datum.__datasetid__][prefixedLinzRef];
       const realAddrEntity = window._seenAddresses[linzRef];
 
       const ok = window.__moveNodeHook(realAddrEntity, fromLoc, toLoc);

@@ -103,10 +103,6 @@ function parseFeature(feature, dataset, context) {
     return;
   }
 
-  if (window._dsState[dataset.id][featureID] !== 'done') {
-    window._dsState[dataset.id][featureID] = geom.coordinates;
-  }
-
   // skip if we've seen this feature already on another tile
   if (dataset.cache.seen[featureID]) return null;
   dataset.cache.seen[featureID] = true;
@@ -118,7 +114,14 @@ function parseFeature(feature, dataset, context) {
 
   // Point:  make a single node
   if (geom.type === 'Point') {
-    return [ new osmNode({ loc: geom.coordinates, tags: parseTags(props) }, meta) ];
+    const node = new osmNode({ loc: geom.coordinates, tags: parseTags(props) }, meta);
+
+    // for normal address points
+    if (window._dsState[dataset.id][featureID] !== 'done') {
+      window._dsState[dataset.id][featureID] = { feat: node, geo: geom.coordinates };
+    }
+
+    return [node];
 
   // LineString:  make nodes, single way
   } else if (geom.type === 'LineString') {
@@ -127,6 +130,12 @@ function parseFeature(feature, dataset, context) {
 
     const w = new osmWay({ nodes: nodelist, tags: parseTags(props) }, meta);
     entities.push(w);
+
+    // for the location-wrong line
+    if (window._dsState[dataset.id][featureID] !== 'done') {
+      window._dsState[dataset.id][featureID] = { feat: w, fromLoc: geom.coordinates[0], toLoc: geom.coordinates[1] };
+    }
+
     return entities;
 
   // Polygon:  make nodes, way(s), possibly a relation
@@ -145,9 +154,14 @@ function parseFeature(feature, dataset, context) {
     });
 
     if (ways.length === 1) {  // single ring, assign tags and return
-      entities.push(
-        ways[0].update( Object.assign({ tags: parseTags(props) }, meta) )
-      );
+      const updatedWay = ways[0].update( Object.assign({ tags: parseTags(props) }, meta) );
+      entities.push(updatedWay);
+
+      // for address-modification diamonds
+      if (window._dsState[dataset.id][featureID] !== 'done') {
+        window._dsState[dataset.id][featureID] = { feat: updatedWay, geo: geom.coordinates[0][0] };
+      }
+
     } else {  // multiple rings, make a multipolygon relation with inner/outer members
       const members = ways.map((w, i) => {
         entities.push(w);
