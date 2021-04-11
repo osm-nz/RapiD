@@ -63845,7 +63845,7 @@
 	    }
 
 	    var tags = {
-	      comment: corePreferences('comment') || "LINZ address import for ".concat(services.esriData.getLoadedDatasets().join(', ')),
+	      comment: corePreferences('comment') || "LINZ address import for ".concat(services.esriData.getLoadedDatasetNames().join(', ')),
 	      created_by: context.cleanTagValue('LINZ Address Import ' + context.rapidContext().version),
 	      host: context.cleanTagValue('https://github.com/osm-nz/linz-address-import'),
 	      source: context.cleanTagValue('https://data.linz.govt.nz/layer/3353'),
@@ -64053,7 +64053,8 @@
 	          if (!key) delete context.changeset.tags[key];
 	        }
 
-	        fetch(window.APIROOT + '/__done/' + services.esriData.getLoadedDatasets().join(',').replace(/ /g, '-'));
+	        fetch(window.APIROOT + '/__done/' + services.esriData.getLoadedDatasetIDs().join(',') + '?u=' + (window.__user || {}).display_name);
+	        services.esriData.resetLoadedDatasets();
 	        context.uploader().save(context.changeset);
 	      }
 	    }); // remove any existing tooltip
@@ -83132,7 +83133,7 @@
 	            user = _inUse[0],
 	            minutesAgo = _inUse[1];
 
-	        var msg = minutesAgo === 'done' ? 'This dataset may already have been uploaded by someone else!' : "Someone else (".concat(user, ") started editing ").concat(d.id, " ").concat(minutesAgo, " minutes ago. If you continue, you might override or duplicate their work!");
+	        var msg = minutesAgo === 'done' ? 'This dataset may already have been uploaded by someone else!' : "Someone else (".concat(user, ") started editing ").concat(d.name, " ").concat(minutesAgo, " minutes ago. If you continue, you might override or duplicate their work!");
 	        if (!confirm(msg)) return;
 	      }
 
@@ -90060,7 +90061,7 @@
 	            maxLng = _ds$extent$2[0],
 	            maxLat = _ds$extent$2[1];
 
-	        var xml = "<gpx xmlns=\"http://www.topografix.com/GPX/1/1\" creator=\"LINZ Addr\" version=\"1.1\">\n        <metadata>\n          <link href=\"https://github.com/hotosm/tasking-manager\">\n            <text>LINZ Addr</text>\n          </link>\n          <time>2021-03-08T22:14:43.088005</time>\n        </metadata>\n        <trk>\n          <name>Extent of the ".concat(ds.id, " data</name>\n          <trkseg>\n          <trkpt lat=\"").concat(minLat - 0.0003, "\" lon=\"").concat(minLng - 0.0003, "\"/>\n          <trkpt lat=\"").concat(maxLat + 0.0003, "\" lon=\"").concat(minLng - 0.0003, "\"/>\n          <trkpt lat=\"").concat(maxLat + 0.0003, "\" lon=\"").concat(maxLng + 0.0003, "\"/>\n          <trkpt lat=\"").concat(minLat - 0.0003, "\" lon=\"").concat(maxLng + 0.0003, "\"/>\n          <trkpt lat=\"").concat(minLat - 0.0003, "\" lon=\"").concat(minLng - 0.0003, "\"/>\n          </trkseg>\n        </trk>\n        <wpt lat=\"").concat(minLat - 0.0003, "\" lon=\"").concat(minLng - 0.0003, "\"/>\n        <wpt lat=\"").concat(maxLat + 0.0003, "\" lon=\"").concat(minLng - 0.0003, "\"/>\n        <wpt lat=\"").concat(maxLat + 0.0003, "\" lon=\"").concat(maxLng + 0.0003, "\"/>\n        <wpt lat=\"").concat(minLat - 0.0003, "\" lon=\"").concat(maxLng + 0.0003, "\"/>\n        <wpt lat=\"").concat(minLat - 0.0003, "\" lon=\"").concat(minLng - 0.0003, "\"/>\n        </gpx>");
+	        var xml = "<gpx xmlns=\"http://www.topografix.com/GPX/1/1\" creator=\"LINZ Addr\" version=\"1.1\">\n        <metadata>\n          <link href=\"https://github.com/hotosm/tasking-manager\">\n            <text>LINZ Addr</text>\n          </link>\n          <time>2021-03-08T22:14:43.088005</time>\n        </metadata>\n        <trk>\n          <name>Extent of the ".concat(ds.name, " data</name>\n          <trkseg>\n          <trkpt lat=\"").concat(minLat - 0.0003, "\" lon=\"").concat(minLng - 0.0003, "\"/>\n          <trkpt lat=\"").concat(maxLat + 0.0003, "\" lon=\"").concat(minLng - 0.0003, "\"/>\n          <trkpt lat=\"").concat(maxLat + 0.0003, "\" lon=\"").concat(maxLng + 0.0003, "\"/>\n          <trkpt lat=\"").concat(minLat - 0.0003, "\" lon=\"").concat(maxLng + 0.0003, "\"/>\n          <trkpt lat=\"").concat(minLat - 0.0003, "\" lon=\"").concat(minLng - 0.0003, "\"/>\n          </trkseg>\n        </trk>\n        <wpt lat=\"").concat(minLat - 0.0003, "\" lon=\"").concat(minLng - 0.0003, "\"/>\n        <wpt lat=\"").concat(maxLat + 0.0003, "\" lon=\"").concat(minLng - 0.0003, "\"/>\n        <wpt lat=\"").concat(maxLat + 0.0003, "\" lon=\"").concat(maxLng + 0.0003, "\"/>\n        <wpt lat=\"").concat(minLat - 0.0003, "\" lon=\"").concat(maxLng + 0.0003, "\"/>\n        <wpt lat=\"").concat(minLat - 0.0003, "\" lon=\"").concat(minLng - 0.0003, "\"/>\n        </gpx>");
 	        var url = 'data:text/xml;base64,' + btoa(xml);
 	        var layer = context.layers().layer('data');
 	        layer.url(url);
@@ -90074,7 +90075,7 @@
 	      d3_json(url, {
 	        signal: controller.signal
 	      }).then(function (geojson) {
-	        _loaded[datasetID] = true;
+	        _loaded[datasetID] = ds.name;
 	        delete cache.inflight[tile.id];
 	        if (!geojson) throw new Error('no geojson');
 
@@ -90133,8 +90134,14 @@
 	      /* ignore */
 	    });
 	  },
-	  getLoadedDatasets: function getLoadedDatasets() {
+	  getLoadedDatasetIDs: function getLoadedDatasetIDs() {
 	    return Object.keys(_loaded);
+	  },
+	  getLoadedDatasetNames: function getLoadedDatasetNames() {
+	    return Object.values(_loaded);
+	  },
+	  resetLoadedDatasets: function resetLoadedDatasets() {
+	    _loaded = {};
 	  },
 	  loadLayer: function loadLayer(datasetID) {
 	    var ds = _datasets[datasetID];

@@ -58500,7 +58500,7 @@
           }
 
           var tags = {
-              comment: corePreferences('comment') || `LINZ address import for ${services.esriData.getLoadedDatasets().join(', ')}`,
+              comment: corePreferences('comment') || `LINZ address import for ${services.esriData.getLoadedDatasetNames().join(', ')}`,
               created_by: context.cleanTagValue('LINZ Address Import ' + context.rapidContext().version),
               host: context.cleanTagValue('https://github.com/osm-nz/linz-address-import'),
               source: context.cleanTagValue('https://data.linz.govt.nz/layer/3353'),
@@ -58800,7 +58800,8 @@
                           if (!key) delete context.changeset.tags[key];
                       }
 
-                      fetch(window.APIROOT+'/__done/'+services.esriData.getLoadedDatasets().join(',').replace(/ /g, '-'));
+                      fetch(window.APIROOT+'/__done/'+services.esriData.getLoadedDatasetIDs().join(',') + '?u=' + (window.__user || {}).display_name);
+                      services.esriData.resetLoadedDatasets();
 
                       context.uploader().save(context.changeset);
                   }
@@ -81282,7 +81283,7 @@
           const [user, minutesAgo] = inUse;
           const msg = minutesAgo === 'done'
             ? 'This dataset may already have been uploaded by someone else!'
-            : `Someone else (${user}) started editing ${d.id} ${minutesAgo} minutes ago. If you continue, you might override or duplicate their work!`;
+            : `Someone else (${user}) started editing ${d.name} ${minutesAgo} minutes ago. If you continue, you might override or duplicate their work!`;
 
           if (!confirm(msg)) return;
         }
@@ -90297,7 +90298,7 @@
           <time>2021-03-08T22:14:43.088005</time>
         </metadata>
         <trk>
-          <name>Extent of the ${ds.id} data</name>
+          <name>Extent of the ${ds.name} data</name>
           <trkseg>
           <trkpt lat="${minLat-0.0003}" lon="${minLng-0.0003}"/>
           <trkpt lat="${maxLat+0.0003}" lon="${minLng-0.0003}"/>
@@ -90327,7 +90328,7 @@
 
         d3_json(url, { signal: controller.signal })
           .then(geojson => {
-            _loaded[datasetID] = true;
+            _loaded[datasetID] = ds.name;
 
             delete cache.inflight[tile.id];
             if (!geojson) throw new Error('no geojson');
@@ -90380,7 +90381,9 @@
         .catch(() => { /* ignore */ });
     },
 
-    getLoadedDatasets: () => Object.keys(_loaded),
+    getLoadedDatasetIDs: () => Object.keys(_loaded),
+    getLoadedDatasetNames: () => Object.values(_loaded),
+    resetLoadedDatasets: () => { _loaded = {}; },
 
 
     loadLayer: function (datasetID) {
