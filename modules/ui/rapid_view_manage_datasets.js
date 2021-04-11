@@ -343,7 +343,7 @@ export function uiRapidViewManageDatasets(context, parentModal) {
         const [user, minutesAgo] = inUse;
         const msg = minutesAgo === 'done'
           ? 'This dataset may already have been uploaded by someone else!'
-          : `Someone else (${user}) started editing ${d.id} ${minutesAgo} minutes ago. If you continue, you might override or duplicate their work!`;
+          : `Someone else (${user}) started editing ${d.name} ${minutesAgo} minutes ago. If you continue, you might override or duplicate their work!`;
 
         if (!confirm(msg)) return;
       }

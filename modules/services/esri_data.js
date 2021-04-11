@@ -286,7 +286,7 @@ export default {
           <time>2021-03-08T22:14:43.088005</time>
         </metadata>
         <trk>
-          <name>Extent of the ${ds.id} data</name>
+          <name>Extent of the ${ds.name} data</name>
           <trkseg>
           <trkpt lat="${minLat-0.0003}" lon="${minLng-0.0003}"/>
           <trkpt lat="${maxLat+0.0003}" lon="${minLng-0.0003}"/>
@@ -316,7 +316,7 @@ export default {
 
       d3_json(url, { signal: controller.signal })
         .then(geojson => {
-          _loaded[datasetID] = true;
+          _loaded[datasetID] = ds.name;
 
           delete cache.inflight[tile.id];
           if (!geojson) throw new Error('no geojson');
@@ -369,7 +369,9 @@ export default {
       .catch(() => { /* ignore */ });
   },
 
-  getLoadedDatasets: () => Object.keys(_loaded),
+  getLoadedDatasetIDs: () => Object.keys(_loaded),
+  getLoadedDatasetNames: () => Object.values(_loaded),
+  resetLoadedDatasets: () => { _loaded = {}; },
 
 
   loadLayer: function (datasetID) {

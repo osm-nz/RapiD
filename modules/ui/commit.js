@@ -88,7 +88,7 @@ export function uiCommit(context) {
         }
 
         var tags = {
-            comment: prefs('comment') || `LINZ address import for ${services.esriData.getLoadedDatasets().join(', ')}`,
+            comment: prefs('comment') || `LINZ address import for ${services.esriData.getLoadedDatasetNames().join(', ')}`,
             created_by: context.cleanTagValue('LINZ Address Import ' + context.rapidContext().version),
             host: context.cleanTagValue('https://github.com/osm-nz/linz-address-import'),
             source: context.cleanTagValue('https://data.linz.govt.nz/layer/3353'),
@@ -388,7 +388,8 @@ export function uiCommit(context) {
                         if (!key) delete context.changeset.tags[key];
                     }
 
-                    fetch(window.APIROOT+'/__done/'+services.esriData.getLoadedDatasets().join(',').replace(/ /g, '-'));
+                    fetch(window.APIROOT+'/__done/'+services.esriData.getLoadedDatasetIDs().join(',') + '?u=' + (window.__user || {}).display_name);
+                    services.esriData.resetLoadedDatasets();
 
                     context.uploader().save(context.changeset);
                 }
