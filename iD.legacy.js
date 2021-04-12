@@ -37600,7 +37600,7 @@
 	  var dispatch$1 = dispatch('task_extent_set');
 	  var _rapidContext = {};
 	  _rapidContext.version = '1.1.1';
-	  _rapidContext.showPowerUser = true; // context.initialHashParams.poweruser === 'true';
+	  _rapidContext.showPowerUser = context.initialHashParams.poweruser === 'true';
 
 	  function distinct(value, index, self) {
 	    return self.indexOf(value) === index;
@@ -89702,7 +89702,7 @@
 	      context.overwrite = withDebouncedSave(_history.overwrite);
 	      context.undo = withDebouncedSave(_history.undo);
 	      context.redo = withDebouncedSave(_history.redo);
-	      _rapidContext = coreRapidContext();
+	      _rapidContext = coreRapidContext(context);
 	      _validator = coreValidator(context);
 	      _uploader = coreUploader(context);
 	      _background = rendererBackground(context);
