@@ -66,6 +66,7 @@ function buildData() {
 
   // Font Awesome icons used
   let faIcons = {
+    'fas-filter': {},
     'fas-i-cursor': {},
     'fas-lock': {},
     'fas-palette': {},
