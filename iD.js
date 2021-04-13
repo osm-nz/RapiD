@@ -65550,16 +65550,66 @@
       return panel;
   }
 
+  const { sin: sin$1, cos: cos$1, sqrt: sqrt$1, PI: π, atan2: atan2$1 } = Math;
+
+  const R = 6371; // radius of the earth in km
+  const K = π / 180; // marginal performance boost by pre-calculating this
+
+  /** @param {number} deg */
+  const deg2rad = (deg) => deg * K;
+
+  /**
+   * returns the distance in metres between two coordinates
+   * @param {number} lat1
+   * @param {number} lng1
+   * @param {number} lat2
+   * @param {number} lng2
+   */
+  function distanceBetween(lat1, lng1, lat2, lng2) {
+    const dLat = deg2rad(lat2 - lat1);
+    const dLon = deg2rad(lng2 - lng1);
+    const a =
+      sin$1(dLat / 2) * sin$1(dLat / 2) +
+      cos$1(deg2rad(lat1)) * cos$1(deg2rad(lat2)) * sin$1(dLon / 2) * sin$1(dLon / 2);
+    const c = 2 * atan2$1(sqrt$1(a), sqrt$1(1 - a));
+    return 1000 * R * c;
+  }
+
+  /**
+   * @template T
+   * @param {T[]} list
+   * @param {number} ourLat
+   * @param {number} ourLng
+   * @returns {T}
+   */
+  const findNearest = (list, ourLat, ourLng) => {
+      let closest;
+      let closestDistance;
+      for (const item of list) {
+          const [thisLng, thisLat] = item.geo || item.fromLoc;
+          const distance = distanceBetween(thisLat, thisLng, ourLat, ourLng);
+          if (!closest || distance < closestDistance) {
+              closest = item;
+              closestDistance = distance;
+          }
+      }
+      return closest;
+  };
+
   /**
    * We've re-purposed this panel to be the status panel for addresses
    */
 
   function uiPanelHistory(context) {
       function getNext() {
-          const data = window._dsState[window._mostRecentDsId];
-          let { 0: next, length } = Object.values(data).filter(x => x !== 'done');
+          // we can probably get this info from some context
+          const [/* zoom */, lat, lng ] = new URLSearchParams(location.hash).get('map').split('/').map(Number);
 
-          return { next, length };
+          const data = window._dsState[window._mostRecentDsId];
+          const list = Object.values(data).filter(x => x !== 'done');
+          const next = findNearest(list, lat, lng);
+
+          return { next, length: list.length };
       }
       function toNext() {
           const { next } = getNext();

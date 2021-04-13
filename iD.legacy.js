@@ -70092,23 +70092,99 @@
 	  return panel;
 	}
 
+	var sin$1 = Math.sin,
+	    cos$1 = Math.cos,
+	    sqrt$2 = Math.sqrt,
+	    π = Math.PI,
+	    atan2$1 = Math.atan2;
+	var R = 6371; // radius of the earth in km
+
+	var K = π / 180; // marginal performance boost by pre-calculating this
+
+	/** @param {number} deg */
+
+	var deg2rad = function deg2rad(deg) {
+	  return deg * K;
+	};
+	/**
+	 * returns the distance in metres between two coordinates
+	 * @param {number} lat1
+	 * @param {number} lng1
+	 * @param {number} lat2
+	 * @param {number} lng2
+	 */
+
+
+	function distanceBetween(lat1, lng1, lat2, lng2) {
+	  var dLat = deg2rad(lat2 - lat1);
+	  var dLon = deg2rad(lng2 - lng1);
+	  var a = sin$1(dLat / 2) * sin$1(dLat / 2) + cos$1(deg2rad(lat1)) * cos$1(deg2rad(lat2)) * sin$1(dLon / 2) * sin$1(dLon / 2);
+	  var c = 2 * atan2$1(sqrt$2(a), sqrt$2(1 - a));
+	  return 1000 * R * c;
+	}
+	/**
+	 * @template T
+	 * @param {T[]} list
+	 * @param {number} ourLat
+	 * @param {number} ourLng
+	 * @returns {T}
+	 */
+
+
+	var findNearest = function findNearest(list, ourLat, ourLng) {
+	  var closest;
+	  var closestDistance;
+
+	  var _iterator = _createForOfIteratorHelper(list),
+	      _step;
+
+	  try {
+	    for (_iterator.s(); !(_step = _iterator.n()).done;) {
+	      var item = _step.value;
+
+	      var _ref = item.geo || item.fromLoc,
+	          _ref2 = _slicedToArray(_ref, 2),
+	          thisLng = _ref2[0],
+	          thisLat = _ref2[1];
+
+	      var distance = distanceBetween(thisLat, thisLng, ourLat, ourLng);
+
+	      if (!closest || distance < closestDistance) {
+	        closest = item;
+	        closestDistance = distance;
+	      }
+	    }
+	  } catch (err) {
+	    _iterator.e(err);
+	  } finally {
+	    _iterator.f();
+	  }
+
+	  return closest;
+	};
 	/**
 	 * We've re-purposed this panel to be the status panel for addresses
 	 */
 
+
 	function uiPanelHistory(context) {
 	  function getNext() {
+	    // we can probably get this info from some context
+	    var _URLSearchParams$get$ = new URLSearchParams(location.hash).get('map').split('/').map(Number),
+	        _URLSearchParams$get$2 = _slicedToArray(_URLSearchParams$get$, 3),
+
+	    /* zoom */
+	    lat = _URLSearchParams$get$2[1],
+	        lng = _URLSearchParams$get$2[2];
+
 	    var data = window._dsState[window._mostRecentDsId];
-
-	    var _Object$values$filter = Object.values(data).filter(function (x) {
+	    var list = Object.values(data).filter(function (x) {
 	      return x !== 'done';
-	    }),
-	        next = _Object$values$filter[0],
-	        length = _Object$values$filter.length;
-
+	    });
+	    var next = findNearest(list, lat, lng);
 	    return {
 	      next: next,
-	      length: length
+	      length: list.length
 	    };
 	  }
 
