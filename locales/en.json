@@ -822,7 +822,7 @@
                 "hide_vintage": "Hide Vintage"
             },
             "history": {
-                "key": "H",
+                "key": 8,
                 "title": "History",
                 "no_history": "No History (New Feature)",
                 "version": "Version",
@@ -1043,7 +1043,7 @@
             },
             "style_options": "Style Options",
             "highlight_edits": {
-                "key": "G"
+                "key": "H"
             },
             "map_features": "Map Features",
             "autohidden": "These features have been automatically hidden because too many would be shown on the screen.  You can zoom in to edit them.",
@@ -1873,7 +1873,7 @@
         },
         "help": {
             "title": "Help",
-            "key": "H",
+            "key": 9,
             "help": {
                 "title": "Help",
                 "welcome": "Welcome to the RapiD editor for [OpenStreetMap](https://www.openstreetmap.org/). RapiD is an enhanced version of the [iD editor](https://github.com/openstreetmap/iD). With this editor you can update OpenStreetMap right from your web browser.",
