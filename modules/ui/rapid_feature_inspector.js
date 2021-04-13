@@ -107,6 +107,11 @@ export function uiRapidFeatureInspector(context, keybinding) {
   function onAcceptFeature() {
     if (!_datum) return;
 
+    function done() {
+      const id = _datum.__origid__.split('-').slice(1).join('-');
+      window._dsState[_datum.__datasetid__][id] = 'done';
+    }
+
     const prefixedLinzRef =
       _datum &&
       _datum.tags &&
@@ -126,7 +131,10 @@ export function uiRapidFeatureInspector(context, keybinding) {
       const ok = window.__moveNodeHook(realAddrEntity, fromLoc, toLoc);
 
       // switch to the ingore case because we don't want to actually create this line as an OSM way
-      if (ok) onIgnoreFeature(true);
+      if (ok) {
+        onIgnoreFeature(true);
+        done();
+      }
       return;
     }
 
@@ -141,15 +149,16 @@ export function uiRapidFeatureInspector(context, keybinding) {
       return;
     }
 
-    const id = _datum.__origid__.split('-').slice(1).join('-');
-    window._dsState[_datum.__datasetid__][id] = 'done';
 
     if (prefixedLinzRef && prefixedLinzRef.startsWith(EDIT_PREFIX)) {
       // edit
       const linzRef = prefixedLinzRef.slice(EDIT_PREFIX.length);
       const ok = editAddr(linzRef, _datum.tags);
       // switch to the ignore case because we don't want to actually create anything in the OSM graph
-      if (ok) onIgnoreFeature(true);
+      if (ok) {
+        onIgnoreFeature(true);
+        done();
+      }
       return;
     }
 
@@ -159,6 +168,7 @@ export function uiRapidFeatureInspector(context, keybinding) {
       deleteAddr(linzRef);
       // switch to the ingore case because we don't want to actually create anything in the OSM graph
       onIgnoreFeature(true);
+      done();
       return;
     }
 
@@ -186,9 +196,11 @@ export function uiRapidFeatureInspector(context, keybinding) {
     if (source) {
       rapidContext.sources.add(source);
     }
+    done();
 
     if (window.sessionStorage.getItem('acknowledgedLogin') === 'true') return;
     window.sessionStorage.setItem('acknowledgedLogin', 'true');
+
 
     // disabling beacuse it's broken (TypeError: Cannot read property 'undefined' of undefined) in rapid_first_edit_dialog.js:49
     // const osm = context.connection();
