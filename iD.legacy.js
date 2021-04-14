@@ -70172,9 +70172,8 @@
 	    // we can probably get this info from some context
 	    var _URLSearchParams$get$ = new URLSearchParams(location.hash).get('map').split('/').map(Number),
 	        _URLSearchParams$get$2 = _slicedToArray(_URLSearchParams$get$, 3),
-
-	    /* zoom */
-	    lat = _URLSearchParams$get$2[1],
+	        zoom = _URLSearchParams$get$2[0],
+	        lat = _URLSearchParams$get$2[1],
 	        lng = _URLSearchParams$get$2[2];
 
 	    var data = window._dsState[window._mostRecentDsId];
@@ -70184,18 +70183,20 @@
 	    var next = findNearest(list, lat, lng);
 	    return {
 	      next: next,
-	      length: list.length
+	      length: list.length,
+	      zoom: zoom
 	    };
 	  }
 
 	  function toNext() {
 	    var _getNext = getNext(),
-	        next = _getNext.next;
+	        next = _getNext.next,
+	        zoom = _getNext.zoom;
 
 	    if (!next) return;
 	    context.map().centerZoomEase(next.geo || next.fromLoc,
 	    /* zoom */
-	    18,
+	    Math.max(zoom, 18),
 	    /* transition time */
 	    0); // select the RapiD feature to open the sidebar
 
@@ -70217,7 +70218,7 @@
 
 	    if (length) {
 	      selection.append('span').html(length + ' addresses remaining');
-	      selection.append('button').html('Zoom to next').on('click', toNext);
+	      selection.append('button').html('Zoom to next (G)').on('click', toNext);
 	    } else {
 	      selection.append('span').html('🥰 Done! You\'ve added all addresses in ' + window._mostRecentDsId);
 	    }
