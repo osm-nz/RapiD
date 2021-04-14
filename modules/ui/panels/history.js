@@ -55,19 +55,19 @@ const findNearest = (list, ourLat, ourLng) => {
 export function uiPanelHistory(context) {
     function getNext() {
         // we can probably get this info from some context
-        const [/* zoom */, lat, lng ] = new URLSearchParams(location.hash).get('map').split('/').map(Number);
+        const [zoom, lat, lng ] = new URLSearchParams(location.hash).get('map').split('/').map(Number);
 
         const data = window._dsState[window._mostRecentDsId];
         const list = Object.values(data).filter(x => x !== 'done');
         const next = findNearest(list, lat, lng);
 
-        return { next, length: list.length };
+        return { next, length: list.length, zoom };
     }
     function toNext() {
-        const { next } = getNext();
+        const { next, zoom } = getNext();
         if (!next) return;
 
-        context.map().centerZoomEase(next.geo || next.fromLoc, /* zoom */ 18, /* transition time */ 0);
+        context.map().centerZoomEase(next.geo || next.fromLoc, /* zoom */ Math.max(zoom, 18), /* transition time */ 0);
 
         // select the RapiD feature to open the sidebar
         context
@@ -96,7 +96,7 @@ export function uiPanelHistory(context) {
 
             selection
                 .append('button')
-                .html('Zoom to next')
+                .html('Zoom to next (G)')
                 .on('click', toNext);
 
         } else {
