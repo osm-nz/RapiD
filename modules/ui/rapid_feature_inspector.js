@@ -239,6 +239,8 @@ export function uiRapidFeatureInspector(context, keybinding) {
 
     if (fromAccept === true) return;
 
+    if (!prefixedLinzRef) return;
+
     // if the user cancels a DELETE or EDIT, add a check_date= tag
     if (prefixedLinzRef.startsWith(DELETE_PREFIX)) {
       const linzRef = prefixedLinzRef && prefixedLinzRef.slice(DELETE_PREFIX.length);

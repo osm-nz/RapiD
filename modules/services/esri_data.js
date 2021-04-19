@@ -7,8 +7,10 @@ import { modeBrowse } from '../modes';
 import { osmNode, osmRelation, osmWay } from '../osm';
 import { utilRebind, utilTiler } from '../util';
 
-
-const APIROOT = 'https://linz-addr-cdn.kyle.kiwi';
+const DEV = new URLSearchParams(location.hash).get('dev');
+const DEV_CDN = 'http://localhost:5000';
+const PROD_CDN = 'https://linz-addr-cdn.kyle.kiwi';
+const APIROOT = DEV ? DEV_CDN : PROD_CDN;
 window.APIROOT = APIROOT;
 const TILEZOOM = 14;
 const tiler = utilTiler().zoomExtent([TILEZOOM, TILEZOOM]);
@@ -49,8 +51,11 @@ function searchURL() {
 
 
 function tileURL(dataset, extent) {
+  let url = dataset.url;
+  if (DEV) url = url.replace(PROD_CDN, DEV_CDN);
+
   const bbox = extent.toParam();
-  return `${dataset.url}?geometry=${bbox}&u=${(window.__user || {}).display_name}`;
+  return `${url}?geometry=${bbox}&u=${(window.__user || {}).display_name}`;
 }
 
 
@@ -200,6 +205,10 @@ function parseFeature(feature, dataset, context) {
         tags[k] = v;
       }
     });
+
+    // you need to have a ref:linz:xxx tag to ID the feature, but if you don't want to
+    // add that as a OSM tag, use ref:linz:temp_id
+    delete tags['ref:linz:temp_id'];
 
     // tags.source = `esri/${dataset.name}`;
     return tags;

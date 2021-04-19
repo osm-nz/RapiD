@@ -53,7 +53,8 @@ export function uiRapidViewManageDatasets(context, parentModal) {
 
 
   function render() {
-    if (!popupOpen) {
+    // won't work when developing since cross origin window.open. Use 127.0.0.1 to bypass this
+    if (!popupOpen && location.hostname !== 'localhost') {
       popupOpen = true;
       const w = window.open('https://linz-addr.kyle.kiwi/map', '', 'width=800,height=600');
       w.onunload = () => {
