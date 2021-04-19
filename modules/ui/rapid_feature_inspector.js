@@ -48,20 +48,24 @@ export function uiRapidFeatureInspector(context, keybinding) {
     );
   }
 
-  /** @param {string} linzRef */
+  /**
+   * @param {string} linzRef
+   * @returns {boolean} OK
+   */
   function deleteAddr(linzRef) {
     const realAddrEntity = window._seenAddresses[linzRef];
     if (!realAddrEntity) {
       context.ui().flash
         .iconName('#iD-icon-no')
         .label('Looks like this node has already been deleted')();
-      return; // not loaded yet or already deleted;
+      return false; // not loaded yet or already deleted;
     }
 
     context.perform(
       actionDeleteNode(realAddrEntity.id),
       t('operations.delete.annotation.point')
     );
+    return true;
   }
 
   /**
@@ -165,7 +169,9 @@ export function uiRapidFeatureInspector(context, keybinding) {
     if (prefixedLinzRef && prefixedLinzRef.startsWith(DELETE_PREFIX)) {
       // delete
       const linzRef = prefixedLinzRef.slice(DELETE_PREFIX.length);
-      deleteAddr(linzRef);
+      const OK = deleteAddr(linzRef);
+      if (!OK) return; // do not mark as done. user needs to click D to continue
+
       // switch to the ingore case because we don't want to actually create anything in the OSM graph
       onIgnoreFeature(true);
       done();

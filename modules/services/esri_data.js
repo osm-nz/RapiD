@@ -277,8 +277,9 @@ export default {
 
     if (!_loaded[datasetID]) {
       setTimeout(() => {
+        window._mostRecentDsId = datasetID;
         const [[minLng, minLat], [maxLng, maxLat]] = ds.extent;
-        const xml= `<gpx xmlns="http://www.topografix.com/GPX/1/1" creator="LINZ Addr" version="1.1">
+        const xml = `<gpx xmlns="http://www.topografix.com/GPX/1/1" creator="LINZ Addr" version="1.1">
         <metadata>
           <link href="https://github.com/hotosm/tasking-manager">
             <text>LINZ Addr</text>

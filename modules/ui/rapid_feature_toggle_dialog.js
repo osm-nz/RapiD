@@ -275,6 +275,7 @@ export function uiRapidFeatureToggleDialog(context, AIFeatureToggleKey, featureT
                 .on('click', (d3_event) => {
                   d3_event.preventDefault();
                   context.map().extent(d.extent);
+                  context.map().zoom(16);
                 });
             } else {
               selection
