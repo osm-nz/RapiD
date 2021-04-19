@@ -81563,7 +81563,10 @@
 	      check_date: new Date().toISOString().split('T')[0]
 	    }, realAddrEntity.tags)), _t('operations.change_tags.annotation'));
 	  }
-	  /** @param {string} linzRef */
+	  /**
+	   * @param {string} linzRef
+	   * @returns {boolean} OK
+	   */
 
 
 	  function deleteAddr(linzRef) {
@@ -81571,10 +81574,11 @@
 
 	    if (!realAddrEntity) {
 	      context.ui().flash.iconName('#iD-icon-no').label('Looks like this node has already been deleted')();
-	      return; // not loaded yet or already deleted;
+	      return false; // not loaded yet or already deleted;
 	    }
 
 	    context.perform(actionDeleteNode(realAddrEntity.id), _t('operations.delete.annotation.point'));
+	    return true;
 	  }
 	  /**
 	   * @param {string} linzRef
@@ -81674,7 +81678,9 @@
 	      // delete
 	      var _linzRef2 = prefixedLinzRef.slice(DELETE_PREFIX.length);
 
-	      deleteAddr(_linzRef2); // switch to the ingore case because we don't want to actually create anything in the OSM graph
+	      var OK = deleteAddr(_linzRef2);
+	      if (!OK) return; // do not mark as done. user needs to click D to continue
+	      // switch to the ingore case because we don't want to actually create anything in the OSM graph
 
 	      onIgnoreFeature(true);
 	      done();
@@ -83456,6 +83462,7 @@
 	          selection.append('a').attr('href', '#').text(_t('rapid_feature_toggle.center_map')).on('click', function (d3_event) {
 	            d3_event.preventDefault();
 	            context.map().extent(d.extent);
+	            context.map().zoom(16);
 	          });
 	        } else {
 	          selection.text(_t('rapid_feature_toggle.worldwide'));
@@ -90143,6 +90150,8 @@
 
 	    if (!_loaded[datasetID]) {
 	      setTimeout(function () {
+	        window._mostRecentDsId = datasetID;
+
 	        var _ds$extent = _slicedToArray(ds.extent, 2),
 	            _ds$extent$ = _slicedToArray(_ds$extent[0], 2),
 	            minLng = _ds$extent$[0],
