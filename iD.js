@@ -79269,6 +79269,8 @@
 
       if (fromAccept === true) return;
 
+      if (!prefixedLinzRef) return;
+
       // if the user cancels a DELETE or EDIT, add a check_date= tag
       if (prefixedLinzRef.startsWith(DELETE_PREFIX)) {
         const linzRef = prefixedLinzRef && prefixedLinzRef.slice(DELETE_PREFIX.length);
@@ -81061,7 +81063,8 @@
 
 
     function render() {
-      if (!popupOpen) {
+      // won't work when developing since cross origin window.open. Use 127.0.0.1 to bypass this
+      if (!popupOpen && location.hostname !== 'localhost') {
         popupOpen = true;
         const w = window.open('https://linz-addr.kyle.kiwi/map', '', 'width=800,height=600');
         w.onunload = () => {
@@ -90089,7 +90092,10 @@
     return context;
   }
 
-  const APIROOT = 'https://linz-addr-cdn.kyle.kiwi';
+  const DEV = new URLSearchParams(location.hash).get('dev');
+  const DEV_CDN = 'http://localhost:5000';
+  const PROD_CDN = 'https://linz-addr-cdn.kyle.kiwi';
+  const APIROOT = DEV ? DEV_CDN : PROD_CDN;
   window.APIROOT = APIROOT;
   const TILEZOOM = 14;
   const tiler = utilTiler().zoomExtent([TILEZOOM, TILEZOOM]);
@@ -90130,8 +90136,11 @@
 
 
   function tileURL(dataset, extent) {
+    let url = dataset.url;
+    if (DEV) url = url.replace(PROD_CDN, DEV_CDN);
+
     const bbox = extent.toParam();
-    return `${dataset.url}?geometry=${bbox}&u=${(window.__user || {}).display_name}`;
+    return `${url}?geometry=${bbox}&u=${(window.__user || {}).display_name}`;
   }
 
 
@@ -90281,6 +90290,10 @@
           tags[k] = v;
         }
       });
+
+      // you need to have a ref:linz:xxx tag to ID the feature, but if you don't want to
+      // add that as a OSM tag, use ref:linz:temp_id
+      delete tags['ref:linz:temp_id'];
 
       // tags.source = `esri/${dataset.name}`;
       return tags;

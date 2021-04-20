@@ -229,7 +229,7 @@
 	(module.exports = function (key, value) {
 	  return sharedStore[key] || (sharedStore[key] = value !== undefined ? value : {});
 	})('versions', []).push({
-	  version: '3.10.1',
+	  version: '3.10.2',
 	  mode:  'global',
 	  copyright: '© 2021 Denis Pushkarev (zloirock.ru)'
 	});
@@ -250,6 +250,7 @@
 
 	var hiddenKeys = {};
 
+	var OBJECT_ALREADY_INITIALIZED = 'Object already initialized';
 	var WeakMap$1 = global_1.WeakMap;
 	var set, get, has$1;
 
@@ -272,6 +273,7 @@
 	  var wmhas = store$1.has;
 	  var wmset = store$1.set;
 	  set = function (it, metadata) {
+	    if (wmhas.call(store$1, it)) throw new TypeError(OBJECT_ALREADY_INITIALIZED);
 	    metadata.facade = it;
 	    wmset.call(store$1, it, metadata);
 	    return metadata;
@@ -286,6 +288,7 @@
 	  var STATE = sharedKey('state');
 	  hiddenKeys[STATE] = true;
 	  set = function (it, metadata) {
+	    if (has(it, STATE)) throw new TypeError(OBJECT_ALREADY_INITIALIZED);
 	    metadata.facade = it;
 	    createNonEnumerableProperty(it, STATE, metadata);
 	    return metadata;
@@ -5450,7 +5453,7 @@
 	  var scheme = url.scheme;
 	  var port = url.port;
 	  if (scheme == 'blob') try {
-	    return new URL(scheme.path[0]).origin;
+	    return new URLConstructor(scheme.path[0]).origin;
 	  } catch (error) {
 	    return 'null';
 	  }
@@ -5729,7 +5732,7 @@
 	var UNSUPPORTED_Y$1 = regexpStickyHelpers.UNSUPPORTED_Y || regexpStickyHelpers.BROKEN_CARET;
 
 	// nonparticipating capturing group, copied from es5-shim's String#split patch.
-	// eslint-disable-next-line regexp/no-assertion-capturing-group, regexp/no-empty-group -- required for testing
+	// eslint-disable-next-line regexp/no-assertion-capturing-group, regexp/no-empty-group, regexp/no-lazy-ends -- testing
 	var NPCG_INCLUDED = /()??/.exec('')[1] !== undefined;
 
 	var PATCH = UPDATES_LAST_INDEX_WRONG || NPCG_INCLUDED || UNSUPPORTED_Y$1;
@@ -81734,7 +81737,8 @@
 	    var id = _datum.__origid__.split('-')[1];
 
 	    window._dsState[_datum.__datasetid__][id] = 'done';
-	    if (fromAccept === true) return; // if the user cancels a DELETE or EDIT, add a check_date= tag
+	    if (fromAccept === true) return;
+	    if (!prefixedLinzRef) return; // if the user cancels a DELETE or EDIT, add a check_date= tag
 
 	    if (prefixedLinzRef.startsWith(DELETE_PREFIX)) {
 	      var linzRef = prefixedLinzRef && prefixedLinzRef.slice(DELETE_PREFIX.length);
@@ -83039,7 +83043,8 @@
 	  }
 
 	  function render() {
-	    if (!popupOpen) {
+	    // won't work when developing since cross origin window.open. Use 127.0.0.1 to bypass this
+	    if (!popupOpen && location.hostname !== 'localhost') {
 	      popupOpen = true;
 	      var w = window.open('https://linz-addr.kyle.kiwi/map', '', 'width=800,height=600');
 
@@ -89865,7 +89870,10 @@
 	  return context;
 	}
 
-	var APIROOT = 'https://linz-addr-cdn.kyle.kiwi';
+	var DEV = new URLSearchParams(location.hash).get('dev');
+	var DEV_CDN = 'http://localhost:5000';
+	var PROD_CDN = 'https://linz-addr-cdn.kyle.kiwi';
+	var APIROOT = DEV ? DEV_CDN : PROD_CDN;
 	window.APIROOT = APIROOT;
 	var TILEZOOM = 14;
 	var tiler = utilTiler().zoomExtent([TILEZOOM, TILEZOOM]);
@@ -89902,8 +89910,10 @@
 	}
 
 	function tileURL(dataset, extent) {
+	  var url = dataset.url;
+	  if (DEV) url = url.replace(PROD_CDN, DEV_CDN);
 	  var bbox = extent.toParam();
-	  return "".concat(dataset.url, "?geometry=").concat(bbox, "&u=").concat((window.__user || {}).display_name);
+	  return "".concat(url, "?geometry=").concat(bbox, "&u=").concat((window.__user || {}).display_name);
 	}
 
 	function parseTile(dataset, tile, geojson, context, callback) {
@@ -90081,7 +90091,10 @@
 	      if (k && v) {
 	        tags[k] = v;
 	      }
-	    }); // tags.source = `esri/${dataset.name}`;
+	    }); // you need to have a ref:linz:xxx tag to ID the feature, but if you don't want to
+	    // add that as a OSM tag, use ref:linz:temp_id
+
+	    delete tags['ref:linz:temp_id']; // tags.source = `esri/${dataset.name}`;
 
 	    return tags;
 	  }
