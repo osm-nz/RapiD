@@ -329,7 +329,7 @@ export function uiRapidViewManageDatasets(context, parentModal) {
   }
 
 
-  function toggleDataset(d3_event, d) {
+  function toggleDataset(d3_event, d, source) {
     const datasets = rapidContext.datasets();
     const ds = datasets[d.id];
 
@@ -340,7 +340,7 @@ export function uiRapidViewManageDatasets(context, parentModal) {
 
       // warn if someone else is editting
       const inUse = window.__locked[d.id];
-      if (inUse) {
+      if (inUse && source !== 'isFromPopup') { // don't show this if coming from the popup map bc the user was already warned there
         const [user, minutesAgo] = inUse;
         const msg = minutesAgo === 'done'
           ? 'This dataset may already have been uploaded by someone else!'
@@ -396,7 +396,7 @@ export function uiRapidViewManageDatasets(context, parentModal) {
       }
       const d = _datasetInfo.find(x => x.id === sector);
       console.log('Loaded', d.name);
-      toggleDataset(null, d);
+      toggleDataset(null, d, 'isFromPopup');
       setTimeout(_myClose, 500); // short delay need because the modal needs to re-render after toggling the dataset
     }
   }, false);
