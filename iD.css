@@ -3326,8 +3326,8 @@
     font-weight: bold;
     color: #eee;
     margin: 0 10px;
-    width: 1.7em;
-    height: 1.7em;
+    width: 1.8em;
+    height: 1.8em;
     border: 1px solid #909;
     border-radius: 5px;
     background: rgb(203,16,237);
@@ -3728,6 +3728,7 @@
     top: 80px;
     min-width: 650px;
     max-width: 650px;
+    max-height: 85%;
     background: rgba(25, 25, 25, 0.9);
     -webkit-backdrop-filter: blur(2.5px);
     backdrop-filter: blur(2.5px);
@@ -3756,6 +3757,7 @@
 .ideditor .modal.rapid-modal .content {
     -webkit-box-shadow: unset;
             box-shadow: unset;
+    overflow-y: hidden;
 }
 .ideditor .modal.rapid-modal .modal-section {
     border: 0px;
@@ -4167,43 +4169,7 @@ hide this one and style something on top of it.  */
     color: #aaa;
 }
 
-/*
-.rapid-checkbox.poweruser:hover {
-    color: #ddd;
-    background: #8885;
-}
-
-.rapid-feature-animation.poweruser {
-    background-size: 100% 100%;
-    width: 130px;
-    height: 130px;
-    border-radius: 10px;
-    margin: 5px;
-    border: 1px solid darkgrey;
-}
-*/
-/*
-.modal-section.rapid-checkbox.poweruser div#ai-feature-halo {
-    background-image: url('rapid/ai-feature-halo-still.png');
-}
-.modal-section.rapid-checkbox.poweruser:hover div#ai-feature-halo {
-    background-image: url('rapid/ai-feature-halo.gif');
-}
-.modal-section.rapid-checkbox.poweruser div#tagnostic-road-combine {
-    background-image: url('rapid/tagnostic-road-join-still.png');
-}
-.modal-section.rapid-checkbox.poweruser:hover  div#tagnostic-road-combine {
-    background-image: url('rapid/tagnostic-road-join.gif');
-}
-.modal-section.rapid-checkbox.poweruser div#tag-sources {
-    background-image: url('rapid/tag-sources-still.png');
-}
-.modal-section.rapid-checkbox.poweruser:hover div#tag-sources {
-    background-image: url('rapid/tag-sources.gif');
-}
-*/
-
-/* View/Manage Datasets modal */
+/* Add/Manage Datasets modal */
 /* view-manage-wrap is an absolutely positioned div to create a new stacking context,
    so we can put a modal on top of the other modal.
    (it functions like .shaded for layout but without adding any shading)
@@ -4288,44 +4254,11 @@ hide this one and style something on top of it.  */
     font-size: 24px;
     padding: 0 5px;
 }
-.ideditor .rapid-view-manage-header-inputs {
-    -webkit-box-flex: 0;
-    -webkit-flex: 0 1 auto;
-        -ms-flex: 0 1 auto;
-            flex: 0 1 auto;
-}
 .ideditor .rapid-view-manage-header-about {
     color: #ddd;
 }
-.ideditor .rapid-view-manage-header-about  {
-    color: #ddd;
-}
 
-
-.ideditor .modal-view-manage .modal-section.rapid-view-manage-pages {
-    overflow-x: scroll;
-}
-.ideditor .rapid-view-manage-page {
-    margin: 5px 2px;
-    cursor: pointer;
-
-    font-weight: 800;
-    font-size: 12px;
-    background-color: #999;
-    border-radius: 100%;
-    padding: 5px;
-    line-height: 10px;
-}
-.ideditor .rapid-view-manage-page:hover {
-    color: #ddd;
-    background: #8885;
-}
-.ideditor .rapid-view-manage-page.current {
-    background-color: #da26d3;
-}
-
-
-.ideditor .modal-view-manage .modal-section.rapid-view-manage-datasets-section {
+.ideditor .modal-view-manage .modal-section.rapid-view-manage-filter {
     display: -webkit-box;
     display: -webkit-flex;
     display: -ms-flexbox;
@@ -4335,23 +4268,67 @@ hide this one and style something on top of it.  */
     -webkit-flex-flow: row nowrap;
         -ms-flex-flow: row nowrap;
             flex-flow: row nowrap;
+    padding: 10px 20px;
+    border-bottom: 1px solid #aaaa;
+    color: #fff;
+}
+.ideditor .rapid-view-manage-filter-wrap {
+    position: relative;
+    -webkit-box-flex: 1;
+    -webkit-flex: 1;
+        -ms-flex: 1;
+            flex: 1;
+    padding: 0 5px;
+}
+.ideditor .rapid-view-manage-filter-wrap .icon {
+    position: absolute;
+    left: 16px;
+    top: 10px;
+    color: #aaa;
+    width: 16px;
+    height: 16px;
+}
+.ideditor .rapid-view-manage-filter-input {
+    background: #444;
+    color: #ddd;
+    padding: 4px 12px 4px 40px;
+    border-radius: 10px;
+    border: 1px solid #333;
+    font-size: 16px;
+    width: 75%;
+}
+.ideditor .rapid-view-manage-filter-input:focus,
+.ideditor .rapid-view-manage-filter-input:active {
+    background: #444;
+    color: #eee;
+    outline: none;
+    border: 1px solid #aaa;
+}
+.ideditor .rapid-view-manage-filter-results {
+    -webkit-box-flex: 1;
+    -webkit-flex: 1;
+        -ms-flex: 1;
+            flex: 1;
+    padding: 0 5px;
+    text-align: end;
+    font-size: 20px;
+}
+
+.ideditor .modal-view-manage .modal-section.rapid-view-manage-datasets-section {
+    display: -webkit-box;
+    display: -webkit-flex;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-box-orient: vertical;
+    -webkit-box-direction: normal;
+    -webkit-flex-flow: column nowrap;
+        -ms-flex-flow: column nowrap;
+            flex-flow: column nowrap;
     -webkit-box-align: stretch;
     -webkit-align-items: stretch;
         -ms-flex-align: stretch;
             align-items: stretch;
-}
-.ideditor .rapid-view-manage-pageleft,
-.ideditor .rapid-view-manage-pageright {
-    cursor: pointer;
-}
-.ideditor .rapid-view-manage-pageleft svg,
-.ideditor .rapid-view-manage-pageright svg {
-    height: 100%;
-}
-.ideditor .rapid-view-manage-pageleft:hover,
-.ideditor .rapid-view-manage-pageright:hover {
-    color: #ddd;
-    background: #8885;
+    overflow-y: auto;
 }
 
 .ideditor .rapid-view-manage-datasets {

@@ -121,10 +121,16 @@
 	  throw TypeError("Can't convert object to primitive value");
 	};
 
+	// `ToObject` abstract operation
+	// https://tc39.es/ecma262/#sec-toobject
+	var toObject = function (argument) {
+	  return Object(requireObjectCoercible(argument));
+	};
+
 	var hasOwnProperty = {}.hasOwnProperty;
 
-	var has = function (it, key) {
-	  return hasOwnProperty.call(it, key);
+	var has = function hasOwn(it, key) {
+	  return hasOwnProperty.call(toObject(it), key);
 	};
 
 	var document$1 = global_1.document;
@@ -229,7 +235,7 @@
 	(module.exports = function (key, value) {
 	  return sharedStore[key] || (sharedStore[key] = value !== undefined ? value : {});
 	})('versions', []).push({
-	  version: '3.10.2',
+	  version: '3.11.0',
 	  mode:  'global',
 	  copyright: '© 2021 Denis Pushkarev (zloirock.ru)'
 	});
@@ -942,12 +948,6 @@
 	};
 
 	var iterators = {};
-
-	// `ToObject` abstract operation
-	// https://tc39.es/ecma262/#sec-toobject
-	var toObject = function (argument) {
-	  return Object(requireObjectCoercible(argument));
-	};
 
 	var correctPrototypeGetter = !fails(function () {
 	  function F() { /* empty */ }
@@ -4687,6 +4687,7 @@
 	var INVALID_PORT = 'Invalid port';
 
 	var ALPHA = /[A-Za-z]/;
+	// eslint-disable-next-line regexp/no-obscure-range -- safe
 	var ALPHANUMERIC = /[\d+-.A-Za-z]/;
 	var DIGIT = /\d/;
 	var HEX_START = /^(0x|0X)/;
@@ -4694,10 +4695,10 @@
 	var DEC = /^\d+$/;
 	var HEX = /^[\dA-Fa-f]+$/;
 	/* eslint-disable no-control-regex -- safe */
-	var FORBIDDEN_HOST_CODE_POINT = /[\u0000\t\u000A\u000D #%/:?@[\\]]/;
-	var FORBIDDEN_HOST_CODE_POINT_EXCLUDING_PERCENT = /[\u0000\t\u000A\u000D #/:?@[\\]]/;
+	var FORBIDDEN_HOST_CODE_POINT = /[\0\t\n\r #%/:?@[\\]]/;
+	var FORBIDDEN_HOST_CODE_POINT_EXCLUDING_PERCENT = /[\0\t\n\r #/:?@[\\]]/;
 	var LEADING_AND_TRAILING_C0_CONTROL_OR_SPACE = /^[\u0000-\u001F ]+|[\u0000-\u001F ]+$/g;
-	var TAB_AND_NEW_LINE = /[\t\u000A\u000D]/g;
+	var TAB_AND_NEW_LINE = /[\t\n\r]/g;
 	/* eslint-enable no-control-regex -- safe */
 	var EOF;
 
@@ -14529,7 +14530,7 @@
 
 
 
-	var setInternalState$8 = internalState.set;
+	var enforceInternalState = internalState.enforce;
 
 
 
@@ -14581,7 +14582,10 @@
 	      RegExpWrapper
 	    );
 
-	    if (UNSUPPORTED_Y$3 && sticky) setInternalState$8(result, { sticky: sticky });
+	    if (UNSUPPORTED_Y$3 && sticky) {
+	      var state = enforceInternalState(result);
+	      state.sticky = true;
+	    }
 
 	    return result;
 	  };
@@ -83010,40 +83014,17 @@
 	function uiRapidViewManageDatasets(context, parentModal) {
 	  var rapidContext = context.rapidContext();
 	  var dispatch$1 = dispatch('done');
-	  var PERPAGE = 6;
 
 	  var _content = select(null);
 
-	  var _datasetInfo;
+	  var _filter;
 
-	  var _datasetStart = 0;
+	  var _datasetInfo;
 
 	  var _myClose = function _myClose() {
 	    return true;
 	  }; // custom close handler
 
-
-	  function clamp(num, min, max) {
-	    return Math.max(min, Math.min(num, max));
-	  }
-
-	  function clickPage(_, d) {
-	    if (!Array.isArray(_datasetInfo)) return;
-	    var pages = Math.ceil(_datasetInfo.length / PERPAGE);
-	    _datasetStart = clamp(d, 0, pages - 1) * PERPAGE;
-
-	    _content.call(renderModalContent);
-	  }
-
-	  function nextPreviousPage(d) {
-	    if (!Array.isArray(_datasetInfo)) return;
-	    var pages = Math.ceil(_datasetInfo.length / PERPAGE);
-	    var currPage = Math.floor(_datasetStart / PERPAGE);
-	    var nextPage = utilWrap(currPage + d, pages);
-	    _datasetStart = nextPage * PERPAGE;
-
-	    _content.call(renderModalContent);
-	  }
 
 	  function render() {
 	    // won't work when developing since cross origin window.open. Use 127.0.0.1 to bypass this
@@ -83071,6 +83052,7 @@
 
 
 	    _myClose = function _myClose() {
+	      _filter = null;
 	      myModal.transition().duration(200).style('top', '0px').on('end', function () {
 	        return myShaded.remove();
 	      });
@@ -83107,31 +83089,30 @@
 	    var line1 = headerEnter.append('div');
 	    line1.append('div').attr('class', 'rapid-view-manage-header-icon').call(svgIcon('#iD-icon-data', 'icon-30'));
 	    line1.append('div').attr('class', 'rapid-view-manage-header-text').text(_t('rapid_feature_toggle.esri.title'));
-	    line1.append('div').attr('class', 'rapid-view-manage-header-inputs'); // .text('Home / Search');
-
 	    var line2 = headerEnter.append('div');
 	    line2.append('div').attr('class', 'rapid-view-manage-header-about').html(marked_1(_t('rapid_feature_toggle.esri.about')));
 	    line2.selectAll('a').attr('target', '_blank');
-	    /* Pages section */
+	    /* Filter section */
 
-	    var pagesSection = selection.selectAll('.rapid-view-manage-pages').data([0]);
-	    var pagesSectionEnter = pagesSection.enter().append('div').attr('class', 'modal-section rapid-view-manage-pages');
-	    pagesSection = pagesSection.merge(pagesSectionEnter).call(renderPages);
+	    var filterEnter = selection.selectAll('.rapid-view-manage-filter').data([0]).enter().append('div').attr('class', 'modal-section rapid-view-manage-filter');
+	    var filterInputEnter = filterEnter.append('div').attr('class', 'rapid-view-manage-filter-wrap');
+	    filterInputEnter.call(svgIcon('#fas-filter', 'inline'));
+	    filterInputEnter.append('input').attr('class', 'rapid-view-manage-filter-input').attr('placeholder', 'filter datasets').call(utilNoAuto).on('input', function (d3_event) {
+	      var target = d3_event.target;
+	      var val = target && target.value || '';
+	      _filter = val.trim().toLowerCase();
+	      dsSection.call(renderDatasets);
+	    });
+	    filterEnter.append('div').attr('class', 'rapid-view-manage-filter-results');
 	    /* Dataset section */
 
 	    var dsSection = selection.selectAll('.rapid-view-manage-datasets-section').data([0]); // enter
 
 	    var dsSectionEnter = dsSection.enter().append('div').attr('class', 'modal-section rapid-view-manage-datasets-section');
-	    dsSectionEnter.append('div').attr('class', 'rapid-view-manage-pageleft').call(svgIcon(isRTL ? '#iD-icon-forward' : '#iD-icon-backward')).on('click', function () {
-	      return nextPreviousPage(isRTL ? 1 : -1);
-	    });
-	    dsSectionEnter.append('div').attr('class', 'rapid-view-manage-datasets');
-	    dsSectionEnter.append('div').attr('class', 'rapid-view-manage-pageright').call(svgIcon(isRTL ? '#iD-icon-backward' : '#iD-icon-forward')).on('click', function () {
-	      return nextPreviousPage(isRTL ? -1 : 1);
-	    }); // update
+	    dsSectionEnter.append('div').attr('class', 'rapid-view-manage-datasets-status');
+	    dsSectionEnter.append('div').attr('class', 'rapid-view-manage-datasets'); // update
 
-	    dsSection = dsSection.merge(dsSectionEnter);
-	    dsSection.selectAll('.rapid-view-manage-datasets').call(renderDatasets);
+	    dsSection = dsSection.merge(dsSectionEnter).call(renderDatasets);
 	    /* OK Button */
 
 	    var buttonsEnter = selection.selectAll('.modal-section.buttons').data([0]).enter().append('div').attr('class', 'modal-section buttons');
@@ -83139,16 +83120,20 @@
 	  }
 
 	  function renderDatasets(selection) {
+	    var status = selection.selectAll('.rapid-view-manage-datasets-status');
+	    var results = selection.selectAll('.rapid-view-manage-datasets');
 	    var showPreview = corePreferences('rapid-internal-feature.previewDatasets') === 'true';
 	    var service = services.esriData;
 
 	    if (!service || Array.isArray(_datasetInfo) && !_datasetInfo.length) {
-	      selection.text(_t('rapid_feature_toggle.esri.no_datasets'));
+	      results.classed('hide', true);
+	      status.classed('hide', false).text(_t('rapid_feature_toggle.esri.no_datasets'));
 	      return;
 	    }
 
 	    if (!_datasetInfo) {
-	      selection.text(_t('rapid_feature_toggle.esri.fetching_datasets'));
+	      results.classed('hide', true);
+	      status.classed('hide', false).text(_t('rapid_feature_toggle.esri.fetching_datasets'));
 	      service.loadDatasets().then(function (results) {
 	        // exclude preview datasets unless user has opted into them
 	        return _datasetInfo = Object.values(results).filter(function (d) {
@@ -83162,11 +83147,33 @@
 	      return;
 	    }
 
-	    selection.text('');
+	    results.classed('hide', false);
+	    status.classed('hide', true); // apply filter
 
-	    var page = _datasetInfo.slice(_datasetStart, _datasetStart + PERPAGE);
+	    _datasetInfo.forEach(function (d) {
+	      if (!_filter) {
+	        d.filtered = false;
+	        return;
+	      }
 
-	    var datasets = selection.selectAll('.rapid-view-manage-dataset').data(page, function (d) {
+	      var title = (d.title || '').toLowerCase();
+
+	      if (title.indexOf(_filter) !== -1) {
+	        d.filtered = false;
+	        return;
+	      }
+
+	      var snippet = (d.snippet || '').toLowerCase();
+
+	      if (snippet.indexOf(_filter) !== -1) {
+	        d.filtered = false;
+	        return;
+	      }
+
+	      d.filtered = true;
+	    });
+
+	    var datasets = results.selectAll('.rapid-view-manage-dataset').data(_datasetInfo, function (d) {
 	      return d.id;
 	    }); // exit
 
@@ -83174,51 +83181,38 @@
 
 	    var datasetsEnter = datasets.enter().append('div').attr('class', 'rapid-view-manage-dataset');
 	    var labelsEnter = datasetsEnter.append('div').attr('class', 'rapid-view-manage-dataset-label');
-	    labelsEnter.append('div').attr('class', 'rapid-view-manage-dataset-name').text(function (d) {
-	      return d.title;
-	    });
+	    labelsEnter.append('div').attr('class', 'rapid-view-manage-dataset-name');
 	    labelsEnter.selectAll('.rapid-view-manage-dataset-beta').data(function (d) {
 	      return d.groupCategories.filter(function (d) {
 	        return d === '/Categories/Preview';
 	      });
 	    }).enter().append('div').attr('class', 'rapid-view-manage-dataset-beta beta').attr('title', _t('rapid_poweruser_features.beta'));
 
-	    var extra = function extra(d) {
-	      var v = window.__locked[d.id];
-	      return v ? "<span style=\"color:red\">Someone else ".concat(v[1] === 'done' ? 'may have already uploaded' : 'is working on', " this dataset!</span>") : '';
-	    };
-
-	    labelsEnter.append('div').html(function (d) {
-	      return d.snippet + '<br />' + extra(d);
-	    });
+	    labelsEnter.append('div').attr('class', 'rapid-view-manage-dataset-snippet');
 	    labelsEnter.append('button').attr('class', function (d) {
 	      return 'rapid-view-manage-dataset-action ' + (window.__locked[d.id] ? 'locked' : '');
 	    }).on('click', toggleDataset); // update
 
-	    datasets = datasets.merge(datasetsEnter);
+	    datasets = datasets.merge(datasetsEnter).classed('hide', function (d) {
+	      return d.filtered;
+	    });
+	    datasets.selectAll('.rapid-view-manage-dataset-name').html(function (d) {
+	      return highlight(_filter, d.title);
+	    });
+	    datasets.selectAll('.rapid-view-manage-dataset-snippet').html(function (d) {
+	      return highlight(_filter, d.snippet);
+	    });
 	    datasets.selectAll('.rapid-view-manage-dataset-action').classed('secondary', function (d) {
 	      return datasetAdded(d);
 	    }).text(function (d) {
 	      return datasetAdded(d) ? _t('rapid_feature_toggle.esri.remove') : _t('rapid_feature_toggle.esri.add_to_map');
 	    });
-	  }
 
-	  function renderPages(selection) {
-	    if (!_datasetInfo) return;
-	    var total = _datasetInfo.length;
-	    var numPages = Math.ceil(total / PERPAGE);
-	    var currPage = Math.floor(_datasetStart / PERPAGE);
-	    var pages = Array.from(Array(numPages).keys());
-	    var dots = selection.selectAll('.rapid-view-manage-page').data(pages); // exit
+	    var count = _datasetInfo.filter(function (d) {
+	      return !d.filtered;
+	    }).length;
 
-	    dots.exit().remove(); // enter/update
-
-	    dots.enter().append('span').attr('class', 'rapid-view-manage-page').html(function (d) {
-	      var firstChar = ((_datasetInfo[d * PERPAGE] || {}).id || '').slice(0, 2);
-	      return firstChar || '&#11044;';
-	    }).on('click', clickPage).merge(dots).classed('current', function (d) {
-	      return d === currPage;
-	    });
+	    _content.selectAll('.rapid-view-manage-filter-results').text("".concat(count, " dataset(s) found"));
 	  }
 
 	  function toggleDataset(d3_event, d, source) {
@@ -83309,6 +83303,21 @@
 	  function datasetAdded(d) {
 	    var datasets = rapidContext.datasets();
 	    return datasets[d.id] && datasets[d.id].added;
+	  }
+
+	  function highlight(needle, haystack) {
+	    var html = haystack; // escape(haystack);   // text -> html
+
+	    if (needle) {
+	      var re = new RegExp('\(' + escapeRegex(needle) + '\)', 'gi');
+	      html = html.replace(re, '<mark>$1</mark>');
+	    }
+
+	    return html;
+	  }
+
+	  function escapeRegex(s) {
+	    return s.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
 	  }
 
 	  return utilRebind(render, dispatch$1, 'on');
