@@ -88,10 +88,10 @@ export function uiCommit(context) {
         }
 
         var tags = {
-            comment: prefs('comment') || `LINZ address import for ${services.esriData.getLoadedDatasetNames().join(', ')}`,
+            comment: prefs('comment') || services.esriData.getLoadedDatasetNames().join(', '),
             created_by: context.cleanTagValue('LINZ Address Import ' + context.rapidContext().version),
             host: context.cleanTagValue('https://github.com/osm-nz/linz-address-import'),
-            source: context.cleanTagValue('https://data.linz.govt.nz/layer/3353'),
+            source: context.cleanTagValue(services.esriData.getLoadedDatasetSources().join(', ')),
             attribution: context.cleanTagValue('https://wiki.openstreetmap.org/wiki/Contributors#LINZ'),
             locale: context.cleanTagValue(localizer.localeCode())
         };

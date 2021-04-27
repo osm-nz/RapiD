@@ -57,7 +57,7 @@ export function uiRapidFeatureInspector(context, keybinding) {
     if (!realAddrEntity) {
       context.ui().flash
         .iconName('#iD-icon-no')
-        .label('Looks like this node has already been deleted')();
+        .label('Looks like this node hasn\'t downloaded yet, or has already been deleted')();
       return false; // not loaded yet or already deleted;
     }
 
@@ -76,7 +76,10 @@ export function uiRapidFeatureInspector(context, keybinding) {
   function editAddr(linzRef, _tags) {
     // clone just in case
     const tags = Object.assign({}, _tags);
+
+    // this will be prefixed with special_xx so we delete it
     delete tags['ref:linz:address_id'];
+    delete tags.ref;
 
     // if the ref has changed, u need to specify a tag called new_linz_ref=
     if (tags.new_linz_ref) {
@@ -119,7 +122,7 @@ export function uiRapidFeatureInspector(context, keybinding) {
     const prefixedLinzRef =
       _datum &&
       _datum.tags &&
-      _datum.tags['ref:linz:address_id'];
+      (_datum.tags['ref:linz:address_id'] || _datum.tags.ref);
 
     if (prefixedLinzRef && prefixedLinzRef.startsWith(MOVE_PREFIX)) {
       const linzRef = prefixedLinzRef && prefixedLinzRef.slice(MOVE_PREFIX.length);
@@ -232,7 +235,7 @@ export function uiRapidFeatureInspector(context, keybinding) {
     const prefixedLinzRef =
       _datum &&
       _datum.tags &&
-      _datum.tags['ref:linz:address_id'];
+      (_datum.tags['ref:linz:address_id'] || _datum.tags.ref);
 
     const id = _datum.__origid__.split('-')[1];
     window._dsState[_datum.__datasetid__][id] = 'done';
@@ -401,7 +404,7 @@ export function uiRapidFeatureInspector(context, keybinding) {
 
 
     /** @type {string | undefined} */
-    const linzRef = _datum && _datum.tags &&_datum.tags['ref:linz:address_id'];
+    const linzRef = _datum && _datum.tags && (_datum.tags['ref:linz:address_id'] || _datum.tags.ref);
     const isMove = linzRef && linzRef.startsWith(MOVE_PREFIX);
     const isDelete = linzRef && linzRef.startsWith(DELETE_PREFIX);
     const isEdit = linzRef && linzRef.startsWith(EDIT_PREFIX);

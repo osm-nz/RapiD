@@ -1031,8 +1031,8 @@ export default {
             let needToRebaseRapid = false;
             parsed.forEach(node => {
                 if (!node.tags) return;
-                if (node.tags['ref:linz:address_id']) {
-                    const linzId = node.tags['ref:linz:address_id'];
+                const linzId = node.tags['ref:linz:address_id'] || node.tags.ref;
+                if (linzId) {
                     _seenAddresses[linzId] = node;
 
                     const ds = window._dsState[window._mostRecentDsId];

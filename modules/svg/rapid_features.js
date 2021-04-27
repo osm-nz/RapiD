@@ -125,7 +125,8 @@ export function svgRapidFeatures(projection, context, dispatch) {
 
   function isArea(d) {
     // d.isArea() using reference equality which is why it fails for geojson. So we have an override here
-    if ((d.tags['ref:linz:address_id'] || '').startsWith('SPECIAL_EDIT_')) return true;
+    const ref = d.tags['ref:linz:address_id'] || d.tags.ref;
+    if (ref && ref.startsWith('SPECIAL_EDIT_')) return true;
 
     return (d.type === 'relation' || (d.type === 'way' && d.isArea()));
   }
@@ -424,7 +425,8 @@ export function svgRapidFeatures(projection, context, dispatch) {
     let enter = points.enter()
       .append('g')
       .attr('style', d => {
-        if (d.tags && d.tags['ref:linz:address_id'] && d.tags['ref:linz:address_id'].startsWith('SPECIAL_DELETE_')) {
+        const ref = d.tags && (d.tags['ref:linz:address_id'] || d.tags.ref);
+        if (ref && ref.startsWith('SPECIAL_DELETE_')) {
           return 'color:#f44336';
         }
         return '';

@@ -80,7 +80,7 @@ function parseFeature(feature, dataset, context) {
 
   const linzRefKey = Object.keys(props).find(x => x.startsWith('ref:linz:'));
 
-  const featureID = props[dataset.layer.idfield] || props[linzRefKey] || props.OBJECTID || props.FID || props.id;
+  const featureID = props[dataset.layer.idfield] || props[linzRefKey] || props.OBJECTID || props.FID || props.ref || props.id;
   if (!featureID) return null;
 
   // the OSM service has already seen this linz ref, so skip it - it must already be mapped
@@ -88,7 +88,7 @@ function parseFeature(feature, dataset, context) {
 
     // if it was already mapped before the OSM service loaded, we should delete it here
     if (dataset.cache.seen[featureID]) {
-      const maybeEntity = Object.values(dataset.graph.base().entities).find((n) => n.__fbid__.endsWith(featureID));
+      const maybeEntity = Object.values(dataset.graph.base().entities).find((n) => n.__fbid__ && n.__fbid__.endsWith(featureID));
       // dataset.graph.remove(maybeEntity); // TODO: why doesn't this work?
       if (!maybeEntity) {
         console.log('failed to find ' + featureID + ' in graph');
@@ -326,7 +326,7 @@ export default {
 
       d3_json(url, { signal: controller.signal })
         .then(geojson => {
-          _loaded[datasetID] = ds.name;
+          _loaded[datasetID] = { name: ds.name, source: ds.source };
 
           delete cache.inflight[tile.id];
           if (!geojson) throw new Error('no geojson');
@@ -380,7 +380,8 @@ export default {
   },
 
   getLoadedDatasetIDs: () => Object.keys(_loaded),
-  getLoadedDatasetNames: () => Object.values(_loaded),
+  getLoadedDatasetNames: () => Object.values(_loaded).map(x => x.name),
+  getLoadedDatasetSources: () => [...new Set(Object.values(_loaded).map(x => x.source))],
   resetLoadedDatasets: () => { _loaded = {}; },
 
 
