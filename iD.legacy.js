@@ -55532,7 +55532,8 @@
 
 	  function isArea(d) {
 	    // d.isArea() using reference equality which is why it fails for geojson. So we have an override here
-	    if ((d.tags['ref:linz:address_id'] || '').startsWith('SPECIAL_EDIT_')) return true;
+	    var ref = d.tags['ref:linz:address_id'] || d.tags.ref;
+	    if (ref && ref.startsWith('SPECIAL_EDIT_')) return true;
 	    return d.type === 'relation' || d.type === 'way' && d.isArea();
 	  }
 
@@ -55737,7 +55738,9 @@
 	    points.exit().remove(); // enter
 
 	    var enter = points.enter().append('g').attr('style', function (d) {
-	      if (d.tags && d.tags['ref:linz:address_id'] && d.tags['ref:linz:address_id'].startsWith('SPECIAL_DELETE_')) {
+	      var ref = d.tags && (d.tags['ref:linz:address_id'] || d.tags.ref);
+
+	      if (ref && ref.startsWith('SPECIAL_DELETE_')) {
 	        return 'color:#f44336';
 	      }
 
@@ -59793,7 +59796,7 @@
 
 	    function renderAsPoint(entity) {
 	      // don't render nodes that are meant to be deleted
-	      var linzRef = entity.tags && entity.tags['ref:linz:address_id'];
+	      var linzRef = entity.tags && (entity.tags['ref:linz:address_id'] || entity.tags.ref);
 	      /** @type {"done" | [lng: number, lat: number]} */
 
 	      var coordsOrDone = ((window._dsState || {})[window._mostRecentDsId] || {})['SPECIAL_DELETE_' + linzRef];
@@ -63855,10 +63858,10 @@
 	    }
 
 	    var tags = {
-	      comment: corePreferences('comment') || "LINZ address import for ".concat(services.esriData.getLoadedDatasetNames().join(', ')),
+	      comment: corePreferences('comment') || services.esriData.getLoadedDatasetNames().join(', '),
 	      created_by: context.cleanTagValue('LINZ Address Import ' + context.rapidContext().version),
 	      host: context.cleanTagValue('https://github.com/osm-nz/linz-address-import'),
-	      source: context.cleanTagValue('https://data.linz.govt.nz/layer/3353'),
+	      source: context.cleanTagValue(services.esriData.getLoadedDatasetSources().join(', ')),
 	      attribution: context.cleanTagValue('https://wiki.openstreetmap.org/wiki/Contributors#LINZ'),
 	      locale: context.cleanTagValue(_mainLocalizer.localeCode())
 	    }; // call findHashtags initially - this will remove stored
@@ -81583,7 +81586,7 @@
 	    var realAddrEntity = window._seenAddresses[linzRef];
 
 	    if (!realAddrEntity) {
-	      context.ui().flash.iconName('#iD-icon-no').label('Looks like this node has already been deleted')();
+	      context.ui().flash.iconName('#iD-icon-no').label('Looks like this node hasn\'t downloaded yet, or has already been deleted')();
 	      return false; // not loaded yet or already deleted;
 	    }
 
@@ -81599,8 +81602,10 @@
 
 	  function editAddr(linzRef, _tags) {
 	    // clone just in case
-	    var tags = Object.assign({}, _tags);
-	    delete tags['ref:linz:address_id']; // if the ref has changed, u need to specify a tag called new_linz_ref=
+	    var tags = Object.assign({}, _tags); // this will be prefixed with special_xx so we delete it
+
+	    delete tags['ref:linz:address_id'];
+	    delete tags.ref; // if the ref has changed, u need to specify a tag called new_linz_ref=
 
 	    if (tags.new_linz_ref) {
 	      tags['ref:linz:address_id'] = tags.new_linz_ref;
@@ -81635,7 +81640,7 @@
 	      window._dsState[_datum.__datasetid__][id] = 'done';
 	    }
 
-	    var prefixedLinzRef = _datum && _datum.tags && _datum.tags['ref:linz:address_id'];
+	    var prefixedLinzRef = _datum && _datum.tags && (_datum.tags['ref:linz:address_id'] || _datum.tags.ref);
 
 	    if (prefixedLinzRef && prefixedLinzRef.startsWith(MOVE_PREFIX)) {
 	      var linzRef = prefixedLinzRef && prefixedLinzRef.slice(MOVE_PREFIX.length);
@@ -81739,7 +81744,7 @@
 	    };
 	    context.perform(actionNoop(), annotation);
 	    context.enter(modeBrowse(context));
-	    var prefixedLinzRef = _datum && _datum.tags && _datum.tags['ref:linz:address_id'];
+	    var prefixedLinzRef = _datum && _datum.tags && (_datum.tags['ref:linz:address_id'] || _datum.tags.ref);
 
 	    var id = _datum.__origid__.split('-')[1];
 
@@ -81846,7 +81851,7 @@
 	    body = body.merge(bodyEnter).call(featureInfo).call(tagInfo);
 	    /** @type {string | undefined} */
 
-	    var linzRef = _datum && _datum.tags && _datum.tags['ref:linz:address_id'];
+	    var linzRef = _datum && _datum.tags && (_datum.tags['ref:linz:address_id'] || _datum.tags.ref);
 	    var isMove = linzRef && linzRef.startsWith(MOVE_PREFIX);
 	    var isDelete = linzRef && linzRef.startsWith(DELETE_PREFIX);
 	    var isEdit = linzRef && linzRef.startsWith(EDIT_PREFIX);
@@ -89950,14 +89955,14 @@
 	  var linzRefKey = Object.keys(props).find(function (x) {
 	    return x.startsWith('ref:linz:');
 	  });
-	  var featureID = props[dataset.layer.idfield] || props[linzRefKey] || props.OBJECTID || props.FID || props.id;
+	  var featureID = props[dataset.layer.idfield] || props[linzRefKey] || props.OBJECTID || props.FID || props.ref || props.id;
 	  if (!featureID) return null; // the OSM service has already seen this linz ref, so skip it - it must already be mapped
 
 	  if (window._seenAddresses[featureID]) {
 	    // if it was already mapped before the OSM service loaded, we should delete it here
 	    if (dataset.cache.seen[featureID]) {
 	      var maybeEntity = Object.values(dataset.graph.base().entities).find(function (n) {
-	        return n.__fbid__.endsWith(featureID);
+	        return n.__fbid__ && n.__fbid__.endsWith(featureID);
 	      }); // dataset.graph.remove(maybeEntity); // TODO: why doesn't this work?
 
 	      if (!maybeEntity) {
@@ -90200,7 +90205,10 @@
 	      d3_json(url, {
 	        signal: controller.signal
 	      }).then(function (geojson) {
-	        _loaded[datasetID] = ds.name;
+	        _loaded[datasetID] = {
+	          name: ds.name,
+	          source: ds.source
+	        };
 	        delete cache.inflight[tile.id];
 	        if (!geojson) throw new Error('no geojson');
 
@@ -90263,7 +90271,14 @@
 	    return Object.keys(_loaded);
 	  },
 	  getLoadedDatasetNames: function getLoadedDatasetNames() {
-	    return Object.values(_loaded);
+	    return Object.values(_loaded).map(function (x) {
+	      return x.name;
+	    });
+	  },
+	  getLoadedDatasetSources: function getLoadedDatasetSources() {
+	    return _toConsumableArray(new Set(Object.values(_loaded).map(function (x) {
+	      return x.source;
+	    })));
 	  },
 	  resetLoadedDatasets: function resetLoadedDatasets() {
 	    _loaded = {};
@@ -98130,9 +98145,9 @@
 	      var needToRebaseRapid = false;
 	      parsed.forEach(function (node) {
 	        if (!node.tags) return;
+	        var linzId = node.tags['ref:linz:address_id'] || node.tags.ref;
 
-	        if (node.tags['ref:linz:address_id']) {
-	          var linzId = node.tags['ref:linz:address_id'];
+	        if (linzId) {
 	          _seenAddresses[linzId] = node;
 	          var ds = window._dsState[window._mostRecentDsId];
 

@@ -48927,7 +48927,8 @@
 
     function isArea(d) {
       // d.isArea() using reference equality which is why it fails for geojson. So we have an override here
-      if ((d.tags['ref:linz:address_id'] || '').startsWith('SPECIAL_EDIT_')) return true;
+      const ref = d.tags['ref:linz:address_id'] || d.tags.ref;
+      if (ref && ref.startsWith('SPECIAL_EDIT_')) return true;
 
       return (d.type === 'relation' || (d.type === 'way' && d.isArea()));
     }
@@ -49226,7 +49227,8 @@
       let enter = points.enter()
         .append('g')
         .attr('style', d => {
-          if (d.tags && d.tags['ref:linz:address_id'] && d.tags['ref:linz:address_id'].startsWith('SPECIAL_DELETE_')) {
+          const ref = d.tags && (d.tags['ref:linz:address_id'] || d.tags.ref);
+          if (ref && ref.startsWith('SPECIAL_DELETE_')) {
             return 'color:#f44336';
           }
           return '';
@@ -53263,7 +53265,7 @@
           // Points with a direction will render as vertices at higher zooms..
           function renderAsPoint(entity) {
               // don't render nodes that are meant to be deleted
-              const linzRef = entity.tags && entity.tags['ref:linz:address_id'];
+              const linzRef = entity.tags && (entity.tags['ref:linz:address_id'] || entity.tags.ref);
               /** @type {"done" | [lng: number, lat: number]} */
               const coordsOrDone = ((window._dsState || {})[window._mostRecentDsId] || {})['SPECIAL_DELETE_' + linzRef];
               if (linzRef && coordsOrDone && coordsOrDone !== 'done') return false;
@@ -58500,10 +58502,10 @@
           }
 
           var tags = {
-              comment: corePreferences('comment') || `LINZ address import for ${services.esriData.getLoadedDatasetNames().join(', ')}`,
+              comment: corePreferences('comment') || services.esriData.getLoadedDatasetNames().join(', '),
               created_by: context.cleanTagValue('LINZ Address Import ' + context.rapidContext().version),
               host: context.cleanTagValue('https://github.com/osm-nz/linz-address-import'),
-              source: context.cleanTagValue('https://data.linz.govt.nz/layer/3353'),
+              source: context.cleanTagValue(services.esriData.getLoadedDatasetSources().join(', ')),
               attribution: context.cleanTagValue('https://wiki.openstreetmap.org/wiki/Contributors#LINZ'),
               locale: context.cleanTagValue(_mainLocalizer.localeCode())
           };
@@ -79087,7 +79089,7 @@
       if (!realAddrEntity) {
         context.ui().flash
           .iconName('#iD-icon-no')
-          .label('Looks like this node has already been deleted')();
+          .label('Looks like this node hasn\'t downloaded yet, or has already been deleted')();
         return false; // not loaded yet or already deleted;
       }
 
@@ -79106,7 +79108,10 @@
     function editAddr(linzRef, _tags) {
       // clone just in case
       const tags = Object.assign({}, _tags);
+
+      // this will be prefixed with special_xx so we delete it
       delete tags['ref:linz:address_id'];
+      delete tags.ref;
 
       // if the ref has changed, u need to specify a tag called new_linz_ref=
       if (tags.new_linz_ref) {
@@ -79149,7 +79154,7 @@
       const prefixedLinzRef =
         _datum &&
         _datum.tags &&
-        _datum.tags['ref:linz:address_id'];
+        (_datum.tags['ref:linz:address_id'] || _datum.tags.ref);
 
       if (prefixedLinzRef && prefixedLinzRef.startsWith(MOVE_PREFIX)) {
         const linzRef = prefixedLinzRef && prefixedLinzRef.slice(MOVE_PREFIX.length);
@@ -79262,7 +79267,7 @@
       const prefixedLinzRef =
         _datum &&
         _datum.tags &&
-        _datum.tags['ref:linz:address_id'];
+        (_datum.tags['ref:linz:address_id'] || _datum.tags.ref);
 
       const id = _datum.__origid__.split('-')[1];
       window._dsState[_datum.__datasetid__][id] = 'done';
@@ -79431,7 +79436,7 @@
 
 
       /** @type {string | undefined} */
-      const linzRef = _datum && _datum.tags &&_datum.tags['ref:linz:address_id'];
+      const linzRef = _datum && _datum.tags && (_datum.tags['ref:linz:address_id'] || _datum.tags.ref);
       const isMove = linzRef && linzRef.startsWith(MOVE_PREFIX);
       const isDelete = linzRef && linzRef.startsWith(DELETE_PREFIX);
       const isEdit = linzRef && linzRef.startsWith(EDIT_PREFIX);
@@ -90155,7 +90160,7 @@
 
     const linzRefKey = Object.keys(props).find(x => x.startsWith('ref:linz:'));
 
-    const featureID = props[dataset.layer.idfield] || props[linzRefKey] || props.OBJECTID || props.FID || props.id;
+    const featureID = props[dataset.layer.idfield] || props[linzRefKey] || props.OBJECTID || props.FID || props.ref || props.id;
     if (!featureID) return null;
 
     // the OSM service has already seen this linz ref, so skip it - it must already be mapped
@@ -90163,7 +90168,7 @@
 
       // if it was already mapped before the OSM service loaded, we should delete it here
       if (dataset.cache.seen[featureID]) {
-        const maybeEntity = Object.values(dataset.graph.base().entities).find((n) => n.__fbid__.endsWith(featureID));
+        const maybeEntity = Object.values(dataset.graph.base().entities).find((n) => n.__fbid__ && n.__fbid__.endsWith(featureID));
         // dataset.graph.remove(maybeEntity); // TODO: why doesn't this work?
         if (!maybeEntity) {
           console.log('failed to find ' + featureID + ' in graph');
@@ -90401,7 +90406,7 @@
 
         d3_json(url, { signal: controller.signal })
           .then(geojson => {
-            _loaded[datasetID] = ds.name;
+            _loaded[datasetID] = { name: ds.name, source: ds.source };
 
             delete cache.inflight[tile.id];
             if (!geojson) throw new Error('no geojson');
@@ -90455,7 +90460,8 @@
     },
 
     getLoadedDatasetIDs: () => Object.keys(_loaded),
-    getLoadedDatasetNames: () => Object.values(_loaded),
+    getLoadedDatasetNames: () => Object.values(_loaded).map(x => x.name),
+    getLoadedDatasetSources: () => [...new Set(Object.values(_loaded).map(x => x.source))],
     resetLoadedDatasets: () => { _loaded = {}; },
 
 
@@ -98491,8 +98497,8 @@
               let needToRebaseRapid = false;
               parsed.forEach(node => {
                   if (!node.tags) return;
-                  if (node.tags['ref:linz:address_id']) {
-                      const linzId = node.tags['ref:linz:address_id'];
+                  const linzId = node.tags['ref:linz:address_id'] || node.tags.ref;
+                  if (linzId) {
                       _seenAddresses[linzId] = node;
 
                       const ds = window._dsState[window._mostRecentDsId];
