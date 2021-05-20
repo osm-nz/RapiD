@@ -179,6 +179,10 @@ export function modeDragNode(context) {
             alert('Node hasn\'t loaded yet, try again once it loads');
             return false;
         }
+        if (entity.id[0] !== 'n') {
+            alert(`Can't move entity beacuse it's not a node (It's ${entity.id})`);
+            return false;
+        }
         const d3_event = {
             point: fromLoc,
             target: {},
