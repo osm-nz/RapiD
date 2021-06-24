@@ -168,6 +168,9 @@ function parseFeature(feature, dataset, context) {
       }
 
     } else {  // multiple rings, make a multipolygon relation with inner/outer members
+
+      // 🚨 I'm pretty sure this logic is untested
+
       const members = ways.map((w, i) => {
         entities.push(w);
         return { id: w.id, role: (i === 0 ? 'outer' : 'inner'), type: 'way' };
@@ -175,6 +178,45 @@ function parseFeature(feature, dataset, context) {
       const tags = Object.assign(parseTags(props), { type: 'multipolygon' });
       const r = new osmRelation({ members: members, tags: tags }, meta);
       entities.push(r);
+
+      if (window._dsState[dataset.id][featureID] !== 'done') {
+        window._dsState[dataset.id][featureID] = { feat: r, geo: geom.coordinates[0][0] };
+      }
+    }
+
+    return entities;
+  } else if (geom.type === 'MultiPolygon') {
+    /** @type {osmWay[][]} */
+    let relationMembers = [];
+
+    geom.coordinates.forEach((member, memberNum) => {
+      relationMembers[memberNum] = [];
+      member.forEach(ring => {
+        const nodelist = parseCoordinates(ring);
+        if (nodelist.length < 3) return null;
+
+        const first = nodelist[0];
+        const last = nodelist[nodelist.length - 1];
+        if (first !== last) nodelist.push(first);   // sanity check, ensure rings are closed
+
+        const w = new osmWay({ nodes: nodelist });
+        relationMembers[memberNum].push(w);
+      });
+    });
+
+    const members = relationMembers.flatMap(ways => {
+      return ways.map((w, i) => {
+        entities.push(w);
+        return { id: w.id, role: (i === 0 ? 'outer' : 'inner'), type: 'way' };
+      });
+    });
+
+    const tags = Object.assign(parseTags(props), { type: 'multipolygon' });
+    const r = new osmRelation({ members: members, tags: tags }, meta);
+    entities.push(r);
+
+    if (window._dsState[dataset.id][featureID] !== 'done') {
+      window._dsState[dataset.id][featureID] = { feat: r, geo: geom.coordinates[0][0][0] };
     }
 
     return entities;
