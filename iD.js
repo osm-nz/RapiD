@@ -685,7 +685,7 @@
       if (typeof Proxy === "function") return true;
 
       try {
-        Date.prototype.toString.call(Reflect.construct(Date, [], function () {}));
+        Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {}));
         return true;
       } catch (e) {
         return false;
@@ -18171,11 +18171,14 @@
   }
 
   function rewindRing(ring, dir) {
-      var area = 0;
+      var area = 0, err = 0;
       for (var i = 0, len = ring.length, j = len - 1; i < len; j = i++) {
-          area += (ring[i][0] - ring[j][0]) * (ring[j][1] + ring[i][1]);
+          var k = (ring[i][0] - ring[j][0]) * (ring[j][1] + ring[i][1]);
+          var m = area + k;
+          err += Math.abs(area) >= Math.abs(k) ? area - m + k : k - m + area;
+          area = m;
       }
-      if (area >= 0 !== !!dir) ring.reverse();
+      if (area + err >= 0 !== !!dir) ring.reverse();
   }
 
   function actionExtract(entityID) {
@@ -25333,6 +25336,10 @@
       window.__moveNodeHook = (entity, fromLoc, toLoc) => {
           if (!entity) {
               alert('Node hasn\'t loaded yet, try again once it loads');
+              return false;
+          }
+          if (entity.id[0] !== 'n') {
+              alert(`Can't move entity beacuse it's not a node (It's ${entity.id})`);
               return false;
           }
           const d3_event = {
@@ -59272,6 +59279,7 @@
     var n = getNumberOfEdges(options);
     var earthRadius = getEarthRadius(options);
     var bearing = getBearing(options);
+    var direction = getDirection(options);
 
     // validateInput() throws error on invalid input and do nothing on valid input
     validateInput$1({ center, radius, numberOfEdges: n, earthRadius, bearing });
@@ -59279,7 +59287,11 @@
     var start = toRadians(bearing);
     var coordinates = [];
     for (var i = 0; i < n; ++i) {
-      coordinates.push(offset(center, radius, earthRadius, start + (2 * Math.PI * -i) / n));
+      coordinates.push(
+        offset(
+          center, radius, earthRadius, start + (direction * 2 * Math.PI * -i) / n
+        )
+      );
     }
     coordinates.push(coordinates[0]);
 
@@ -59290,7 +59302,7 @@
   };
 
   function getNumberOfEdges(options) {
-    if (options === undefined) {
+    if (isUndefinedOrNull(options)) {
       return 32;
     } else if (isObjectNotArray(options)) {
       var numberOfEdges = options.numberOfEdges;
@@ -59300,7 +59312,7 @@
   }
 
   function getEarthRadius(options) {
-    if (options === undefined) {
+    if (isUndefinedOrNull(options)) {
       return defaultEarthRadius;
     } else if (isObjectNotArray(options)) {
       var earthRadius = options.earthRadius;
@@ -59309,8 +59321,15 @@
     return defaultEarthRadius;
   }
 
+  function getDirection(options){
+    if (isObjectNotArray(options) && options.rightHandRule){
+      return -1;
+    }
+    return 1;
+  }
+
   function getBearing(options) {
-    if (options === undefined) {
+    if (isUndefinedOrNull(options)) {
       return 0;
     } else if (isObjectNotArray(options)) {
       var bearing = options.bearing;
@@ -59320,7 +59339,11 @@
   }
 
   function isObjectNotArray(argument) {
-    return typeof argument === "object" && !Array.isArray(argument);
+    return argument !== null && typeof argument === "object" && !Array.isArray(argument);
+  }
+
+  function isUndefinedOrNull(argument) {
+    return argument === null || argument === undefined;
   }
 
   /**
@@ -90248,6 +90271,9 @@
         }
 
       } else {  // multiple rings, make a multipolygon relation with inner/outer members
+
+        // 🚨 I'm pretty sure this logic is untested
+
         const members = ways.map((w, i) => {
           entities.push(w);
           return { id: w.id, role: (i === 0 ? 'outer' : 'inner'), type: 'way' };
@@ -90255,6 +90281,45 @@
         const tags = Object.assign(parseTags(props), { type: 'multipolygon' });
         const r = new osmRelation({ members: members, tags: tags }, meta);
         entities.push(r);
+
+        if (window._dsState[dataset.id][featureID] !== 'done') {
+          window._dsState[dataset.id][featureID] = { feat: r, geo: geom.coordinates[0][0] };
+        }
+      }
+
+      return entities;
+    } else if (geom.type === 'MultiPolygon') {
+      /** @type {osmWay[][]} */
+      let relationMembers = [];
+
+      geom.coordinates.forEach((member, memberNum) => {
+        relationMembers[memberNum] = [];
+        member.forEach(ring => {
+          const nodelist = parseCoordinates(ring);
+          if (nodelist.length < 3) return null;
+
+          const first = nodelist[0];
+          const last = nodelist[nodelist.length - 1];
+          if (first !== last) nodelist.push(first);   // sanity check, ensure rings are closed
+
+          const w = new osmWay({ nodes: nodelist });
+          relationMembers[memberNum].push(w);
+        });
+      });
+
+      const members = relationMembers.flatMap(ways => {
+        return ways.map((w, i) => {
+          entities.push(w);
+          return { id: w.id, role: (i === 0 ? 'outer' : 'inner'), type: 'way' };
+        });
+      });
+
+      const tags = Object.assign(parseTags(props), { type: 'multipolygon' });
+      const r = new osmRelation({ members: members, tags: tags }, meta);
+      entities.push(r);
+
+      if (window._dsState[dataset.id][featureID] !== 'done') {
+        window._dsState[dataset.id][featureID] = { feat: r, geo: geom.coordinates[0][0][0] };
       }
 
       return entities;
@@ -95757,27 +95822,24 @@
   }()); // IIFE
   });
 
-  var immutable = extend$3;
+  var sha1 = new hashes.SHA1();
 
+
+  // # xtend
   var hasOwnProperty$d = Object.prototype.hasOwnProperty;
-
-  function extend$3() {
+  function xtend() {
       var target = {};
-
       for (var i = 0; i < arguments.length; i++) {
           var source = arguments[i];
-
           for (var key in source) {
               if (hasOwnProperty$d.call(source, key)) {
                   target[key] = source[key];
               }
           }
       }
-
-      return target
+      return target;
   }
 
-  var sha1 = new hashes.SHA1();
 
   var ohauth = {};
 
@@ -95905,7 +95967,7 @@
 
           if (token) oauth_params.oauth_token = token;
 
-          var all_params = immutable({}, oauth_params, query_params, extra_params),
+          var all_params = xtend({}, oauth_params, query_params, extra_params),
               base_str = ohauth.baseString(method, base_uri, all_params);
 
           oauth_params.oauth_signature = ohauth.signature(consumer_secret, token_secret, base_str);
@@ -97195,6 +97257,26 @@
   var plugins = [json2];
 
   var store_legacy = storeEngine.createStore(all, plugins);
+
+  var immutable = extend$3;
+
+  var hasOwnProperty$e = Object.prototype.hasOwnProperty;
+
+  function extend$3() {
+      var target = {};
+
+      for (var i = 0; i < arguments.length; i++) {
+          var source = arguments[i];
+
+          for (var key in source) {
+              if (hasOwnProperty$e.call(source, key)) {
+                  target[key] = source[key];
+              }
+          }
+      }
+
+      return target
+  }
 
   // # osm-auth
   //
@@ -100793,10 +100875,12 @@
       return geojson;
   }
 
-  // Cohen-Sutherland line clippign algorithm, adapted to efficiently
+  // Cohen-Sutherland line clipping algorithm, adapted to efficiently
   // handle polylines rather than just segments
   function lineclip$1(points, bbox, result) {
-      var len = points.length, codeA = bitCode$1(points[0], bbox), part = [], i, a, b, codeB, lastCode;
+      var len = points.length, codeA = bitCode$1(points[0], bbox), part = [], i, codeB, lastCode;
+      var a;
+      var b;
       if (!result)
           result = [];
       for (i = 1; i < len; i++) {
