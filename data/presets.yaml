@@ -2531,6 +2531,47 @@ en:
         # 'survey:date=*'
         label: Last Survey Date
         terms: '[translate with synonyms or related terms for ''Last Survey Date'', separated by commas]'
+      survey_point/datum_aligned:
+        # 'survey_point:datum_aligned=*'
+        label: Datum-aligned
+      survey_point/purpose:
+        # 'survey_point:purpose=*'
+        label: Purpose
+        options:
+          # 'survey_point:purpose=both'
+          both: Both
+          # 'survey_point:purpose=horizontal'
+          horizontal: Horizontal
+          # 'survey_point:purpose=vertical'
+          vertical: Vertical
+      survey_point/structure:
+        # 'survey_point:structure=*'
+        label: Structure
+        options:
+          # 'survey_point:structure=beacon'
+          beacon: beacon
+          # 'survey_point:structure=block'
+          block: block
+          # 'survey_point:structure=bracket'
+          bracket: bracket
+          # 'survey_point:structure=cairn'
+          cairn: cairn
+          # 'survey_point:structure=cut'
+          cut: cut
+          # 'survey_point:structure=indented_pin'
+          indented_pin: indented_pin
+          # 'survey_point:structure=magnet'
+          magnet: magnet
+          # 'survey_point:structure=medallion'
+          medallion: medallion
+          # 'survey_point:structure=pillar'
+          pillar: pillar
+          # 'survey_point:structure=pin'
+          pin: pin
+          # 'survey_point:structure=plaque'
+          plaque: plaque
+          # 'survey_point:structure=pole'
+          pole: pole
       swimming_pool:
         # swimming_pool=*
         label: Type

@@ -1032,7 +1032,8 @@ export default {
             parsed.forEach(node => {
                 if (!node.tags) return;
                 const linzId = node.tags['ref:linz:address_id'] || node.tags.ref;
-                if (linzId) {
+                // skip man_made=monitoring_station since they use the same ref= as the adjacent survey markers
+                if (linzId && node.tags.man_made !== 'monitoring_station') {
                     _seenAddresses[linzId] = node;
 
                     const ds = window._dsState[window._mostRecentDsId];

@@ -1,0 +1,21 @@
+{
+    "key": "survey_point:structure",
+    "type": "combo",
+    "label": "Structure",
+    "strings": {
+        "options": {
+            "beacon": "beacon",
+            "block": "block",
+            "pole": "pole",
+            "pillar": "pillar",
+            "bracket": "bracket",
+            "plaque": "plaque",
+            "medallion": "medallion",
+            "cairn": "cairn",
+            "pin": "pin",
+            "indented_pin": "indented_pin",
+            "cut": "cut",
+            "magnet": "magnet"
+        }
+    }
+}
