@@ -5223,6 +5223,34 @@
                 "surveillance/zone": {
                     "label": "Surveillance Zone"
                 },
+                "survey_point/datum_aligned": {
+                    "label": "Datum-aligned"
+                },
+                "survey_point/purpose": {
+                    "label": "Purpose",
+                    "options": {
+                        "horizontal": "Horizontal",
+                        "vertical": "Vertical",
+                        "both": "Both"
+                    }
+                },
+                "survey_point/structure": {
+                    "label": "Structure",
+                    "options": {
+                        "beacon": "beacon",
+                        "block": "block",
+                        "pole": "pole",
+                        "pillar": "pillar",
+                        "bracket": "bracket",
+                        "plaque": "plaque",
+                        "medallion": "medallion",
+                        "cairn": "cairn",
+                        "pin": "pin",
+                        "indented_pin": "indented_pin",
+                        "cut": "cut",
+                        "magnet": "magnet"
+                    }
+                },
                 "survey/date": {
                     "label": "Last Survey Date",
                     "terms": ""
@@ -11113,11 +11141,23 @@
                 },
                 "name": "UrbIS-Ortho 2019"
             },
+            "UrbISOrtho2020": {
+                "attribution": {
+                    "text": "Realized by means of Brussels UrbIS®© - Distribution & Copyright CIRB"
+                },
+                "name": "UrbIS-Ortho 2020"
+            },
             "UrbisAdmFR": {
                 "attribution": {
                     "text": "Realized by means of Brussels UrbIS®© - Distribution & Copyright CIRB"
                 },
                 "name": "UrbisAdm FR"
+            },
+            "UrbisAdmFRNL": {
+                "attribution": {
+                    "text": "Realized by means of Brussels UrbIS®© - Distribution & Copyright CIRB"
+                },
+                "name": "UrbisAdm FR/NL"
             },
             "UrbisAdmNL": {
                 "attribution": {

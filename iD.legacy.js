@@ -108,18 +108,98 @@
 	  return typeof it === 'object' ? it !== null : typeof it === 'function';
 	};
 
-	// `ToPrimitive` abstract operation
-	// https://tc39.es/ecma262/#sec-toprimitive
-	// instead of the ES6 spec version, we didn't implement @@toPrimitive case
-	// and the second argument - flag - preferred type is a string
-	var toPrimitive = function (input, PREFERRED_STRING) {
-	  if (!isObject(input)) return input;
+	var aFunction = function (variable) {
+	  return typeof variable == 'function' ? variable : undefined;
+	};
+
+	var getBuiltIn = function (namespace, method) {
+	  return arguments.length < 2 ? aFunction(global_1[namespace]) : global_1[namespace] && global_1[namespace][method];
+	};
+
+	var engineUserAgent = getBuiltIn('navigator', 'userAgent') || '';
+
+	var process$1 = global_1.process;
+	var Deno = global_1.Deno;
+	var versions = process$1 && process$1.versions || Deno && Deno.version;
+	var v8 = versions && versions.v8;
+	var match, version;
+
+	if (v8) {
+	  match = v8.split('.');
+	  version = match[0] < 4 ? 1 : match[0] + match[1];
+	} else if (engineUserAgent) {
+	  match = engineUserAgent.match(/Edge\/(\d+)/);
+	  if (!match || match[1] >= 74) {
+	    match = engineUserAgent.match(/Chrome\/(\d+)/);
+	    if (match) version = match[1];
+	  }
+	}
+
+	var engineV8Version = version && +version;
+
+	/* eslint-disable es/no-symbol -- required for testing */
+
+
+
+	// eslint-disable-next-line es/no-object-getownpropertysymbols -- required for testing
+	var nativeSymbol = !!Object.getOwnPropertySymbols && !fails(function () {
+	  var symbol = Symbol();
+	  // Chrome 38 Symbol has incorrect toString conversion
+	  // `get-own-property-symbols` polyfill symbols converted to object are not Symbol instances
+	  return !String(symbol) || !(Object(symbol) instanceof Symbol) ||
+	    // Chrome 38-40 symbols are not inherited from DOM collections prototypes to instances
+	    !Symbol.sham && engineV8Version && engineV8Version < 41;
+	});
+
+	/* eslint-disable es/no-symbol -- required for testing */
+
+
+	var useSymbolAsUid = nativeSymbol
+	  && !Symbol.sham
+	  && typeof Symbol.iterator == 'symbol';
+
+	var isSymbol = useSymbolAsUid ? function (it) {
+	  return typeof it == 'symbol';
+	} : function (it) {
+	  var $Symbol = getBuiltIn('Symbol');
+	  return typeof $Symbol == 'function' && Object(it) instanceof $Symbol;
+	};
+
+	// `OrdinaryToPrimitive` abstract operation
+	// https://tc39.es/ecma262/#sec-ordinarytoprimitive
+	var ordinaryToPrimitive = function (input, pref) {
 	  var fn, val;
-	  if (PREFERRED_STRING && typeof (fn = input.toString) == 'function' && !isObject(val = fn.call(input))) return val;
+	  if (pref === 'string' && typeof (fn = input.toString) == 'function' && !isObject(val = fn.call(input))) return val;
 	  if (typeof (fn = input.valueOf) == 'function' && !isObject(val = fn.call(input))) return val;
-	  if (!PREFERRED_STRING && typeof (fn = input.toString) == 'function' && !isObject(val = fn.call(input))) return val;
+	  if (pref !== 'string' && typeof (fn = input.toString) == 'function' && !isObject(val = fn.call(input))) return val;
 	  throw TypeError("Can't convert object to primitive value");
 	};
+
+	var isPure = false;
+
+	var setGlobal = function (key, value) {
+	  try {
+	    // eslint-disable-next-line es/no-object-defineproperty -- safe
+	    Object.defineProperty(global_1, key, { value: value, configurable: true, writable: true });
+	  } catch (error) {
+	    global_1[key] = value;
+	  } return value;
+	};
+
+	var SHARED = '__core-js_shared__';
+	var store = global_1[SHARED] || setGlobal(SHARED, {});
+
+	var sharedStore = store;
+
+	var shared = createCommonjsModule(function (module) {
+	(module.exports = function (key, value) {
+	  return sharedStore[key] || (sharedStore[key] = value !== undefined ? value : {});
+	})('versions', []).push({
+	  version: '3.16.1',
+	  mode:  'global',
+	  copyright: '© 2021 Denis Pushkarev (zloirock.ru)'
+	});
+	});
 
 	// `ToObject` abstract operation
 	// https://tc39.es/ecma262/#sec-toobject
@@ -131,6 +211,52 @@
 
 	var has = Object.hasOwn || function hasOwn(it, key) {
 	  return hasOwnProperty.call(toObject(it), key);
+	};
+
+	var id = 0;
+	var postfix = Math.random();
+
+	var uid = function (key) {
+	  return 'Symbol(' + String(key === undefined ? '' : key) + ')_' + (++id + postfix).toString(36);
+	};
+
+	var WellKnownSymbolsStore = shared('wks');
+	var Symbol$1 = global_1.Symbol;
+	var createWellKnownSymbol = useSymbolAsUid ? Symbol$1 : Symbol$1 && Symbol$1.withoutSetter || uid;
+
+	var wellKnownSymbol = function (name) {
+	  if (!has(WellKnownSymbolsStore, name) || !(nativeSymbol || typeof WellKnownSymbolsStore[name] == 'string')) {
+	    if (nativeSymbol && has(Symbol$1, name)) {
+	      WellKnownSymbolsStore[name] = Symbol$1[name];
+	    } else {
+	      WellKnownSymbolsStore[name] = createWellKnownSymbol('Symbol.' + name);
+	    }
+	  } return WellKnownSymbolsStore[name];
+	};
+
+	var TO_PRIMITIVE = wellKnownSymbol('toPrimitive');
+
+	// `ToPrimitive` abstract operation
+	// https://tc39.es/ecma262/#sec-toprimitive
+	var toPrimitive = function (input, pref) {
+	  if (!isObject(input) || isSymbol(input)) return input;
+	  var exoticToPrim = input[TO_PRIMITIVE];
+	  var result;
+	  if (exoticToPrim !== undefined) {
+	    if (pref === undefined) pref = 'default';
+	    result = exoticToPrim.call(input, pref);
+	    if (!isObject(result) || isSymbol(result)) return result;
+	    throw TypeError("Can't convert object to primitive value");
+	  }
+	  if (pref === undefined) pref = 'number';
+	  return ordinaryToPrimitive(input, pref);
+	};
+
+	// `ToPropertyKey` abstract operation
+	// https://tc39.es/ecma262/#sec-topropertykey
+	var toPropertyKey = function (argument) {
+	  var key = toPrimitive(argument, 'string');
+	  return isSymbol(key) ? key : String(key);
 	};
 
 	var document$1 = global_1.document;
@@ -156,7 +282,7 @@
 	// https://tc39.es/ecma262/#sec-object.getownpropertydescriptor
 	var f$1 = descriptors ? $getOwnPropertyDescriptor : function getOwnPropertyDescriptor(O, P) {
 	  O = toIndexedObject(O);
-	  P = toPrimitive(P, true);
+	  P = toPropertyKey(P);
 	  if (ie8DomDefine) try {
 	    return $getOwnPropertyDescriptor(O, P);
 	  } catch (error) { /* empty */ }
@@ -180,7 +306,7 @@
 	// https://tc39.es/ecma262/#sec-object.defineproperty
 	var f$2 = descriptors ? $defineProperty : function defineProperty(O, P, Attributes) {
 	  anObject(O);
-	  P = toPrimitive(P, true);
+	  P = toPropertyKey(P);
 	  anObject(Attributes);
 	  if (ie8DomDefine) try {
 	    return $defineProperty(O, P, Attributes);
@@ -201,19 +327,6 @@
 	  return object;
 	};
 
-	var setGlobal = function (key, value) {
-	  try {
-	    createNonEnumerableProperty(global_1, key, value);
-	  } catch (error) {
-	    global_1[key] = value;
-	  } return value;
-	};
-
-	var SHARED = '__core-js_shared__';
-	var store = global_1[SHARED] || setGlobal(SHARED, {});
-
-	var sharedStore = store;
-
 	var functionToString = Function.toString;
 
 	// this helper broken in `core-js@3.4.1-3.4.4`, so we can't use `shared` helper
@@ -228,25 +341,6 @@
 	var WeakMap = global_1.WeakMap;
 
 	var nativeWeakMap = typeof WeakMap === 'function' && /native code/.test(inspectSource(WeakMap));
-
-	var isPure = false;
-
-	var shared = createCommonjsModule(function (module) {
-	(module.exports = function (key, value) {
-	  return sharedStore[key] || (sharedStore[key] = value !== undefined ? value : {});
-	})('versions', []).push({
-	  version: '3.15.1',
-	  mode:  'global',
-	  copyright: '© 2021 Denis Pushkarev (zloirock.ru)'
-	});
-	});
-
-	var id = 0;
-	var postfix = Math.random();
-
-	var uid = function (key) {
-	  return 'Symbol(' + String(key === undefined ? '' : key) + ')_' + (++id + postfix).toString(36);
-	};
 
 	var keys = shared('keys');
 
@@ -350,17 +444,6 @@
 	  return typeof this == 'function' && getInternalState(this).source || inspectSource(this);
 	});
 	});
-
-	var path = global_1;
-
-	var aFunction = function (variable) {
-	  return typeof variable == 'function' ? variable : undefined;
-	};
-
-	var getBuiltIn = function (namespace, method) {
-	  return arguments.length < 2 ? aFunction(path[namespace]) || aFunction(global_1[namespace])
-	    : path[namespace] && path[namespace][method] || global_1[namespace] && global_1[namespace][method];
-	};
 
 	var ceil = Math.ceil;
 	var floor = Math.floor;
@@ -573,7 +656,7 @@
 
 	// `Date.prototype.toString` method
 	// https://tc39.es/ecma262/#sec-date.prototype.tostring
-	if (new Date(NaN) + '' != INVALID_DATE) {
+	if (String(new Date(NaN)) != INVALID_DATE) {
 	  redefine(DatePrototype, TO_STRING, function toString() {
 	    var value = getTime.call(this);
 	    // eslint-disable-next-line no-self-compare -- NaN check
@@ -766,60 +849,7 @@
 	  };
 	}
 
-	var engineUserAgent = getBuiltIn('navigator', 'userAgent') || '';
-
-	var process$1 = global_1.process;
-	var versions = process$1 && process$1.versions;
-	var v8 = versions && versions.v8;
-	var match, version;
-
-	if (v8) {
-	  match = v8.split('.');
-	  version = match[0] < 4 ? 1 : match[0] + match[1];
-	} else if (engineUserAgent) {
-	  match = engineUserAgent.match(/Edge\/(\d+)/);
-	  if (!match || match[1] >= 74) {
-	    match = engineUserAgent.match(/Chrome\/(\d+)/);
-	    if (match) version = match[1];
-	  }
-	}
-
-	var engineV8Version = version && +version;
-
-	/* eslint-disable es/no-symbol -- required for testing */
-
-
-
-	// eslint-disable-next-line es/no-object-getownpropertysymbols -- required for testing
-	var nativeSymbol = !!Object.getOwnPropertySymbols && !fails(function () {
-	  var symbol = Symbol();
-	  // Chrome 38 Symbol has incorrect toString conversion
-	  // `get-own-property-symbols` polyfill symbols converted to object are not Symbol instances
-	  return !String(symbol) || !(Object(symbol) instanceof Symbol) ||
-	    // Chrome 38-40 symbols are not inherited from DOM collections prototypes to instances
-	    !Symbol.sham && engineV8Version && engineV8Version < 41;
-	});
-
-	/* eslint-disable es/no-symbol -- required for testing */
-
-
-	var useSymbolAsUid = nativeSymbol
-	  && !Symbol.sham
-	  && typeof Symbol.iterator == 'symbol';
-
-	var WellKnownSymbolsStore = shared('wks');
-	var Symbol$1 = global_1.Symbol;
-	var createWellKnownSymbol = useSymbolAsUid ? Symbol$1 : Symbol$1 && Symbol$1.withoutSetter || uid;
-
-	var wellKnownSymbol = function (name) {
-	  if (!has(WellKnownSymbolsStore, name) || !(nativeSymbol || typeof WellKnownSymbolsStore[name] == 'string')) {
-	    if (nativeSymbol && has(Symbol$1, name)) {
-	      WellKnownSymbolsStore[name] = Symbol$1[name];
-	    } else {
-	      WellKnownSymbolsStore[name] = createWellKnownSymbol('Symbol.' + name);
-	    }
-	  } return WellKnownSymbolsStore[name];
-	};
+	var path = global_1;
 
 	var f$5 = wellKnownSymbol;
 
@@ -862,6 +892,15 @@
 
 	var html = getBuiltIn('document', 'documentElement');
 
+	/* global ActiveXObject -- old IE, WSH */
+
+
+
+
+
+
+
+
 	var GT = '>';
 	var LT = '<';
 	var PROTOTYPE = 'prototype';
@@ -889,15 +928,17 @@
 	  var iframe = documentCreateElement('iframe');
 	  var JS = 'java' + SCRIPT + ':';
 	  var iframeDocument;
-	  iframe.style.display = 'none';
-	  html.appendChild(iframe);
-	  // https://github.com/zloirock/core-js/issues/475
-	  iframe.src = String(JS);
-	  iframeDocument = iframe.contentWindow.document;
-	  iframeDocument.open();
-	  iframeDocument.write(scriptTag('document.F=Object'));
-	  iframeDocument.close();
-	  return iframeDocument.F;
+	  if (iframe.style) {
+	    iframe.style.display = 'none';
+	    html.appendChild(iframe);
+	    // https://github.com/zloirock/core-js/issues/475
+	    iframe.src = String(JS);
+	    iframeDocument = iframe.contentWindow.document;
+	    iframeDocument.open();
+	    iframeDocument.write(scriptTag('document.F=Object'));
+	    iframeDocument.close();
+	    return iframeDocument.F;
+	  }
 	};
 
 	// Check for document.domain and active x support
@@ -908,10 +949,12 @@
 	var activeXDocument;
 	var NullProtoObject = function () {
 	  try {
-	    /* global ActiveXObject -- old IE */
-	    activeXDocument = document.domain && new ActiveXObject('htmlfile');
+	    activeXDocument = new ActiveXObject('htmlfile');
 	  } catch (error) { /* ignore */ }
-	  NullProtoObject = activeXDocument ? NullProtoObjectViaActiveX(activeXDocument) : NullProtoObjectViaIFrame();
+	  NullProtoObject = document.domain && activeXDocument ?
+	    NullProtoObjectViaActiveX(activeXDocument) : // old IE
+	    NullProtoObjectViaIFrame() ||
+	    NullProtoObjectViaActiveX(activeXDocument); // WSH
 	  var length = enumBugKeys.length;
 	  while (length--) delete NullProtoObject[PROTOTYPE][enumBugKeys[length]];
 	  return NullProtoObject();
@@ -1239,10 +1282,15 @@
 	  redefine(Object.prototype, 'toString', objectToString, { unsafe: true });
 	}
 
-	// `String.prototype.{ codePointAt, at }` methods implementation
+	var toString_1 = function (argument) {
+	  if (isSymbol(argument)) throw TypeError('Cannot convert a Symbol value to a string');
+	  return String(argument);
+	};
+
+	// `String.prototype.codePointAt` methods implementation
 	var createMethod$1 = function (CONVERT_TO_STRING) {
 	  return function ($this, pos) {
-	    var S = String(requireObjectCoercible($this));
+	    var S = toString_1(requireObjectCoercible($this));
 	    var position = toInteger(pos);
 	    var size = S.length;
 	    var first, second;
@@ -1268,6 +1316,7 @@
 
 
 
+
 	var STRING_ITERATOR = 'String Iterator';
 	var setInternalState$1 = internalState.set;
 	var getInternalState$1 = internalState.getterFor(STRING_ITERATOR);
@@ -1277,7 +1326,7 @@
 	defineIterator(String, 'String', function (iterated) {
 	  setInternalState$1(this, {
 	    type: STRING_ITERATOR,
-	    string: String(iterated),
+	    string: toString_1(iterated),
 	    index: 0
 	  });
 	// `%StringIteratorPrototype%.next` method
@@ -1423,9 +1472,9 @@
 
 	var SPECIES = wellKnownSymbol('species');
 
-	// `ArraySpeciesCreate` abstract operation
+	// a part of `ArraySpeciesCreate` abstract operation
 	// https://tc39.es/ecma262/#sec-arrayspeciescreate
-	var arraySpeciesCreate = function (originalArray, length) {
+	var arraySpeciesConstructor = function (originalArray) {
 	  var C;
 	  if (isArray(originalArray)) {
 	    C = originalArray.constructor;
@@ -1435,19 +1484,25 @@
 	      C = C[SPECIES];
 	      if (C === null) C = undefined;
 	    }
-	  } return new (C === undefined ? Array : C)(length === 0 ? 0 : length);
+	  } return C === undefined ? Array : C;
+	};
+
+	// `ArraySpeciesCreate` abstract operation
+	// https://tc39.es/ecma262/#sec-arrayspeciescreate
+	var arraySpeciesCreate = function (originalArray, length) {
+	  return new (arraySpeciesConstructor(originalArray))(length === 0 ? 0 : length);
 	};
 
 	var push = [].push;
 
-	// `Array.prototype.{ forEach, map, filter, some, every, find, findIndex, filterOut }` methods implementation
+	// `Array.prototype.{ forEach, map, filter, some, every, find, findIndex, filterReject }` methods implementation
 	var createMethod$2 = function (TYPE) {
 	  var IS_MAP = TYPE == 1;
 	  var IS_FILTER = TYPE == 2;
 	  var IS_SOME = TYPE == 3;
 	  var IS_EVERY = TYPE == 4;
 	  var IS_FIND_INDEX = TYPE == 6;
-	  var IS_FILTER_OUT = TYPE == 7;
+	  var IS_FILTER_REJECT = TYPE == 7;
 	  var NO_HOLES = TYPE == 5 || IS_FIND_INDEX;
 	  return function ($this, callbackfn, that, specificCreate) {
 	    var O = toObject($this);
@@ -1456,7 +1511,7 @@
 	    var length = toLength(self.length);
 	    var index = 0;
 	    var create = specificCreate || arraySpeciesCreate;
-	    var target = IS_MAP ? create($this, length) : IS_FILTER || IS_FILTER_OUT ? create($this, 0) : undefined;
+	    var target = IS_MAP ? create($this, length) : IS_FILTER || IS_FILTER_REJECT ? create($this, 0) : undefined;
 	    var value, result;
 	    for (;length > index; index++) if (NO_HOLES || index in self) {
 	      value = self[index];
@@ -1470,7 +1525,7 @@
 	          case 2: push.call(target, value); // filter
 	        } else switch (TYPE) {
 	          case 4: return false;             // every
-	          case 7: push.call(target, value); // filterOut
+	          case 7: push.call(target, value); // filterReject
 	        }
 	      }
 	    }
@@ -1500,9 +1555,9 @@
 	  // `Array.prototype.findIndex` method
 	  // https://tc39.es/ecma262/#sec-array.prototype.findIndex
 	  findIndex: createMethod$2(6),
-	  // `Array.prototype.filterOut` method
+	  // `Array.prototype.filterReject` method
 	  // https://github.com/tc39/proposal-array-filtering
-	  filterOut: createMethod$2(7)
+	  filterReject: createMethod$2(7)
 	};
 
 	var $forEach = arrayIteration.forEach;
@@ -1510,7 +1565,7 @@
 	var HIDDEN = sharedKey('hidden');
 	var SYMBOL = 'Symbol';
 	var PROTOTYPE$1 = 'prototype';
-	var TO_PRIMITIVE = wellKnownSymbol('toPrimitive');
+	var TO_PRIMITIVE$1 = wellKnownSymbol('toPrimitive');
 	var setInternalState$2 = internalState.set;
 	var getInternalState$2 = internalState.getterFor(SYMBOL);
 	var ObjectPrototype$1 = Object[PROTOTYPE$1];
@@ -1554,16 +1609,10 @@
 	  return symbol;
 	};
 
-	var isSymbol = useSymbolAsUid ? function (it) {
-	  return typeof it == 'symbol';
-	} : function (it) {
-	  return Object(it) instanceof $Symbol;
-	};
-
 	var $defineProperty$1 = function defineProperty(O, P, Attributes) {
 	  if (O === ObjectPrototype$1) $defineProperty$1(ObjectPrototypeSymbols, P, Attributes);
 	  anObject(O);
-	  var key = toPrimitive(P, true);
+	  var key = toPropertyKey(P);
 	  anObject(Attributes);
 	  if (has(AllSymbols, key)) {
 	    if (!Attributes.enumerable) {
@@ -1591,7 +1640,7 @@
 	};
 
 	var $propertyIsEnumerable$1 = function propertyIsEnumerable(V) {
-	  var P = toPrimitive(V, true);
+	  var P = toPropertyKey(V);
 	  var enumerable = nativePropertyIsEnumerable.call(this, P);
 	  if (this === ObjectPrototype$1 && has(AllSymbols, P) && !has(ObjectPrototypeSymbols, P)) return false;
 	  return enumerable || !has(this, P) || !has(AllSymbols, P) || has(this, HIDDEN) && this[HIDDEN][P] ? enumerable : true;
@@ -1599,7 +1648,7 @@
 
 	var $getOwnPropertyDescriptor$1 = function getOwnPropertyDescriptor(O, P) {
 	  var it = toIndexedObject(O);
-	  var key = toPrimitive(P, true);
+	  var key = toPropertyKey(P);
 	  if (it === ObjectPrototype$1 && has(AllSymbols, key) && !has(ObjectPrototypeSymbols, key)) return;
 	  var descriptor = nativeGetOwnPropertyDescriptor(it, key);
 	  if (descriptor && has(AllSymbols, key) && !(has(it, HIDDEN) && it[HIDDEN][key])) {
@@ -1634,7 +1683,7 @@
 	if (!nativeSymbol) {
 	  $Symbol = function Symbol() {
 	    if (this instanceof $Symbol) throw TypeError('Symbol is not a constructor');
-	    var description = !arguments.length || arguments[0] === undefined ? undefined : String(arguments[0]);
+	    var description = !arguments.length || arguments[0] === undefined ? undefined : toString_1(arguments[0]);
 	    var tag = uid(description);
 	    var setter = function (value) {
 	      if (this === ObjectPrototype$1) setter.call(ObjectPrototypeSymbols, value);
@@ -1689,7 +1738,7 @@
 	  // `Symbol.for` method
 	  // https://tc39.es/ecma262/#sec-symbol.for
 	  'for': function (key) {
-	    var string = String(key);
+	    var string = toString_1(key);
 	    if (has(StringToSymbolRegistry, string)) return StringToSymbolRegistry[string];
 	    var symbol = $Symbol(string);
 	    StringToSymbolRegistry[string] = symbol;
@@ -1772,8 +1821,8 @@
 
 	// `Symbol.prototype[@@toPrimitive]` method
 	// https://tc39.es/ecma262/#sec-symbol.prototype-@@toprimitive
-	if (!$Symbol[PROTOTYPE$1][TO_PRIMITIVE]) {
-	  createNonEnumerableProperty($Symbol[PROTOTYPE$1], TO_PRIMITIVE, $Symbol[PROTOTYPE$1].valueOf);
+	if (!$Symbol[PROTOTYPE$1][TO_PRIMITIVE$1]) {
+	  createNonEnumerableProperty($Symbol[PROTOTYPE$1], TO_PRIMITIVE$1, $Symbol[PROTOTYPE$1].valueOf);
 	}
 	// `Symbol.prototype[@@toStringTag]` property
 	// https://tc39.es/ecma262/#sec-symbol.prototype-@@tostringtag
@@ -2224,10 +2273,11 @@
 
 	var TO_STRING_TAG$4 = wellKnownSymbol('toStringTag');
 	var TYPED_ARRAY_TAG = uid('TYPED_ARRAY_TAG');
+	var TYPED_ARRAY_CONSTRUCTOR = uid('TYPED_ARRAY_CONSTRUCTOR');
 	// Fixing native typed arrays in Opera Presto crashes the browser, see #595
 	var NATIVE_ARRAY_BUFFER_VIEWS = arrayBufferNative && !!objectSetPrototypeOf && classof(global_1.opera) !== 'Opera';
 	var TYPED_ARRAY_TAG_REQIRED = false;
-	var NAME;
+	var NAME, Constructor, Prototype;
 
 	var TypedArrayConstructorsList = {
 	  Int8Array: 1,
@@ -2267,14 +2317,9 @@
 	};
 
 	var aTypedArrayConstructor = function (C) {
-	  if (objectSetPrototypeOf) {
-	    if (isPrototypeOf.call(TypedArray, C)) return C;
-	  } else for (var ARRAY in TypedArrayConstructorsList) if (has(TypedArrayConstructorsList, NAME)) {
-	    var TypedArrayConstructor = global_1[ARRAY];
-	    if (TypedArrayConstructor && (C === TypedArrayConstructor || isPrototypeOf.call(TypedArrayConstructor, C))) {
-	      return C;
-	    }
-	  } throw TypeError('Target is not a typed array constructor');
+	  if (objectSetPrototypeOf && !isPrototypeOf.call(TypedArray, C)) {
+	    throw TypeError('Target is not a typed array constructor');
+	  } return C;
 	};
 
 	var exportTypedArrayMethod = function (KEY, property, forced) {
@@ -2317,7 +2362,16 @@
 	};
 
 	for (NAME in TypedArrayConstructorsList) {
-	  if (!global_1[NAME]) NATIVE_ARRAY_BUFFER_VIEWS = false;
+	  Constructor = global_1[NAME];
+	  Prototype = Constructor && Constructor.prototype;
+	  if (Prototype) createNonEnumerableProperty(Prototype, TYPED_ARRAY_CONSTRUCTOR, Constructor);
+	  else NATIVE_ARRAY_BUFFER_VIEWS = false;
+	}
+
+	for (NAME in BigIntArrayConstructorsList) {
+	  Constructor = global_1[NAME];
+	  Prototype = Constructor && Constructor.prototype;
+	  if (Prototype) createNonEnumerableProperty(Prototype, TYPED_ARRAY_CONSTRUCTOR, Constructor);
 	}
 
 	// WebKit bug - typed arrays constructors prototype is Object.prototype
@@ -2355,6 +2409,7 @@
 
 	var arrayBufferViewCore = {
 	  NATIVE_ARRAY_BUFFER_VIEWS: NATIVE_ARRAY_BUFFER_VIEWS,
+	  TYPED_ARRAY_CONSTRUCTOR: TYPED_ARRAY_CONSTRUCTOR,
 	  TYPED_ARRAY_TAG: TYPED_ARRAY_TAG_REQIRED && TYPED_ARRAY_TAG,
 	  aTypedArray: aTypedArray,
 	  aTypedArrayConstructor: aTypedArrayConstructor,
@@ -2624,7 +2679,6 @@
 
 	var engineIsNode = classofRaw(global_1.process) == 'process';
 
-	var location$1 = global_1.location;
 	var set$2 = global_1.setImmediate;
 	var clear = global_1.clearImmediate;
 	var process$2 = global_1.process;
@@ -2633,7 +2687,12 @@
 	var counter = 0;
 	var queue = {};
 	var ONREADYSTATECHANGE = 'onreadystatechange';
-	var defer, channel, port;
+	var location$1, defer, channel, port;
+
+	try {
+	  // Deno throws a ReferenceError on `location` access without `--location` flag
+	  location$1 = global_1.location;
+	} catch (error) { /* empty */ }
 
 	var run = function (id) {
 	  // eslint-disable-next-line no-prototype-builtins -- safe
@@ -2656,15 +2715,16 @@
 
 	var post = function (id) {
 	  // old engines have not location.origin
-	  global_1.postMessage(id + '', location$1.protocol + '//' + location$1.host);
+	  global_1.postMessage(String(id), location$1.protocol + '//' + location$1.host);
 	};
 
 	// Node.js 0.9+ & IE10+ has setImmediate, otherwise:
 	if (!set$2 || !clear) {
 	  set$2 = function setImmediate(fn) {
 	    var args = [];
+	    var argumentsLength = arguments.length;
 	    var i = 1;
-	    while (arguments.length > i) args.push(arguments[i++]);
+	    while (argumentsLength > i) args.push(arguments[i++]);
 	    queue[++counter] = function () {
 	      // eslint-disable-next-line no-new-func -- spec requirement
 	      (typeof fn == 'function' ? fn : Function(fn)).apply(undefined, args);
@@ -2724,10 +2784,13 @@
 	  clear: clear
 	};
 
+	var engineIsIosPebble = /iphone|ipod|ipad/i.test(engineUserAgent) && global_1.Pebble !== undefined;
+
 	var engineIsWebosWebkit = /web0s(?!.*chrome)/i.test(engineUserAgent);
 
 	var getOwnPropertyDescriptor$2 = objectGetOwnPropertyDescriptor.f;
 	var macrotask = task.set;
+
 
 
 
@@ -2771,7 +2834,7 @@
 	      node.data = toggle = !toggle;
 	    };
 	  // environments with maybe non-completely correct, but existent Promise
-	  } else if (Promise$1 && Promise$1.resolve) {
+	  } else if (!engineIsIosPebble && Promise$1 && Promise$1.resolve) {
 	    // Promise.resolve without an argument throws an error in LG WebOS 2
 	    promise = Promise$1.resolve(undefined);
 	    // workaround of WebKit ~ iOS Safari 10.1 bug
@@ -2894,7 +2957,8 @@
 	var Internal, OwnPromiseCapability, PromiseWrapper, nativeThen;
 
 	var FORCED = isForced_1(PROMISE, function () {
-	  var GLOBAL_CORE_JS_PROMISE = inspectSource(PromiseConstructor) !== String(PromiseConstructor);
+	  var PROMISE_CONSTRUCTOR_SOURCE = inspectSource(PromiseConstructor);
+	  var GLOBAL_CORE_JS_PROMISE = PROMISE_CONSTRUCTOR_SOURCE !== String(PromiseConstructor);
 	  // V8 6.6 (Node 10 and Chrome 66) have a bug with resolving custom thenables
 	  // https://bugs.chromium.org/p/chromium/issues/detail?id=830565
 	  // We can't detect it synchronously, so just check versions
@@ -2902,7 +2966,7 @@
 	  // We can't use @@species feature detection in V8 since it causes
 	  // deoptimization and performance degradation
 	  // https://github.com/zloirock/core-js/issues/679
-	  if (engineV8Version >= 51 && /native code/.test(PromiseConstructor)) return false;
+	  if (engineV8Version >= 51 && /native code/.test(PROMISE_CONSTRUCTOR_SOURCE)) return false;
 	  // Detect correctness of subclassing with @@species support
 	  var promise = new PromiseConstructor(function (resolve) { resolve(1); });
 	  var FakePromise = function (exec) {
@@ -3251,6 +3315,14 @@
 	  return new Int8Array$2(new ArrayBuffer$3(2), 1, undefined).length !== 1;
 	});
 
+	var floor$2 = Math.floor;
+
+	// `Number.isInteger` method implementation
+	// https://tc39.es/ecma262/#sec-number.isinteger
+	var isInteger = function isInteger(it) {
+	  return !isObject(it) && isFinite(it) && floor$2(it) === it;
+	};
+
 	var toPositiveInteger = function (it) {
 	  var result = toInteger(it);
 	  if (result < 0) throw RangeError("The argument can't be less than 0");
@@ -3325,6 +3397,8 @@
 
 
 
+
+
 	var getOwnPropertyNames = objectGetOwnPropertyNames.f;
 
 	var forEach = arrayIteration.forEach;
@@ -3343,6 +3417,7 @@
 	var ArrayBuffer = arrayBuffer.ArrayBuffer;
 	var DataView = arrayBuffer.DataView;
 	var NATIVE_ARRAY_BUFFER_VIEWS = arrayBufferViewCore.NATIVE_ARRAY_BUFFER_VIEWS;
+	var TYPED_ARRAY_CONSTRUCTOR = arrayBufferViewCore.TYPED_ARRAY_CONSTRUCTOR;
 	var TYPED_ARRAY_TAG = arrayBufferViewCore.TYPED_ARRAY_TAG;
 	var TypedArray = arrayBufferViewCore.TypedArray;
 	var TypedArrayPrototype = arrayBufferViewCore.TypedArrayPrototype;
@@ -3372,19 +3447,22 @@
 
 	var isTypedArrayIndex = function (target, key) {
 	  return isTypedArray(target)
-	    && typeof key != 'symbol'
+	    && !isSymbol(key)
 	    && key in target
-	    && String(+key) == String(key);
+	    && isInteger(+key)
+	    && key >= 0;
 	};
 
 	var wrappedGetOwnPropertyDescriptor = function getOwnPropertyDescriptor(target, key) {
-	  return isTypedArrayIndex(target, key = toPrimitive(key, true))
+	  key = toPropertyKey(key);
+	  return isTypedArrayIndex(target, key)
 	    ? createPropertyDescriptor(2, target[key])
 	    : nativeGetOwnPropertyDescriptor(target, key);
 	};
 
 	var wrappedDefineProperty = function defineProperty(target, key, descriptor) {
-	  if (isTypedArrayIndex(target, key = toPrimitive(key, true))
+	  key = toPropertyKey(key);
+	  if (isTypedArrayIndex(target, key)
 	    && isObject(descriptor)
 	    && has(descriptor, 'value')
 	    && !has(descriptor, 'get')
@@ -3515,6 +3593,8 @@
 	      createNonEnumerableProperty(TypedArrayConstructorPrototype, 'constructor', TypedArrayConstructor);
 	    }
 
+	    createNonEnumerableProperty(TypedArrayConstructorPrototype, TYPED_ARRAY_CONSTRUCTOR, TypedArrayConstructor);
+
 	    if (TYPED_ARRAY_TAG) {
 	      createNonEnumerableProperty(TypedArrayConstructorPrototype, TYPED_ARRAY_TAG, CONSTRUCTOR_NAME);
 	    }
@@ -3602,16 +3682,25 @@
 	  return arrayFill.apply(aTypedArray$3(this), arguments);
 	});
 
-	var aTypedArrayConstructor$2 = arrayBufferViewCore.aTypedArrayConstructor;
-
-
-	var typedArrayFromSpeciesAndList = function (instance, list) {
-	  var C = speciesConstructor(instance, instance.constructor);
+	var arrayFromConstructorAndList = function (Constructor, list) {
 	  var index = 0;
 	  var length = list.length;
-	  var result = new (aTypedArrayConstructor$2(C))(length);
+	  var result = new Constructor(length);
 	  while (length > index) result[index] = list[index++];
 	  return result;
+	};
+
+	var TYPED_ARRAY_CONSTRUCTOR$1 = arrayBufferViewCore.TYPED_ARRAY_CONSTRUCTOR;
+	var aTypedArrayConstructor$2 = arrayBufferViewCore.aTypedArrayConstructor;
+
+	// a part of `TypedArraySpeciesCreate` abstract operation
+	// https://tc39.es/ecma262/#typedarray-species-create
+	var typedArraySpeciesConstructor = function (originalArray) {
+	  return aTypedArrayConstructor$2(speciesConstructor(originalArray, originalArray[TYPED_ARRAY_CONSTRUCTOR$1]));
+	};
+
+	var typedArrayFromSpeciesAndList = function (instance, list) {
+	  return arrayFromConstructorAndList(typedArraySpeciesConstructor(instance), list);
 	};
 
 	var $filter = arrayIteration.filter;
@@ -3766,14 +3855,13 @@
 
 
 	var aTypedArray$d = arrayBufferViewCore.aTypedArray;
-	var aTypedArrayConstructor$3 = arrayBufferViewCore.aTypedArrayConstructor;
 	var exportTypedArrayMethod$d = arrayBufferViewCore.exportTypedArrayMethod;
 
 	// `%TypedArray%.prototype.map` method
 	// https://tc39.es/ecma262/#sec-%typedarray%.prototype.map
 	exportTypedArrayMethod$d('map', function map(mapfn /* , thisArg */) {
 	  return $map$1(aTypedArray$d(this), mapfn, arguments.length > 1 ? arguments[1] : undefined, function (O, length) {
-	    return new (aTypedArrayConstructor$3(speciesConstructor(O, O.constructor)))(length);
+	    return new (typedArraySpeciesConstructor(O))(length);
 	  });
 	});
 
@@ -3837,14 +3925,14 @@
 
 	var aTypedArray$g = arrayBufferViewCore.aTypedArray;
 	var exportTypedArrayMethod$g = arrayBufferViewCore.exportTypedArrayMethod;
-	var floor$2 = Math.floor;
+	var floor$3 = Math.floor;
 
 	// `%TypedArray%.prototype.reverse` method
 	// https://tc39.es/ecma262/#sec-%typedarray%.prototype.reverse
 	exportTypedArrayMethod$g('reverse', function reverse() {
 	  var that = this;
 	  var length = aTypedArray$g(that).length;
-	  var middle = floor$2(length / 2);
+	  var middle = floor$3(length / 2);
 	  var index = 0;
 	  var value;
 	  while (index < middle) {
@@ -3876,7 +3964,6 @@
 	}, FORCED$2);
 
 	var aTypedArray$i = arrayBufferViewCore.aTypedArray;
-	var aTypedArrayConstructor$4 = arrayBufferViewCore.aTypedArrayConstructor;
 	var exportTypedArrayMethod$i = arrayBufferViewCore.exportTypedArrayMethod;
 	var $slice = [].slice;
 
@@ -3889,10 +3976,10 @@
 	// https://tc39.es/ecma262/#sec-%typedarray%.prototype.slice
 	exportTypedArrayMethod$i('slice', function slice(start, end) {
 	  var list = $slice.call(aTypedArray$i(this), start, end);
-	  var C = speciesConstructor(this, this.constructor);
+	  var C = typedArraySpeciesConstructor(this);
 	  var index = 0;
 	  var length = list.length;
-	  var result = new (aTypedArrayConstructor$4(C))(length);
+	  var result = new C(length);
 	  while (length > index) result[index] = list[index++];
 	  return result;
 	}, FORCED$3);
@@ -3909,11 +3996,11 @@
 	});
 
 	// TODO: use something more complex like timsort?
-	var floor$3 = Math.floor;
+	var floor$4 = Math.floor;
 
 	var mergeSort = function (array, comparefn) {
 	  var length = array.length;
-	  var middle = floor$3(length / 2);
+	  var middle = floor$4(length / 2);
 	  return length < 8 ? insertionSort(array, comparefn) : merge(
 	    mergeSort(array.slice(0, middle), comparefn),
 	    mergeSort(array.slice(middle), comparefn),
@@ -4048,7 +4135,8 @@
 	  var O = aTypedArray$l(this);
 	  var length = O.length;
 	  var beginIndex = toAbsoluteIndex(begin, length);
-	  return new (speciesConstructor(O, O.constructor))(
+	  var C = typedArraySpeciesConstructor(O);
+	  return new C(
 	    O.buffer,
 	    O.byteOffset + beginIndex * O.BYTES_PER_ELEMENT,
 	    toLength((end === undefined ? length : toAbsoluteIndex(end, length)) - beginIndex)
@@ -4113,7 +4201,7 @@
 	});
 
 	var createProperty = function (object, key, value) {
-	  var propertyKey = toPrimitive(key);
+	  var propertyKey = toPropertyKey(key);
 	  if (propertyKey in object) objectDefineProperty.f(object, propertyKey, createPropertyDescriptor(0, value));
 	  else object[propertyKey] = value;
 	};
@@ -4288,7 +4376,7 @@
 	var regexSeparators = /[.\u3002\uFF0E\uFF61]/g; // RFC 3490 separators
 	var OVERFLOW_ERROR = 'Overflow: input needs wider integers to process';
 	var baseMinusTMin = base - tMin;
-	var floor$4 = Math.floor;
+	var floor$5 = Math.floor;
 	var stringFromCharCode = String.fromCharCode;
 
 	/**
@@ -4337,12 +4425,12 @@
 	 */
 	var adapt = function (delta, numPoints, firstTime) {
 	  var k = 0;
-	  delta = firstTime ? floor$4(delta / damp) : delta >> 1;
-	  delta += floor$4(delta / numPoints);
+	  delta = firstTime ? floor$5(delta / damp) : delta >> 1;
+	  delta += floor$5(delta / numPoints);
 	  for (; delta > baseMinusTMin * tMax >> 1; k += base) {
-	    delta = floor$4(delta / baseMinusTMin);
+	    delta = floor$5(delta / baseMinusTMin);
 	  }
-	  return floor$4(k + (baseMinusTMin + 1) * delta / (delta + skew));
+	  return floor$5(k + (baseMinusTMin + 1) * delta / (delta + skew));
 	};
 
 	/**
@@ -4394,7 +4482,7 @@
 
 	    // Increase `delta` enough to advance the decoder's <n,i> state to <m,0>, but guard against overflow.
 	    var handledCPCountPlusOne = handledCPCount + 1;
-	    if (m - n > floor$4((maxInt - delta) / handledCPCountPlusOne)) {
+	    if (m - n > floor$5((maxInt - delta) / handledCPCountPlusOne)) {
 	      throw RangeError(OVERFLOW_ERROR);
 	    }
 
@@ -4415,7 +4503,7 @@
 	          var qMinusT = q - t;
 	          var baseMinusT = base - t;
 	          output.push(stringFromCharCode(digitToBasic(t + qMinusT % baseMinusT)));
-	          q = floor$4(qMinusT / baseMinusT);
+	          q = floor$5(qMinusT / baseMinusT);
 	        }
 
 	        output.push(stringFromCharCode(digitToBasic(q)));
@@ -4471,7 +4559,10 @@
 
 
 
-	var $fetch = getBuiltIn('fetch');
+
+	var nativeFetch = getBuiltIn('fetch');
+	var NativeRequest = getBuiltIn('Request');
+	var RequestPrototype = NativeRequest && NativeRequest.prototype;
 	var Headers = getBuiltIn('Headers');
 	var ITERATOR$8 = wellKnownSymbol('iterator');
 	var URL_SEARCH_PARAMS = 'URLSearchParams';
@@ -4600,11 +4691,14 @@
 	            (second = entryNext.call(entryIterator)).done ||
 	            !entryNext.call(entryIterator).done
 	          ) throw TypeError('Expected sequence with length 2');
-	          entries.push({ key: first.value + '', value: second.value + '' });
+	          entries.push({ key: toString_1(first.value), value: toString_1(second.value) });
 	        }
-	      } else for (key in init) if (has(init, key)) entries.push({ key: key, value: init[key] + '' });
+	      } else for (key in init) if (has(init, key)) entries.push({ key: key, value: toString_1(init[key]) });
 	    } else {
-	      parseSearchParams(entries, typeof init === 'string' ? init.charAt(0) === '?' ? init.slice(1) : init : init + '');
+	      parseSearchParams(
+	        entries,
+	        typeof init === 'string' ? init.charAt(0) === '?' ? init.slice(1) : init : toString_1(init)
+	      );
 	    }
 	  }
 	};
@@ -4617,7 +4711,7 @@
 	  append: function append(name, value) {
 	    validateArgumentsLength(arguments.length, 2);
 	    var state = getInternalParamsState(this);
-	    state.entries.push({ key: name + '', value: value + '' });
+	    state.entries.push({ key: toString_1(name), value: toString_1(value) });
 	    state.updateURL();
 	  },
 	  // `URLSearchParams.prototype.delete` method
@@ -4626,7 +4720,7 @@
 	    validateArgumentsLength(arguments.length, 1);
 	    var state = getInternalParamsState(this);
 	    var entries = state.entries;
-	    var key = name + '';
+	    var key = toString_1(name);
 	    var index = 0;
 	    while (index < entries.length) {
 	      if (entries[index].key === key) entries.splice(index, 1);
@@ -4639,7 +4733,7 @@
 	  get: function get(name) {
 	    validateArgumentsLength(arguments.length, 1);
 	    var entries = getInternalParamsState(this).entries;
-	    var key = name + '';
+	    var key = toString_1(name);
 	    var index = 0;
 	    for (; index < entries.length; index++) {
 	      if (entries[index].key === key) return entries[index].value;
@@ -4651,7 +4745,7 @@
 	  getAll: function getAll(name) {
 	    validateArgumentsLength(arguments.length, 1);
 	    var entries = getInternalParamsState(this).entries;
-	    var key = name + '';
+	    var key = toString_1(name);
 	    var result = [];
 	    var index = 0;
 	    for (; index < entries.length; index++) {
@@ -4664,7 +4758,7 @@
 	  has: function has(name) {
 	    validateArgumentsLength(arguments.length, 1);
 	    var entries = getInternalParamsState(this).entries;
-	    var key = name + '';
+	    var key = toString_1(name);
 	    var index = 0;
 	    while (index < entries.length) {
 	      if (entries[index++].key === key) return true;
@@ -4678,8 +4772,8 @@
 	    var state = getInternalParamsState(this);
 	    var entries = state.entries;
 	    var found = false;
-	    var key = name + '';
-	    var val = value + '';
+	    var key = toString_1(name);
+	    var val = toString_1(value);
 	    var index = 0;
 	    var entry;
 	    for (; index < entries.length; index++) {
@@ -4763,32 +4857,46 @@
 	  URLSearchParams: URLSearchParamsConstructor
 	});
 
-	// Wrap `fetch` for correct work with polyfilled `URLSearchParams`
-	// https://github.com/zloirock/core-js/issues/674
-	if (!nativeUrl && typeof $fetch == 'function' && typeof Headers == 'function') {
-	  _export({ global: true, enumerable: true, forced: true }, {
-	    fetch: function fetch(input /* , init */) {
-	      var args = [input];
-	      var init, body, headers;
-	      if (arguments.length > 1) {
-	        init = arguments[1];
-	        if (isObject(init)) {
-	          body = init.body;
-	          if (classof(body) === URL_SEARCH_PARAMS) {
-	            headers = init.headers ? new Headers(init.headers) : new Headers();
-	            if (!headers.has('content-type')) {
-	              headers.set('content-type', 'application/x-www-form-urlencoded;charset=UTF-8');
-	            }
-	            init = objectCreate(init, {
-	              body: createPropertyDescriptor(0, String(body)),
-	              headers: createPropertyDescriptor(0, headers)
-	            });
-	          }
+	// Wrap `fetch` and `Request` for correct work with polyfilled `URLSearchParams`
+	if (!nativeUrl && typeof Headers == 'function') {
+	  var wrapRequestOptions = function (init) {
+	    if (isObject(init)) {
+	      var body = init.body;
+	      var headers;
+	      if (classof(body) === URL_SEARCH_PARAMS) {
+	        headers = init.headers ? new Headers(init.headers) : new Headers();
+	        if (!headers.has('content-type')) {
+	          headers.set('content-type', 'application/x-www-form-urlencoded;charset=UTF-8');
 	        }
-	        args.push(init);
-	      } return $fetch.apply(this, args);
-	    }
-	  });
+	        return objectCreate(init, {
+	          body: createPropertyDescriptor(0, String(body)),
+	          headers: createPropertyDescriptor(0, headers)
+	        });
+	      }
+	    } return init;
+	  };
+
+	  if (typeof nativeFetch == 'function') {
+	    _export({ global: true, enumerable: true, forced: true }, {
+	      fetch: function fetch(input /* , init */) {
+	        return nativeFetch(input, arguments.length > 1 ? wrapRequestOptions(arguments[1]) : {});
+	      }
+	    });
+	  }
+
+	  if (typeof NativeRequest == 'function') {
+	    var RequestConstructor = function Request(input /* , init */) {
+	      anInstance(this, RequestConstructor, 'Request');
+	      return new NativeRequest(input, arguments.length > 1 ? wrapRequestOptions(arguments[1]) : {});
+	    };
+
+	    RequestPrototype.constructor = RequestConstructor;
+	    RequestConstructor.prototype = RequestPrototype;
+
+	    _export({ global: true, forced: true }, {
+	      Request: RequestConstructor
+	    });
+	  }
 	}
 
 	var web_urlSearchParams = {
@@ -4814,12 +4922,13 @@
 
 
 
+
 	var NativeURL = global_1.URL;
 	var URLSearchParams$1 = web_urlSearchParams.URLSearchParams;
 	var getInternalSearchParamsState = web_urlSearchParams.getState;
 	var setInternalState$6 = internalState.set;
 	var getInternalURLState = internalState.getterFor('URL');
-	var floor$5 = Math.floor;
+	var floor$6 = Math.floor;
 	var pow$1 = Math.pow;
 
 	var INVALID_AUTHORITY = 'Invalid authority';
@@ -4838,7 +4947,7 @@
 	/* eslint-disable no-control-regex -- safe */
 	var FORBIDDEN_HOST_CODE_POINT = /[\0\t\n\r #%/:<>?@[\\\]^|]/;
 	var FORBIDDEN_HOST_CODE_POINT_EXCLUDING_PERCENT = /[\0\t\n\r #/:<>?@[\\\]^|]/;
-	var LEADING_AND_TRAILING_C0_CONTROL_OR_SPACE = /^[\u0000-\u001F ]+|[\u0000-\u001F ]+$/g;
+	var LEADING_AND_TRAILING_C0_CONTROL_OR_SPACE = /^[\u0000-\u0020]+|[\u0000-\u0020]+$/g;
 	var TAB_AND_NEW_LINE = /[\t\n\r]/g;
 	/* eslint-enable no-control-regex -- safe */
 	var EOF;
@@ -5016,7 +5125,7 @@
 	    result = [];
 	    for (index = 0; index < 4; index++) {
 	      result.unshift(host % 256);
-	      host = floor$5(host / 256);
+	      host = floor$6(host / 256);
 	    } return result.join('.');
 	  // ipv6
 	  } else if (typeof host == 'object') {
@@ -5532,13 +5641,13 @@
 	var URLConstructor = function URL(url /* , base */) {
 	  var that = anInstance(this, URLConstructor, 'URL');
 	  var base = arguments.length > 1 ? arguments[1] : undefined;
-	  var urlString = String(url);
+	  var urlString = toString_1(url);
 	  var state = setInternalState$6(that, { type: 'URL' });
 	  var baseState, failure;
 	  if (base !== undefined) {
 	    if (base instanceof URLConstructor) baseState = getInternalURLState(base);
 	    else {
-	      failure = parseURL(baseState = {}, String(base));
+	      failure = parseURL(baseState = {}, toString_1(base));
 	      if (failure) throw TypeError(failure);
 	    }
 	  }
@@ -5667,7 +5776,7 @@
 	    // https://url.spec.whatwg.org/#dom-url-href
 	    href: accessorDescriptor(serializeURL, function (href) {
 	      var url = getInternalURLState(this);
-	      var urlString = String(href);
+	      var urlString = toString_1(href);
 	      var failure = parseURL(url, urlString);
 	      if (failure) throw TypeError(failure);
 	      getInternalSearchParamsState(url.searchParams).updateSearchParams(url.query);
@@ -5679,13 +5788,13 @@
 	    // https://url.spec.whatwg.org/#dom-url-protocol
 	    protocol: accessorDescriptor(getProtocol, function (protocol) {
 	      var url = getInternalURLState(this);
-	      parseURL(url, String(protocol) + ':', SCHEME_START);
+	      parseURL(url, toString_1(protocol) + ':', SCHEME_START);
 	    }),
 	    // `URL.prototype.username` accessors pair
 	    // https://url.spec.whatwg.org/#dom-url-username
 	    username: accessorDescriptor(getUsername, function (username) {
 	      var url = getInternalURLState(this);
-	      var codePoints = arrayFrom(String(username));
+	      var codePoints = arrayFrom(toString_1(username));
 	      if (cannotHaveUsernamePasswordPort(url)) return;
 	      url.username = '';
 	      for (var i = 0; i < codePoints.length; i++) {
@@ -5696,7 +5805,7 @@
 	    // https://url.spec.whatwg.org/#dom-url-password
 	    password: accessorDescriptor(getPassword, function (password) {
 	      var url = getInternalURLState(this);
-	      var codePoints = arrayFrom(String(password));
+	      var codePoints = arrayFrom(toString_1(password));
 	      if (cannotHaveUsernamePasswordPort(url)) return;
 	      url.password = '';
 	      for (var i = 0; i < codePoints.length; i++) {
@@ -5708,21 +5817,21 @@
 	    host: accessorDescriptor(getHost, function (host) {
 	      var url = getInternalURLState(this);
 	      if (url.cannotBeABaseURL) return;
-	      parseURL(url, String(host), HOST);
+	      parseURL(url, toString_1(host), HOST);
 	    }),
 	    // `URL.prototype.hostname` accessors pair
 	    // https://url.spec.whatwg.org/#dom-url-hostname
 	    hostname: accessorDescriptor(getHostname, function (hostname) {
 	      var url = getInternalURLState(this);
 	      if (url.cannotBeABaseURL) return;
-	      parseURL(url, String(hostname), HOSTNAME);
+	      parseURL(url, toString_1(hostname), HOSTNAME);
 	    }),
 	    // `URL.prototype.port` accessors pair
 	    // https://url.spec.whatwg.org/#dom-url-port
 	    port: accessorDescriptor(getPort, function (port) {
 	      var url = getInternalURLState(this);
 	      if (cannotHaveUsernamePasswordPort(url)) return;
-	      port = String(port);
+	      port = toString_1(port);
 	      if (port == '') url.port = null;
 	      else parseURL(url, port, PORT);
 	    }),
@@ -5732,13 +5841,13 @@
 	      var url = getInternalURLState(this);
 	      if (url.cannotBeABaseURL) return;
 	      url.path = [];
-	      parseURL(url, pathname + '', PATH_START);
+	      parseURL(url, toString_1(pathname), PATH_START);
 	    }),
 	    // `URL.prototype.search` accessors pair
 	    // https://url.spec.whatwg.org/#dom-url-search
 	    search: accessorDescriptor(getSearch, function (search) {
 	      var url = getInternalURLState(this);
-	      search = String(search);
+	      search = toString_1(search);
 	      if (search == '') {
 	        url.query = null;
 	      } else {
@@ -5755,7 +5864,7 @@
 	    // https://url.spec.whatwg.org/#dom-url-hash
 	    hash: accessorDescriptor(getHash, function (hash) {
 	      var url = getInternalURLState(this);
-	      hash = String(hash);
+	      hash = toString_1(hash);
 	      if (hash == '') {
 	        url.fragment = null;
 	        return;
@@ -5829,9 +5938,9 @@
 	if (NOT_GENERIC || INCORRECT_NAME) {
 	  redefine(RegExp.prototype, TO_STRING$1, function toString() {
 	    var R = anObject(this);
-	    var p = String(R.source);
+	    var p = toString_1(R.source);
 	    var rf = R.flags;
-	    var f = String(rf === undefined && R instanceof RegExp && !('flags' in RegExpPrototype) ? regexpFlags.call(R) : rf);
+	    var f = toString_1(rf === undefined && R instanceof RegExp && !('flags' in RegExpPrototype) ? regexpFlags.call(R) : rf);
 	    return '/' + p + '/' + f;
 	  }, { unsafe: true });
 	}
@@ -5878,6 +5987,7 @@
 
 
 
+
 	var getInternalState$5 = internalState.get;
 
 
@@ -5904,9 +6014,10 @@
 
 	if (PATCH) {
 	  // eslint-disable-next-line max-statements -- TODO
-	  patchedExec = function exec(str) {
+	  patchedExec = function exec(string) {
 	    var re = this;
 	    var state = getInternalState$5(re);
+	    var str = toString_1(string);
 	    var raw = state.raw;
 	    var result, reCopy, lastIndex, match, i, object, group;
 
@@ -5930,9 +6041,9 @@
 	        flags += 'g';
 	      }
 
-	      strCopy = String(str).slice(re.lastIndex);
+	      strCopy = str.slice(re.lastIndex);
 	      // Support anchored sticky behavior.
-	      if (re.lastIndex > 0 && (!re.multiline || re.multiline && str[re.lastIndex - 1] !== '\n')) {
+	      if (re.lastIndex > 0 && (!re.multiline || re.multiline && str.charAt(re.lastIndex - 1) !== '\n')) {
 	        source = '(?: ' + source + ')';
 	        strCopy = ' ' + strCopy;
 	        charsAdded++;
@@ -6069,7 +6180,7 @@
 	  return index + (unicode ? charAt$1(S, index).length : 1);
 	};
 
-	var floor$6 = Math.floor;
+	var floor$7 = Math.floor;
 	var replace$1 = ''.replace;
 	var SUBSTITUTION_SYMBOLS = /\$([$&'`]|\d{1,2}|<[^>]*>)/g;
 	var SUBSTITUTION_SYMBOLS_NO_NAMED = /\$([$&'`]|\d{1,2})/g;
@@ -6098,7 +6209,7 @@
 	        var n = +ch;
 	        if (n === 0) return match;
 	        if (n > m) {
-	          var f = floor$6(n / 10);
+	          var f = floor$7(n / 10);
 	          if (f === 0) return match;
 	          if (f <= m) return captures[f - 1] === undefined ? ch.charAt(1) : captures[f - 1] + ch.charAt(1);
 	          return match;
@@ -6173,25 +6284,25 @@
 	      var replacer = searchValue == undefined ? undefined : searchValue[REPLACE];
 	      return replacer !== undefined
 	        ? replacer.call(searchValue, O, replaceValue)
-	        : nativeReplace.call(String(O), searchValue, replaceValue);
+	        : nativeReplace.call(toString_1(O), searchValue, replaceValue);
 	    },
 	    // `RegExp.prototype[@@replace]` method
 	    // https://tc39.es/ecma262/#sec-regexp.prototype-@@replace
 	    function (string, replaceValue) {
+	      var rx = anObject(this);
+	      var S = toString_1(string);
+
 	      if (
 	        typeof replaceValue === 'string' &&
 	        replaceValue.indexOf(UNSAFE_SUBSTITUTE) === -1 &&
 	        replaceValue.indexOf('$<') === -1
 	      ) {
-	        var res = maybeCallNative(nativeReplace, this, string, replaceValue);
+	        var res = maybeCallNative(nativeReplace, rx, S, replaceValue);
 	        if (res.done) return res.value;
 	      }
 
-	      var rx = anObject(this);
-	      var S = String(string);
-
 	      var functionalReplace = typeof replaceValue === 'function';
-	      if (!functionalReplace) replaceValue = String(replaceValue);
+	      if (!functionalReplace) replaceValue = toString_1(replaceValue);
 
 	      var global = rx.global;
 	      if (global) {
@@ -6206,7 +6317,7 @@
 	        results.push(result);
 	        if (!global) break;
 
-	        var matchStr = String(result[0]);
+	        var matchStr = toString_1(result[0]);
 	        if (matchStr === '') rx.lastIndex = advanceStringIndex(S, toLength(rx.lastIndex), fullUnicode);
 	      }
 
@@ -6215,7 +6326,7 @@
 	      for (var i = 0; i < results.length; i++) {
 	        result = results[i];
 
-	        var matched = String(result[0]);
+	        var matched = toString_1(result[0]);
 	        var position = max$2(min$4(toInteger(result.index), S.length), 0);
 	        var captures = [];
 	        // NOTE: This is equivalent to
@@ -6228,7 +6339,7 @@
 	        if (functionalReplace) {
 	          var replacerArgs = [matched].concat(captures, position, S);
 	          if (namedCaptures !== undefined) replacerArgs.push(namedCaptures);
-	          var replacement = String(replaceValue.apply(undefined, replacerArgs));
+	          var replacement = toString_1(replaceValue.apply(undefined, replacerArgs));
 	        } else {
 	          replacement = getSubstitution(matched, S, position, captures, namedCaptures, replaceValue);
 	        }
@@ -6282,7 +6393,7 @@
 	  ) {
 	    // based on es5-shim implementation, need to rework it
 	    internalSplit = function (separator, limit) {
-	      var string = String(requireObjectCoercible(this));
+	      var string = toString_1(requireObjectCoercible(this));
 	      var lim = limit === undefined ? MAX_UINT32 : limit >>> 0;
 	      if (lim === 0) return [];
 	      if (separator === undefined) return [string];
@@ -6330,7 +6441,7 @@
 	      var splitter = separator == undefined ? undefined : separator[SPLIT];
 	      return splitter !== undefined
 	        ? splitter.call(separator, O, limit)
-	        : internalSplit.call(String(O), separator, limit);
+	        : internalSplit.call(toString_1(O), separator, limit);
 	    },
 	    // `RegExp.prototype[@@split]` method
 	    // https://tc39.es/ecma262/#sec-regexp.prototype-@@split
@@ -6338,11 +6449,12 @@
 	    // NOTE: This cannot be properly polyfilled in engines that don't support
 	    // the 'y' flag.
 	    function (string, limit) {
-	      var res = maybeCallNative(internalSplit, this, string, limit, internalSplit !== nativeSplit);
+	      var rx = anObject(this);
+	      var S = toString_1(string);
+	      var res = maybeCallNative(internalSplit, rx, S, limit, internalSplit !== nativeSplit);
+
 	      if (res.done) return res.value;
 
-	      var rx = anObject(this);
-	      var S = String(string);
 	      var C = speciesConstructor(rx, RegExp);
 
 	      var unicodeMatching = rx.unicode;
@@ -6396,7 +6508,7 @@
 	// `String.prototype.{ trim, trimStart, trimEnd, trimLeft, trimRight }` methods implementation
 	var createMethod$4 = function (TYPE) {
 	  return function ($this) {
-	    var string = String(requireObjectCoercible($this));
+	    var string = toString_1(requireObjectCoercible($this));
 	    if (TYPE & 1) string = string.replace(ltrim, '');
 	    if (TYPE & 2) string = string.replace(rtrim, '');
 	    return string;
@@ -7909,7 +8021,7 @@
 	// `parseFloat` method
 	// https://tc39.es/ecma262/#sec-parsefloat-string
 	var numberParseFloat = FORCED$8 ? function parseFloat(string) {
-	  var trimmedString = trim(String(string));
+	  var trimmedString = trim(toString_1(string));
 	  var result = $parseFloat(trimmedString);
 	  return result === 0 && trimmedString.charAt(0) == '-' ? -0 : result;
 	} : $parseFloat;
@@ -8333,7 +8445,7 @@
 	// `parseInt` method
 	// https://tc39.es/ecma262/#sec-parseint-string-radix
 	var numberParseInt = FORCED$9 ? function parseInt(string, radix) {
-	  var S = trim$1(String(string));
+	  var S = trim$1(toString_1(string));
 	  return $parseInt(S, (radix >>> 0) || (hex$1.test(S) ? 16 : 10));
 	} : $parseInt;
 
@@ -8353,6 +8465,9 @@
 
 
 
+
+
+	var REQUIRED = false;
 	var METADATA = uid('meta');
 	var id = 0;
 
@@ -8363,7 +8478,7 @@
 
 	var setMetadata = function (it) {
 	  defineProperty(it, METADATA, { value: {
-	    objectID: 'O' + ++id, // object ID
+	    objectID: 'O' + id++, // object ID
 	    weakData: {}          // weak collections IDs
 	  } });
 	};
@@ -8396,12 +8511,38 @@
 
 	// add metadata on freeze-family methods calling
 	var onFreeze = function (it) {
-	  if (freezing && meta.REQUIRED && isExtensible(it) && !has(it, METADATA)) setMetadata(it);
+	  if (freezing && REQUIRED && isExtensible(it) && !has(it, METADATA)) setMetadata(it);
 	  return it;
 	};
 
+	var enable = function () {
+	  meta.enable = function () { /* empty */ };
+	  REQUIRED = true;
+	  var getOwnPropertyNames = objectGetOwnPropertyNames.f;
+	  var splice = [].splice;
+	  var test = {};
+	  test[METADATA] = 1;
+
+	  // prevent exposing of metadata key
+	  if (getOwnPropertyNames(test).length) {
+	    objectGetOwnPropertyNames.f = function (it) {
+	      var result = getOwnPropertyNames(it);
+	      for (var i = 0, length = result.length; i < length; i++) {
+	        if (result[i] === METADATA) {
+	          splice.call(result, i, 1);
+	          break;
+	        }
+	      } return result;
+	    };
+
+	    _export({ target: 'Object', stat: true, forced: true }, {
+	      getOwnPropertyNames: objectGetOwnPropertyNamesExternal.f
+	    });
+	  }
+	};
+
 	var meta = module.exports = {
-	  REQUIRED: false,
+	  enable: enable,
 	  fastKey: fastKey,
 	  getWeakData: getWeakData,
 	  onFreeze: onFreeze
@@ -8448,7 +8589,7 @@
 	  if (REPLACE) {
 	    // create collection constructor
 	    Constructor = common.getConstructor(wrapper, CONSTRUCTOR_NAME, IS_MAP, ADDER);
-	    internalMetadata.REQUIRED = true;
+	    internalMetadata.enable();
 	  } else if (isForced_1(CONSTRUCTOR_NAME, true)) {
 	    var instance = new Constructor();
 	    // early implementations not supports chaining
@@ -8865,11 +9006,9 @@
 
 
 	    var IteratorPrototype = {};
-
-	    IteratorPrototype[iteratorSymbol] = function () {
+	    define(IteratorPrototype, iteratorSymbol, function () {
 	      return this;
-	    };
-
+	    });
 	    var getProto = Object.getPrototypeOf;
 	    var NativeIteratorPrototype = getProto && getProto(getProto(values([])));
 
@@ -8880,8 +9019,9 @@
 	    }
 
 	    var Gp = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(IteratorPrototype);
-	    GeneratorFunction.prototype = Gp.constructor = GeneratorFunctionPrototype;
-	    GeneratorFunctionPrototype.constructor = GeneratorFunction;
+	    GeneratorFunction.prototype = GeneratorFunctionPrototype;
+	    define(Gp, "constructor", GeneratorFunctionPrototype);
+	    define(GeneratorFunctionPrototype, "constructor", GeneratorFunction);
 	    GeneratorFunction.displayName = define(GeneratorFunctionPrototype, toStringTagSymbol, "GeneratorFunction"); // Helper for defining the .next, .throw, and .return methods of the
 	    // Iterator interface in terms of a single ._invoke method.
 
@@ -8986,11 +9126,9 @@
 	    }
 
 	    defineIteratorMethods(AsyncIterator.prototype);
-
-	    AsyncIterator.prototype[asyncIteratorSymbol] = function () {
+	    define(AsyncIterator.prototype, asyncIteratorSymbol, function () {
 	      return this;
-	    };
-
+	    });
 	    exports.AsyncIterator = AsyncIterator; // Note that simple async functions are implemented on top of
 	    // AsyncIterator objects; they just return a Promise for the value of
 	    // the final result produced by the iterator.
@@ -9167,13 +9305,12 @@
 	    // object to not be returned from this call. This ensures that doesn't happen.
 	    // See https://github.com/facebook/regenerator/issues/274 for more details.
 
-	    Gp[iteratorSymbol] = function () {
+	    define(Gp, iteratorSymbol, function () {
 	      return this;
-	    };
-
-	    Gp.toString = function () {
+	    });
+	    define(Gp, "toString", function () {
 	      return "[object Generator]";
-	    };
+	    });
 
 	    function pushTryEntry(locs) {
 	      var entry = {
@@ -9485,14 +9622,19 @@
 	  } catch (accidentalStrictMode) {
 	    // This module should not be running in strict mode, so the above
 	    // assignment should always work unless something is misconfigured. Just
-	    // in case runtime.js accidentally runs in strict mode, we can escape
+	    // in case runtime.js accidentally runs in strict mode, in modern engines
+	    // we can explicitly access globalThis. In older engines we can escape
 	    // strict mode using a global Function call. This could conceivably fail
 	    // if a Content Security Policy forbids using Function, but in that case
 	    // the proper solution is to fix the accidental strict mode problem. If
 	    // you've misconfigured your bundler to force strict mode and applied a
 	    // CSP to forbid Function, and you're not willing to fix either of those
 	    // problems, please detail your unique predicament in a GitHub issue.
-	    Function("r", "regeneratorRuntime = r")(runtime);
+	    if ((typeof globalThis === "undefined" ? "undefined" : _typeof(globalThis)) === "object") {
+	      globalThis.regeneratorRuntime = runtime;
+	    } else {
+	      Function("r", "regeneratorRuntime = r")(runtime);
+	    }
 	  }
 	});
 
@@ -9797,7 +9939,7 @@
 	    if (y === undefined) return -1;
 	    if (x === undefined) return 1;
 	    if (comparefn !== undefined) return +comparefn(x, y) || 0;
-	    return String(x) > String(y) ? 1 : -1;
+	    return toString_1(x) > toString_1(y) ? 1 : -1;
 	  };
 	};
 
@@ -13937,8 +14079,7 @@
 	}
 
 	function defaultView (node) {
-	  return node.ownerDocument && node.ownerDocument.defaultView || // node is a Node
-	  node.document && node // node is a Window
+	  return node.ownerDocument && node.ownerDocument.defaultView || node.document && node // node is a Window
 	  || node.defaultView; // node is a Document
 	}
 
@@ -14774,6 +14915,7 @@
 
 
 
+
 	var enforceInternalState = internalState.enforce;
 
 
@@ -14888,8 +15030,8 @@
 	      if (flagsAreUndefined) flags = 'flags' in rawPattern ? rawPattern.flags : regexpFlags.call(rawPattern);
 	    }
 
-	    pattern = pattern === undefined ? '' : String(pattern);
-	    flags = flags === undefined ? '' : String(flags);
+	    pattern = pattern === undefined ? '' : toString_1(pattern);
+	    flags = flags === undefined ? '' : toString_1(flags);
 	    rawPattern = pattern;
 
 	    if (regexpUnsupportedDotAll && 'dotAll' in re1) {
@@ -15688,20 +15830,20 @@
 	      };
 	    } // General case.
 	    else {
-	        var d1 = Math.sqrt(d2),
-	            b0 = (w1 * w1 - w0 * w0 + rho4 * d2) / (2 * w0 * rho2 * d1),
-	            b1 = (w1 * w1 - w0 * w0 - rho4 * d2) / (2 * w1 * rho2 * d1),
-	            r0 = Math.log(Math.sqrt(b0 * b0 + 1) - b0),
-	            r1 = Math.log(Math.sqrt(b1 * b1 + 1) - b1);
-	        S = (r1 - r0) / rho;
+	      var d1 = Math.sqrt(d2),
+	          b0 = (w1 * w1 - w0 * w0 + rho4 * d2) / (2 * w0 * rho2 * d1),
+	          b1 = (w1 * w1 - w0 * w0 - rho4 * d2) / (2 * w1 * rho2 * d1),
+	          r0 = Math.log(Math.sqrt(b0 * b0 + 1) - b0),
+	          r1 = Math.log(Math.sqrt(b1 * b1 + 1) - b1);
+	      S = (r1 - r0) / rho;
 
-	        i = function i(t) {
-	          var s = t * S,
-	              coshr0 = cosh(r0),
-	              u = w0 / (rho2 * d1) * (coshr0 * tanh(rho * s + r0) - sinh(r0));
-	          return [ux0 + u * dx, uy0 + u * dy, w0 * coshr0 / cosh(rho * s + r0)];
-	        };
-	      }
+	      i = function i(t) {
+	        var s = t * S,
+	            coshr0 = cosh(r0),
+	            u = w0 / (rho2 * d1) * (coshr0 * tanh(rho * s + r0) - sinh(r0));
+	        return [ux0 + u * dx, uy0 + u * dy, w0 * coshr0 / cosh(rho * s + r0)];
+	      };
+	    }
 
 	    i.duration = S * 1000 * rho / Math.SQRT2;
 	    return i;
@@ -15949,11 +16091,11 @@
 	        delete schedules[i];
 	      } // Cancel any pre-empted transitions.
 	      else if (+i < id) {
-	          o.state = ENDED;
-	          o.timer.stop();
-	          o.on.call("cancel", node, node.__data__, o.index, o.group);
-	          delete schedules[i];
-	        }
+	        o.state = ENDED;
+	        o.timer.stop();
+	        o.on.call("cancel", node, node.__data__, o.index, o.group);
+	        delete schedules[i];
+	      }
 	    } // Defer the first tick to end of the current frame; see d3/d3#1576.
 	    // Note the transition may be canceled after start and before the first tick!
 	    // Note this must be scheduled before the start event; see d3/d3-transition#16!
@@ -16947,10 +17089,10 @@
 	      return function (t) {
 	        if (t === 1) t = b; // Avoid rounding error on end.
 	        else {
-	            var l = i(t),
-	                k = w / l[2];
-	            t = new Transform(k, p[0] - l[0] * k, p[1] - l[1] * k);
-	          }
+	          var l = i(t),
+	              k = w / l[2];
+	          t = new Transform(k, p[0] - l[0] * k, p[1] - l[1] * k);
+	        }
 	        g.zoom(null, t);
 	      };
 	    });
@@ -17030,11 +17172,11 @@
 	      clearTimeout(g.wheel);
 	    } // If this wheel event won’t trigger a transform change, ignore it.
 	    else if (t.k === k) return; // Otherwise, capture the mouse point and location at the start.
-	      else {
-	          g.mouse = [p, t.invert(p)];
-	          interrupt(this);
-	          g.start();
-	        }
+	    else {
+	      g.mouse = [p, t.invert(p)];
+	      interrupt(this);
+	      g.start();
+	    }
 
 	    noevent$1(event);
 	    g.wheel = setTimeout(wheelidled, wheelDelay);
@@ -17573,16 +17715,16 @@
 	    function match(regexp) {
 	      var O = requireObjectCoercible(this);
 	      var matcher = regexp == undefined ? undefined : regexp[MATCH];
-	      return matcher !== undefined ? matcher.call(regexp, O) : new RegExp(regexp)[MATCH](String(O));
+	      return matcher !== undefined ? matcher.call(regexp, O) : new RegExp(regexp)[MATCH](toString_1(O));
 	    },
 	    // `RegExp.prototype[@@match]` method
 	    // https://tc39.es/ecma262/#sec-regexp.prototype-@@match
 	    function (string) {
-	      var res = maybeCallNative(nativeMatch, this, string);
-	      if (res.done) return res.value;
-
 	      var rx = anObject(this);
-	      var S = String(string);
+	      var S = toString_1(string);
+	      var res = maybeCallNative(nativeMatch, rx, S);
+
+	      if (res.done) return res.value;
 
 	      if (!rx.global) return regexpExecAbstract(rx, S);
 
@@ -17592,7 +17734,7 @@
 	      var n = 0;
 	      var result;
 	      while ((result = regexpExecAbstract(rx, S)) !== null) {
-	        var matchStr = String(result[0]);
+	        var matchStr = toString_1(result[0]);
 	        A[n] = matchStr;
 	        if (matchStr === '') rx.lastIndex = advanceStringIndex(S, toLength(rx.lastIndex), fullUnicode);
 	        n++;
@@ -19972,8 +20114,7 @@
 	      } else if (reference.tashkeel.indexOf(word[w]) > -1) {
 	        // tashkeel - add without changing state
 	        output += word[w];
-	      } else if (nextLetter === ' ' || // last Arabic letter in this word
-	      reference.lineBreakers.indexOf(word[w]) > -1) {
+	      } else if (nextLetter === ' ' || reference.lineBreakers.indexOf(word[w]) > -1) {
 	        // the current letter is known to break lines
 	        output += CharShaper_1.CharShaper(word[w], state === 'initial' ? 'isolated' : 'final');
 	        state = 'initial';
@@ -20415,12 +20556,13 @@
 	// https://tc39.es/ecma262/#sec-string.prototype.includes
 	_export({ target: 'String', proto: true, forced: !correctIsRegexpLogic('includes') }, {
 	  includes: function includes(searchString /* , position = 0 */) {
-	    return !!~String(requireObjectCoercible(this))
-	      .indexOf(notARegexp(searchString), arguments.length > 1 ? arguments[1] : undefined);
+	    return !!~toString_1(requireObjectCoercible(this))
+	      .indexOf(toString_1(notARegexp(searchString)), arguments.length > 1 ? arguments[1] : undefined);
 	  }
 	});
 
 	var getOwnPropertyDescriptor$3 = objectGetOwnPropertyDescriptor.f;
+
 
 
 
@@ -20442,10 +20584,10 @@
 	// https://tc39.es/ecma262/#sec-string.prototype.startswith
 	_export({ target: 'String', proto: true, forced: !MDN_POLYFILL_BUG && !CORRECT_IS_REGEXP_LOGIC }, {
 	  startsWith: function startsWith(searchString /* , position = 0 */) {
-	    var that = String(requireObjectCoercible(this));
+	    var that = toString_1(requireObjectCoercible(this));
 	    notARegexp(searchString);
 	    var index = toLength(min$8(arguments.length > 1 ? arguments[1] : undefined, that.length));
-	    var search = String(searchString);
+	    var search = toString_1(searchString);
 	    return $startsWith
 	      ? $startsWith.call(that, search, index)
 	      : that.slice(index, index + search.length) === search;
@@ -20536,9 +20678,7 @@
 	    _detected.platform = 'Unknown';
 	  }
 
-	  _detected.isMobileWebKit = (/\b(iPad|iPhone|iPod)\b/.test(ua) || // HACK: iPadOS 13+ requests desktop sites by default by using a Mac user agent,
-	  // so assume any "mac" with multitouch is actually iOS
-	  navigator.platform === 'MacIntel' && 'maxTouchPoints' in navigator && navigator.maxTouchPoints > 1) && /WebKit/.test(ua) && !/Edge/.test(ua) && !window.MSStream;
+	  _detected.isMobileWebKit = (/\b(iPad|iPhone|iPod)\b/.test(ua) || navigator.platform === 'MacIntel' && 'maxTouchPoints' in navigator && navigator.maxTouchPoints > 1) && /WebKit/.test(ua) && !/Edge/.test(ua) && !window.MSStream;
 	  /* Locale */
 	  // An array of locales requested by the browser in priority order.
 
@@ -20581,7 +20721,8 @@
 	// `ToNumber` abstract operation
 	// https://tc39.es/ecma262/#sec-tonumber
 	var toNumber = function (argument) {
-	  var it = toPrimitive(argument, false);
+	  if (isSymbol(argument)) throw TypeError('Cannot convert a Symbol value to a number');
+	  var it = toPrimitive(argument, 'number');
 	  var first, third, radix, maxCode, digits, length, index, code;
 	  if (typeof it == 'string' && it.length > 2) {
 	    it = trim$2(it);
@@ -22335,8 +22476,7 @@
 	      _dataLanguages = results[0];
 	      _dataLocales = results[1];
 	    }).then(function () {
-	      var requestedLocales = (_preferredLocaleCodes || []). // List of locales preferred by the browser in priority order.
-	      concat(utilDetect().browserLocales) // fallback to English since it's the only guaranteed complete language
+	      var requestedLocales = (_preferredLocaleCodes || []).concat(utilDetect().browserLocales) // fallback to English since it's the only guaranteed complete language
 	      .concat(['en']);
 
 	      _localeCodes = localesToUseFrom(requestedLocales); // Run iD in the highest-priority locale; the rest are fallbacks
@@ -32006,7 +32146,7 @@
 	// `String.prototype.repeat` method implementation
 	// https://tc39.es/ecma262/#sec-string.prototype.repeat
 	var stringRepeat = function repeat(count) {
-	  var str = String(requireObjectCoercible(this));
+	  var str = toString_1(requireObjectCoercible(this));
 	  var result = '';
 	  var n = toInteger(count);
 	  if (n < 0 || n == Infinity) throw RangeError('Wrong number of repetitions');
@@ -32015,7 +32155,7 @@
 	};
 
 	var nativeToFixed = 1.0.toFixed;
-	var floor$7 = Math.floor;
+	var floor$8 = Math.floor;
 
 	var pow$2 = function (x, n, acc) {
 	  return n === 0 ? acc : n % 2 === 1 ? pow$2(x, n - 1, acc * x) : pow$2(x * x, n / 2, acc);
@@ -32040,7 +32180,7 @@
 	  while (++index < 6) {
 	    c2 += n * data[index];
 	    data[index] = c2 % 1e7;
-	    c2 = floor$7(c2 / 1e7);
+	    c2 = floor$8(c2 / 1e7);
 	  }
 	};
 
@@ -32049,7 +32189,7 @@
 	  var c = 0;
 	  while (--index >= 0) {
 	    c += data[index];
-	    data[index] = floor$7(c / n);
+	    data[index] = floor$8(c / n);
 	    c = (c % n) * 1e7;
 	  }
 	};
@@ -32546,14 +32686,15 @@
 
 
 
+
 	var ceil$1 = Math.ceil;
 
 	// `String.prototype.{ padStart, padEnd }` methods implementation
 	var createMethod$6 = function (IS_END) {
 	  return function ($this, maxLength, fillString) {
-	    var S = String(requireObjectCoercible($this));
+	    var S = toString_1(requireObjectCoercible($this));
 	    var stringLength = S.length;
-	    var fillStr = fillString === undefined ? ' ' : String(fillString);
+	    var fillStr = fillString === undefined ? ' ' : toString_1(fillString);
 	    var intMaxLength = toLength(maxLength);
 	    var fillLen, stringFiller;
 	    if (intMaxLength <= stringLength || fillStr == '') return S;
@@ -34387,6 +34528,7 @@
 
 
 
+
 	// eslint-disable-next-line es/no-string-prototype-endswith -- safe
 	var $endsWith = ''.endsWith;
 	var min$9 = Math.min;
@@ -34402,12 +34544,12 @@
 	// https://tc39.es/ecma262/#sec-string.prototype.endswith
 	_export({ target: 'String', proto: true, forced: !MDN_POLYFILL_BUG$1 && !CORRECT_IS_REGEXP_LOGIC$1 }, {
 	  endsWith: function endsWith(searchString /* , endPosition = @length */) {
-	    var that = String(requireObjectCoercible(this));
+	    var that = toString_1(requireObjectCoercible(this));
 	    notARegexp(searchString);
 	    var endPosition = arguments.length > 1 ? arguments[1] : undefined;
 	    var len = toLength(that.length);
 	    var end = endPosition === undefined ? len : min$9(toLength(endPosition), len);
-	    var search = String(searchString);
+	    var search = toString_1(searchString);
 	    return $endsWith
 	      ? $endsWith.call(that, search, end)
 	      : that.slice(end - search.length, end) === search;
@@ -35230,24 +35372,24 @@
 	      case '"':
 	        if (s === S_EQ || s === S_ATTR //|| s == S_ATTR_SPACE
 	        ) {
-	            //equal
-	            if (s === S_ATTR) {
-	              errorHandler.warning('attribute value must after "="');
-	              attrName = source.slice(start, p);
-	            }
+	          //equal
+	          if (s === S_ATTR) {
+	            errorHandler.warning('attribute value must after "="');
+	            attrName = source.slice(start, p);
+	          }
 
-	            start = p + 1;
-	            p = source.indexOf(c, start);
+	          start = p + 1;
+	          p = source.indexOf(c, start);
 
-	            if (p > 0) {
-	              value = source.slice(start, p).replace(/&#?\w+;/g, entityReplacer);
-	              el.add(attrName, value, start - 1);
-	              s = S_ATTR_END;
-	            } else {
-	              //fatalError: no end quot match
-	              throw new Error('attribute value no end \'' + c + '\' match');
-	            }
-	          } else if (s == S_ATTR_NOQUOT_VALUE) {
+	          if (p > 0) {
+	            value = source.slice(start, p).replace(/&#?\w+;/g, entityReplacer);
+	            el.add(attrName, value, start - 1);
+	            s = S_ATTR_END;
+	          } else {
+	            //fatalError: no end quot match
+	            throw new Error('attribute value no end \'' + c + '\' match');
+	          }
+	        } else if (s == S_ATTR_NOQUOT_VALUE) {
 	          value = source.slice(start, p).replace(/&#?\w+;/g, entityReplacer); //console.log(attrName,value,start,p)
 
 	          el.add(attrName, value, start); //console.dir(el)
@@ -38168,7 +38310,7 @@
 	  // eslint-disable-next-line no-unused-vars -- required for `.length`
 	  toJSON: function toJSON(key) {
 	    var O = toObject(this);
-	    var pv = toPrimitive(O);
+	    var pv = toPrimitive(O, 'number');
 	    return typeof pv == 'number' && !isFinite(pv) ? null : O.toISOString();
 	  }
 	});
@@ -38471,16 +38613,16 @@
 	    function search(regexp) {
 	      var O = requireObjectCoercible(this);
 	      var searcher = regexp == undefined ? undefined : regexp[SEARCH];
-	      return searcher !== undefined ? searcher.call(regexp, O) : new RegExp(regexp)[SEARCH](String(O));
+	      return searcher !== undefined ? searcher.call(regexp, O) : new RegExp(regexp)[SEARCH](toString_1(O));
 	    },
 	    // `RegExp.prototype[@@search]` method
 	    // https://tc39.es/ecma262/#sec-regexp.prototype-@@search
 	    function (string) {
-	      var res = maybeCallNative(nativeSearch, this, string);
-	      if (res.done) return res.value;
-
 	      var rx = anObject(this);
-	      var S = String(string);
+	      var S = toString_1(string);
+	      var res = maybeCallNative(nativeSearch, rx, S);
+
+	      if (res.done) return res.value;
 
 	      var previousLastIndex = rx.lastIndex;
 	      if (!sameValue(previousLastIndex, 0)) rx.lastIndex = 0;
@@ -40938,8 +41080,7 @@
 	      return [entity];
 	    } else if (entity.type === 'relation') {
 	      return entity.members.reduce(function (array, member) {
-	        if (member.type === 'way' && ( // only look at geometry ways
-	        !member.role || member.role === 'outer' || member.role === 'inner')) {
+	        if (member.type === 'way' && (!member.role || member.role === 'outer' || member.role === 'inner')) {
 	          var entity = graph.hasEntity(member.id); // don't add duplicates
 
 	          if (entity && array.indexOf(entity) === -1) {
@@ -41684,8 +41825,7 @@
 
 	  drawWay.addNode = function (node, d) {
 	    // finish drawing if the mapper targets the prior node
-	    if (node.id === _headNodeID || // or the first node when drawing an area
-	    _origWay.isClosed() && node.id === _origWay.first()) {
+	    if (node.id === _headNodeID || _origWay.isClosed() && node.id === _origWay.first()) {
 	      drawWay.finish();
 	      return;
 	    }
@@ -45396,12 +45536,12 @@
 	        }
 	        /* nodeType is 'CDATASection' (4) */
 	        else if (oNode.nodeType === 3) {
-	            sCollectedTxt += oNode.nodeValue.trim();
-	          }
-	          /* nodeType is 'Text' (3) */
-	          else if (oNode.nodeType === 1 && !oNode.prefix) {
-	              aCache.push(oNode);
-	            }
+	          sCollectedTxt += oNode.nodeValue.trim();
+	        }
+	        /* nodeType is 'Text' (3) */
+	        else if (oNode.nodeType === 1 && !oNode.prefix) {
+	          aCache.push(oNode);
+	        }
 	        /* nodeType is 'Element' (1) */
 
 	      }
@@ -46626,9 +46766,9 @@
 	// `CreateHTML` abstract operation
 	// https://tc39.es/ecma262/#sec-createhtml
 	var createHtml = function (string, tag, attribute, value) {
-	  var S = String(requireObjectCoercible(string));
+	  var S = toString_1(requireObjectCoercible(string));
 	  var p1 = '<' + tag;
-	  if (attribute !== '') p1 += ' ' + attribute + '="' + String(value).replace(quot, '&quot;') + '"';
+	  if (attribute !== '') p1 += ' ' + attribute + '="' + toString_1(value).replace(quot, '&quot;') + '"';
 	  return p1 + '>' + S + '</' + tag + '>';
 	};
 
@@ -51520,9 +51660,9 @@
 
 	        if (nodes[ix1] === activeID) return 0; // no - prevent self intersect
 	        else if (nodes[ix2] === activeID) return 2; // ok - adjacent
-	          else if (nodes[ix3] === activeID) return 2; // ok - adjacent
-	            else if (nodes[ix4] === activeID) return 0; // no - prevent self intersect
-	              else if (isClosed && nodes.indexOf(activeID) !== -1) return 0; // no - prevent self intersect
+	        else if (nodes[ix3] === activeID) return 2; // ok - adjacent
+	        else if (nodes[ix4] === activeID) return 0; // no - prevent self intersect
+	        else if (isClosed && nodes.indexOf(activeID) !== -1) return 0; // no - prevent self intersect
 	      }
 	    }
 	  }
@@ -55874,9 +56014,7 @@
 
 	  }
 
-	  function onHistoryChange()
-	  /* difference */
-	  {
+	  function onHistoryChange() {
 	    var annotation = context.history().peekAnnotation();
 	    if (!wasRapidEdit(annotation)) return;
 
@@ -57778,9 +57916,7 @@
 
 	  for (var key in value) {
 	    if ((inherited || hasOwnProperty$6.call(value, key)) && !(skipIndexes && ( // Safari 9 has enumerable `arguments.length` in strict mode.
-	    key == 'length' || // Node.js 0.10 has enumerable non-index properties on buffers.
-	    isBuff && (key == 'offset' || key == 'parent') || // PhantomJS 2 has enumerable non-index properties on typed arrays.
-	    isType && (key == 'buffer' || key == 'byteLength' || key == 'byteOffset') || // Skip index properties.
+	    key == 'length' || isBuff && (key == 'offset' || key == 'parent') || isType && (key == 'buffer' || key == 'byteLength' || key == 'byteOffset') || // Skip index properties.
 	    isIndex(key, length)))) {
 	      result.push(key);
 	    }
@@ -59161,8 +59297,8 @@
 	  if (string.charCodeAt(0) === 46
 	  /* . */
 	  ) {
-	      result.push('');
-	    }
+	    result.push('');
+	  }
 
 	  string.replace(rePropName, function (match, number, quote, subString) {
 	    result.push(quote ? subString.replace(reEscapeChar, '$1') : number || match);
@@ -65027,9 +65163,7 @@
 	 * @license MIT
 	 * @preserve
 	 */
-	var Node$1 =
-	/** @class */
-	function () {
+	var Node$1 = function () {
 	  function Node(key, data) {
 	    this.next = null;
 	    this.key = key;
@@ -65182,9 +65316,7 @@
 	  }
 	}
 
-	var Tree =
-	/** @class */
-	function () {
+	var Tree = function () {
 	  function Tree(comparator) {
 	    if (comparator === void 0) {
 	      comparator = DEFAULT_COMPARE;
@@ -76857,8 +76989,7 @@
 	          if (entity.type === 'way') {
 	            var parents = features.getParents(entity, resolver, geometry); //   2a. belongs only to a single multipolygon relation
 
-	            if (parents.length === 1 && parents[0].isMultipolygon() || // 2b. or belongs only to boundary relations
-	            parents.length > 0 && parents.every(function (parent) {
+	            if (parents.length === 1 && parents[0].isMultipolygon() || parents.length > 0 && parents.every(function (parent) {
 	              return parent.tags.type === 'boundary';
 	            })) {
 	              // ...then match whatever feature rules the parent relation has matched.
@@ -77197,10 +77328,10 @@
 	      return function (t) {
 	        if (t === 1) t = b; // Avoid rounding error on end.
 	        else {
-	            var l = i(t),
-	                k = w / l[2];
-	            t = new Transform(k, p[0] - l[0] * k, p[1] - l[1] * k);
-	          }
+	          var l = i(t),
+	              k = w / l[2];
+	          t = new Transform(k, p[0] - l[0] * k, p[1] - l[1] * k);
+	        }
 	        g.zoom(null, null, t);
 	      };
 	    });
@@ -77907,31 +78038,31 @@
 	      if (source.deltaMode === 1
 	      /* LINE */
 	      ) {
-	          // Convert from lines to pixels, more if the user is scrolling fast.
-	          // (I made up the exp function to roughly match Firefox to what Chrome does)
-	          // These numbers should be floats, because integers are treated as pan gesture below.
-	          var lines = Math.abs(source.deltaY);
-	          var sign = source.deltaY > 0 ? 1 : -1;
-	          dY = sign * clamp$1(Math.exp((lines - 1) * 0.75) * 4.000244140625, 4.000244140625, // min
-	          350.000244140625 // max
-	          ); // On Firefox Windows and Linux we always get +/- the scroll line amount (default 3)
-	          // There doesn't seem to be any scroll acceleration.
-	          // This multiplier increases the speed a little bit - #5512
+	        // Convert from lines to pixels, more if the user is scrolling fast.
+	        // (I made up the exp function to roughly match Firefox to what Chrome does)
+	        // These numbers should be floats, because integers are treated as pan gesture below.
+	        var lines = Math.abs(source.deltaY);
+	        var sign = source.deltaY > 0 ? 1 : -1;
+	        dY = sign * clamp$1(Math.exp((lines - 1) * 0.75) * 4.000244140625, 4.000244140625, // min
+	        350.000244140625 // max
+	        ); // On Firefox Windows and Linux we always get +/- the scroll line amount (default 3)
+	        // There doesn't seem to be any scroll acceleration.
+	        // This multiplier increases the speed a little bit - #5512
 
-	          if (detected.os !== 'mac') {
-	            dY *= 5;
-	          } // recalculate x2,y2,k2
+	        if (detected.os !== 'mac') {
+	          dY *= 5;
+	        } // recalculate x2,y2,k2
 
 
-	          t0 = _isTransformed ? _transformLast : _transformStart;
-	          p0 = _getMouseCoords(source);
-	          p1 = t0.invert(p0);
-	          k2 = t0.k * Math.pow(2, -dY / 500);
-	          k2 = clamp$1(k2, kMin, kMax);
-	          x2 = p0[0] - p1[0] * k2;
-	          y2 = p0[1] - p1[1] * k2; // 2 finger map pinch zooming (Safari) - #5492
-	          // These are fake `wheel` events we made from Safari `gesturechange` events..
-	        } else if (source._scale) {
+	        t0 = _isTransformed ? _transformLast : _transformStart;
+	        p0 = _getMouseCoords(source);
+	        p1 = t0.invert(p0);
+	        k2 = t0.k * Math.pow(2, -dY / 500);
+	        k2 = clamp$1(k2, kMin, kMax);
+	        x2 = p0[0] - p1[0] * k2;
+	        y2 = p0[1] - p1[1] * k2; // 2 finger map pinch zooming (Safari) - #5492
+	        // These are fake `wheel` events we made from Safari `gesturechange` events..
+	      } else if (source._scale) {
 	        // recalculate x2,y2,k2
 	        t0 = _gestureTransformStart;
 	        p0 = _getMouseCoords(source);
@@ -86382,8 +86513,7 @@
 
 	      var isOkayTarget = d3_event.composedPath().some(function (node) {
 	        // we only care about element nodes
-	        return node.nodeType === 1 && ( // clicking <input> focuses it and/or changes a value
-	        node.nodeName === 'INPUT' || // clicking <label> affects its <input> by default
+	        return node.nodeType === 1 && (node.nodeName === 'INPUT' || // clicking <label> affects its <input> by default
 	        node.nodeName === 'LABEL' || // clicking <a> opens a hyperlink by default
 	        node.nodeName === 'A');
 	      });
@@ -95975,8 +96105,8 @@
 	          module.exports = Hashes;
 	        } // in Narwhal or RingoJS v0.7.0-
 	        else {
-	            freeExports.Hashes = Hashes;
-	          }
+	          freeExports.Hashes = Hashes;
+	        }
 	      } else {
 	        // in a browser or Rhino
 	        window.Hashes = Hashes;
@@ -96145,9 +96275,7 @@
 	      module.exports = factory();
 	    }
 	  }(commonjsGlobal, function () {
-	    function resolveUrl()
-	    /* ...urls */
-	    {
+	    function resolveUrl() {
 	      var numUrls = arguments.length;
 
 	      if (numUrls === 0) {
@@ -98638,9 +98766,9 @@
 	      var needToRebaseRapid = false;
 	      parsed.forEach(function (node) {
 	        if (!node.tags) return;
-	        var linzId = node.tags['ref:linz:address_id'] || node.tags.ref;
+	        var linzId = node.tags['ref:linz:address_id'] || node.tags.ref; // skip man_made=monitoring_station since they use the same ref= as the adjacent survey markers
 
-	        if (linzId) {
+	        if (linzId && node.tags.man_made !== 'monitoring_station') {
 	          _seenAddresses[linzId] = node;
 	          var ds = window._dsState[window._mostRecentDsId];
 
@@ -100861,21 +100989,23 @@
 	  switch (type) {
 	    case "LineString":
 	    case "MultiLineString":
-	      var lines_1 = [];
+	      {
+	        var lines_1 = [];
 
-	      if (type === "LineString") {
-	        coords = [coords];
+	        if (type === "LineString") {
+	          coords = [coords];
+	        }
+
+	        coords.forEach(function (line) {
+	          lineclip$1(line, bbox, lines_1);
+	        });
+
+	        if (lines_1.length === 1) {
+	          return lineString(lines_1[0], properties);
+	        }
+
+	        return multiLineString(lines_1, properties);
 	      }
-
-	      coords.forEach(function (line) {
-	        lineclip$1(line, bbox, lines_1);
-	      });
-
-	      if (lines_1.length === 1) {
-	        return lineString(lines_1[0], properties);
-	      }
-
-	      return multiLineString(lines_1, properties);
 
 	    case "Polygon":
 	      return polygon(clipPolygon(coords, bbox), properties);
@@ -102301,35 +102431,35 @@
 	  if (sqrKross > 0
 	  /* EPS * sqrLenB * sqLenA */
 	  ) {
-	      // If they're not parallel, then (because these are line segments) they
-	      // still might not actually intersect. This code checks that the
-	      // intersection point of the lines is actually on both line segments.
-	      var s = crossProduct$1(e, vb) / kross;
+	    // If they're not parallel, then (because these are line segments) they
+	    // still might not actually intersect. This code checks that the
+	    // intersection point of the lines is actually on both line segments.
+	    var s = crossProduct$1(e, vb) / kross;
 
-	      if (s < 0 || s > 1) {
-	        // not on line segment a
-	        return null;
-	      }
+	    if (s < 0 || s > 1) {
+	      // not on line segment a
+	      return null;
+	    }
 
-	      var t = crossProduct$1(e, va) / kross;
+	    var t = crossProduct$1(e, va) / kross;
 
-	      if (t < 0 || t > 1) {
-	        // not on line segment b
-	        return null;
-	      }
+	    if (t < 0 || t > 1) {
+	      // not on line segment b
+	      return null;
+	    }
 
-	      if (s === 0 || s === 1) {
-	        // on an endpoint of line segment a
-	        return noEndpointTouch ? null : [toPoint(a1, s, va)];
-	      }
+	    if (s === 0 || s === 1) {
+	      // on an endpoint of line segment a
+	      return noEndpointTouch ? null : [toPoint(a1, s, va)];
+	    }
 
-	      if (t === 0 || t === 1) {
-	        // on an endpoint of line segment b
-	        return noEndpointTouch ? null : [toPoint(b1, t, vb)];
-	      }
+	    if (t === 0 || t === 1) {
+	      // on an endpoint of line segment b
+	      return noEndpointTouch ? null : [toPoint(b1, t, vb)];
+	    }
 
-	      return [toPoint(a1, s, va)];
-	    } // If we've reached this point, then the lines are either parallel or the
+	    return [toPoint(a1, s, va)];
+	  } // If we've reached this point, then the lines are either parallel or the
 	  // same, but the segments could overlap partially or fully, or not at all.
 	  // So we need to find the overlap, if any. To do that, we can use e, which is
 	  // the (vector) difference between the two initial points. If this is parallel
@@ -102344,9 +102474,9 @@
 	  if (sqrKross > 0
 	  /* EPS * sqLenB * sqLenE */
 	  ) {
-	      // Lines are just parallel, not the same. No overlap.
-	      return null;
-	    }
+	    // Lines are just parallel, not the same. No overlap.
+	    return null;
+	  }
 
 	  var sa = dotProduct$1(va, e) / sqrLenA;
 	  var sb = sa + dotProduct$1(va, vb) / sqrLenA;
@@ -102501,10 +102631,10 @@
 	    if (p1[0] === p2[0] && p1[1] === p2[1]
 	    /*equals(le1.point, le2.point)*/
 	    ) {
-	        p1 = le1.otherEvent.point;
-	        p2 = le2.otherEvent.point;
-	        if (p1[0] === p2[0] && p1[1] === p2[1]) return 0;else return le1.contourId > le2.contourId ? 1 : -1;
-	      }
+	      p1 = le1.otherEvent.point;
+	      p2 = le2.otherEvent.point;
+	      if (p1[0] === p2[0] && p1[1] === p2[1]) return 0;else return le1.contourId > le2.contourId ? 1 : -1;
+	    }
 	  } else {
 	    // Segments are collinear, but belong to separate polygons
 	    return le1.isSubject ? -1 : 1;
@@ -105341,8 +105471,7 @@
 
 	    var isMultiselect = context.mode().id === 'select' && ( // and shift key is down
 	    lastEvent && lastEvent.shiftKey || // or we're lasso-selecting
-	    context.surface().select('.lasso').node() || // or a pointer is down over a selected feature
-	    _multiselectionPointerId && !multiselectEntityId);
+	    context.surface().select('.lasso').node() || _multiselectionPointerId && !multiselectEntityId);
 
 	    processClick(targetDatum, isMultiselect, p2, multiselectEntityId);
 
@@ -105971,8 +106100,7 @@
 
 	    if (_newFeature && entity && entity.type === 'relation' && // no tags
 	    Object.keys(entity.tags).length === 0 && // no parent relations
-	    context.graph().parentRelations(entity).length === 0 && ( // no members or one member with no role
-	    entity.members.length === 0 || entity.members.length === 1 && !entity.members[0].role)) {
+	    context.graph().parentRelations(entity).length === 0 && (entity.members.length === 0 || entity.members.length === 1 && !entity.members[0].role)) {
 	      // the user added this relation but didn't edit it at all, so just delete it
 	      var deleteAction = actionDeleteRelation(entity.id, true
 	      /* don't delete untagged members */
