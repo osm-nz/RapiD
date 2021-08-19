@@ -195,7 +195,7 @@
 	(module.exports = function (key, value) {
 	  return sharedStore[key] || (sharedStore[key] = value !== undefined ? value : {});
 	})('versions', []).push({
-	  version: '3.16.1',
+	  version: '3.16.2',
 	  mode:  'global',
 	  copyright: '© 2021 Denis Pushkarev (zloirock.ru)'
 	});
@@ -928,17 +928,15 @@
 	  var iframe = documentCreateElement('iframe');
 	  var JS = 'java' + SCRIPT + ':';
 	  var iframeDocument;
-	  if (iframe.style) {
-	    iframe.style.display = 'none';
-	    html.appendChild(iframe);
-	    // https://github.com/zloirock/core-js/issues/475
-	    iframe.src = String(JS);
-	    iframeDocument = iframe.contentWindow.document;
-	    iframeDocument.open();
-	    iframeDocument.write(scriptTag('document.F=Object'));
-	    iframeDocument.close();
-	    return iframeDocument.F;
-	  }
+	  iframe.style.display = 'none';
+	  html.appendChild(iframe);
+	  // https://github.com/zloirock/core-js/issues/475
+	  iframe.src = String(JS);
+	  iframeDocument = iframe.contentWindow.document;
+	  iframeDocument.open();
+	  iframeDocument.write(scriptTag('document.F=Object'));
+	  iframeDocument.close();
+	  return iframeDocument.F;
 	};
 
 	// Check for document.domain and active x support
@@ -951,10 +949,11 @@
 	  try {
 	    activeXDocument = new ActiveXObject('htmlfile');
 	  } catch (error) { /* ignore */ }
-	  NullProtoObject = document.domain && activeXDocument ?
-	    NullProtoObjectViaActiveX(activeXDocument) : // old IE
-	    NullProtoObjectViaIFrame() ||
-	    NullProtoObjectViaActiveX(activeXDocument); // WSH
+	  NullProtoObject = typeof document != 'undefined'
+	    ? document.domain && activeXDocument
+	      ? NullProtoObjectViaActiveX(activeXDocument) // old IE
+	      : NullProtoObjectViaIFrame()
+	    : NullProtoObjectViaActiveX(activeXDocument); // WSH
 	  var length = enumBugKeys.length;
 	  while (length--) delete NullProtoObject[PROTOTYPE][enumBugKeys[length]];
 	  return NullProtoObject();
@@ -2675,7 +2674,7 @@
 	  return ITERATION_SUPPORT;
 	};
 
-	var engineIsIos = /(?:iphone|ipod|ipad).*applewebkit/i.test(engineUserAgent);
+	var engineIsIos = /(?:ipad|iphone|ipod).*applewebkit/i.test(engineUserAgent);
 
 	var engineIsNode = classofRaw(global_1.process) == 'process';
 
@@ -2784,7 +2783,7 @@
 	  clear: clear
 	};
 
-	var engineIsIosPebble = /iphone|ipod|ipad/i.test(engineUserAgent) && global_1.Pebble !== undefined;
+	var engineIsIosPebble = /ipad|iphone|ipod/i.test(engineUserAgent) && global_1.Pebble !== undefined;
 
 	var engineIsWebosWebkit = /web0s(?!.*chrome)/i.test(engineUserAgent);
 
@@ -5945,20 +5944,18 @@
 	  }, { unsafe: true });
 	}
 
-	// babel-minify transpiles RegExp('a', 'y') -> /a/y and it causes SyntaxError,
-	var RE = function (s, f) {
-	  return RegExp(s, f);
-	};
+	// babel-minify and Closure Compiler transpiles RegExp('a', 'y') -> /a/y and it causes SyntaxError
+	var $RegExp = global_1.RegExp;
 
 	var UNSUPPORTED_Y = fails(function () {
-	  var re = RE('a', 'y');
+	  var re = $RegExp('a', 'y');
 	  re.lastIndex = 2;
 	  return re.exec('abcd') != null;
 	});
 
 	var BROKEN_CARET = fails(function () {
 	  // https://bugzilla.mozilla.org/show_bug.cgi?id=773687
-	  var re = RE('^r', 'gy');
+	  var re = $RegExp('^r', 'gy');
 	  re.lastIndex = 2;
 	  return re.exec('str') != null;
 	});
@@ -5968,20 +5965,24 @@
 		BROKEN_CARET: BROKEN_CARET
 	};
 
+	// babel-minify and Closure Compiler transpiles RegExp('.', 's') -> /./s and it causes SyntaxError
+	var $RegExp$1 = global_1.RegExp;
+
 	var regexpUnsupportedDotAll = fails(function () {
-	  // babel-minify transpiles RegExp('.', 's') -> /./s and it causes SyntaxError
-	  var re = RegExp('.', (typeof '').charAt(0));
+	  var re = $RegExp$1('.', 's');
 	  return !(re.dotAll && re.exec('\n') && re.flags === 's');
 	});
 
+	// babel-minify and Closure Compiler transpiles RegExp('(?<a>b)', 'g') -> /(?<a>b)/g and it causes SyntaxError
+	var $RegExp$2 = global_1.RegExp;
+
 	var regexpUnsupportedNcg = fails(function () {
-	  // babel-minify transpiles RegExp('.', 'g') -> /./g and it causes SyntaxError
-	  var re = RegExp('(?<a>b)', (typeof '').charAt(5));
+	  var re = $RegExp$2('(?<a>b)', 'g');
 	  return re.exec('b').groups.a !== 'b' ||
 	    'b'.replace(re, '$<a>c') !== 'bc';
 	});
 
-	/* eslint-disable regexp/no-assertion-capturing-group, regexp/no-empty-group, regexp/no-lazy-ends -- testing */
+	/* eslint-disable regexp/no-empty-capturing-group, regexp/no-empty-group, regexp/no-lazy-ends -- testing */
 	/* eslint-disable regexp/no-useless-quantifier -- testing */
 
 
@@ -6269,6 +6270,7 @@
 	    result.groups = { a: '7' };
 	    return result;
 	  };
+	  // eslint-disable-next-line regexp/no-useless-dollar-replacements -- false positive
 	  return ''.replace(re, '$<a>') !== '7';
 	});
 
@@ -6387,7 +6389,7 @@
 	    'test'.split(/(?:)/, -1).length != 4 ||
 	    'ab'.split(/(?:ab)*/).length != 2 ||
 	    '.'.split(/(.?)(.?)/).length != 4 ||
-	    // eslint-disable-next-line regexp/no-assertion-capturing-group, regexp/no-empty-group -- required for testing
+	    // eslint-disable-next-line regexp/no-empty-capturing-group, regexp/no-empty-group -- required for testing
 	    '.'.split(/()()/).length > 1 ||
 	    ''.split(/.?/).length
 	  ) {
@@ -50844,6 +50846,16 @@
 	          window.open(url, '_blank');
 	        }
 	      }).merge(outlinkButton);
+	    } else if (field.type === 'url') {
+	      input.attr('type', 'text');
+	      outlinkButton = wrap.selectAll('.foreign-id-permalink').data([0]);
+	      outlinkButton.enter().append('button').call(svgIcon('#iD-icon-out-link')).attr('class', 'form-field-button foreign-id-permalink').attr('title', function () {
+	        return _t('icons.visit_website');
+	      }).on('click', function (d3_event) {
+	        d3_event.preventDefault();
+	        var value = validIdentifierValueForLink();
+	        if (value) window.open(value, '_blank');
+	      }).merge(outlinkButton);
 	    }
 	  }
 
@@ -50858,8 +50870,10 @@
 	  }
 
 	  function validIdentifierValueForLink() {
+	    var value = utilGetSetValue(input).trim().split(';')[0];
+	    if (field.type === 'url' && value) return value;
+
 	    if (field.type === 'identifier' && field.pattern) {
-	      var value = utilGetSetValue(input).trim().split(';')[0];
 	      return value && value.match(new RegExp(field.pattern));
 	    }
 

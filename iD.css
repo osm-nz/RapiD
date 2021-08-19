@@ -6359,8 +6359,11 @@ hide this one and style something on top of it.  */
 .ideditor .form-field-input-text > input:only-of-type,
 .ideditor .form-field-input-tel > input:only-of-type,
 .ideditor .form-field-input-email > input:only-of-type,
-.ideditor .form-field-input-url > input:only-of-type {
+.ideditor .form-field-input-url > input:only-child {
     border-radius: 0 0 4px 4px;
+}
+.ideditor .form-field-input-url > input:not(:only-child) {
+    border-radius: 0 0 0 4px;
 }
 .ideditor .form-field-input-number > input:only-of-type {
     border-radius: 0 0 0 4px;
