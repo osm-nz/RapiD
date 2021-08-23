@@ -1486,6 +1486,7 @@
           'city_wall': true,
       },
       'man_made': {
+          'video_wall': true,
           'embankment': true
       },
       'waterway': {

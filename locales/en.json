@@ -4357,6 +4357,9 @@
                     "label": "Minimum Age",
                     "terms": "lower age limit"
                 },
+                "min_height": {
+                    "label": "Height of bottom (Meters)"
+                },
                 "minspeed": {
                     "label": "Minimum Speed Limit",
                     "terms": "",
@@ -5468,6 +5471,7 @@
                 },
                 "visibility": {
                     "label": "Visibility",
+                    "terms": "",
                     "options": {
                         "house": "Up to 5m (16ft)",
                         "street": "5 to 20m (16 to 65ft)",
@@ -8790,6 +8794,10 @@
                 "man_made/utility_pole": {
                     "name": "Utility Pole",
                     "terms": ""
+                },
+                "man_made/video_wall": {
+                    "name": "Digital Screen",
+                    "terms": "screen,tv,television,display,video wall,led wall"
                 },
                 "man_made/wastewater_plant": {
                     "name": "Wastewater Plant",
