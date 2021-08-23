@@ -1453,6 +1453,9 @@ en:
         label: Minimum Age
         # 'terms: lower age limit'
         terms: '[translate with synonyms or related terms for ''Minimum Age'', separated by commas]'
+      min_height:
+        # min_height=*
+        label: Height of bottom (Meters)
       minspeed:
         # minspeed=*
         label: Minimum Speed Limit
@@ -6703,6 +6706,11 @@ en:
         # man_made=utility_pole
         name: Utility Pole
         terms: '<translate with synonyms or related terms for ''Utility Pole'', separated by commas>'
+      man_made/video_wall:
+        # man_made=video_wall
+        name: Digital Screen
+        # 'terms: screen,tv,television,display,video wall,led wall'
+        terms: '<translate with synonyms or related terms for ''Digital Screen'', separated by commas>'
       man_made/wastewater_plant:
         # man_made=wastewater_plant
         name: Wastewater Plant

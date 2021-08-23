@@ -284,6 +284,7 @@
   "microbrewery": {"key": "microbrewery", "type": "check", "label": "Microbrewery", "terms": ["brewpub", "craft beer"]},
   "mimics": {"key": "mimics", "type": "combo", "label": "Mimics", "terms": ["camoflauged", "disguised", "looks like", "tree"]},
   "min_age": {"key": "min_age", "type": "number", "minValue": 0, "label": "Minimum Age", "terms": ["lower age limit"]},
+  "min_height": {"key": "min_height", "minValue": 0, "type": "number", "label": "Height of bottom (Meters)", "prerequisiteTag": {"key": "height"}},
   "minspeed": {"key": "minspeed", "type": "maxspeed", "label": "Minimum Speed Limit", "placeholder": "20, 30, 40..."},
   "monitoring_multi": {"key": "monitoring:", "type": "multiCombo", "label": "Monitoring"},
   "mtb/scale": {"key": "mtb:scale", "type": "combo", "label": "Mountain Biking Difficulty", "placeholder": "0, 1, 2, 3...", "strings": {"options": {"0": "0: Solid gravel/packed earth, no obstacles, wide curves", "1": "1: Some loose surface, small obstacles, wide curves", "2": "2: Much loose surface, large obstacles, easy hairpins", "3": "3: Slippery surface, large obstacles, tight hairpins", "4": "4: Loose surface or boulders, dangerous hairpins", "5": "5: Maximum difficulty, boulder fields, landslides", "6": "6: Not rideable except by the very best mountain bikers"}}},
