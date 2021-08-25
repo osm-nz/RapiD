@@ -195,7 +195,7 @@
 	(module.exports = function (key, value) {
 	  return sharedStore[key] || (sharedStore[key] = value !== undefined ? value : {});
 	})('versions', []).push({
-	  version: '3.16.2',
+	  version: '3.16.3',
 	  mode:  'global',
 	  copyright: '© 2021 Denis Pushkarev (zloirock.ru)'
 	});
@@ -7298,17 +7298,20 @@
 	  }
 	});
 
+	var isDataDescriptor = function (descriptor) {
+	  return descriptor !== undefined && (has(descriptor, 'value') || has(descriptor, 'writable'));
+	};
+
 	// `Reflect.get` method
 	// https://tc39.es/ecma262/#sec-reflect.get
 	function get$2(target, propertyKey /* , receiver */) {
 	  var receiver = arguments.length < 3 ? target : arguments[2];
 	  var descriptor, prototype;
 	  if (anObject(target) === receiver) return target[propertyKey];
-	  if (descriptor = objectGetOwnPropertyDescriptor.f(target, propertyKey)) return has(descriptor, 'value')
+	  descriptor = objectGetOwnPropertyDescriptor.f(target, propertyKey);
+	  if (descriptor) return isDataDescriptor(descriptor)
 	    ? descriptor.value
-	    : descriptor.get === undefined
-	      ? undefined
-	      : descriptor.get.call(receiver);
+	    : descriptor.get === undefined ? undefined : descriptor.get.call(receiver);
 	  if (isObject(prototype = objectGetPrototypeOf(target))) return get$2(prototype, propertyKey, receiver);
 	}
 
@@ -90476,7 +90479,7 @@
 
 
 	function searchURL() {
-	  return "".concat(APIROOT, "/index.json"); // use to get
+	  return "".concat(APIROOT, "/index.json?noCache=").concat(Math.random()); // use to get
 	  // .results[]
 	  //   .extent
 	  //   .id
