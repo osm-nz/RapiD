@@ -38,7 +38,7 @@ function abortRequest(controller) {
 
 // API
 function searchURL() {
-  return `${APIROOT}/index.json`;
+  return `${APIROOT}/index.json?noCache=${Math.random()}`;
   // use to get
   // .results[]
   //   .extent

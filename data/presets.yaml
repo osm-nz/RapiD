@@ -372,6 +372,7 @@ en:
         label: Units
         # building/flats field placeholder
         placeholder: '2, 4, 6, 8...'
+        terms: '[translate with synonyms or related terms for ''Units'', separated by commas]'
       building/levels:
         # 'building:levels=*'
         label: Levels
@@ -2842,6 +2843,7 @@ en:
           house: Up to 5m (16ft)
           # visibility=street
           street: 5 to 20m (16 to 65ft)
+        terms: '[translate with synonyms or related terms for ''Visibility'', separated by commas]'
       volcano/status:
         # 'volcano:status=*'
         label: Volcano Status

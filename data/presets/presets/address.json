@@ -2,6 +2,7 @@
     "fields": [
         "address"
     ],
+    "moreFields": ["building/flats"],
     "geometry": [
         "point",
         "vertex",
