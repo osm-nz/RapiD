@@ -195,7 +195,7 @@
 	(module.exports = function (key, value) {
 	  return sharedStore[key] || (sharedStore[key] = value !== undefined ? value : {});
 	})('versions', []).push({
-	  version: '3.16.3',
+	  version: '3.17.2',
 	  mode:  'global',
 	  copyright: '© 2021 Denis Pushkarev (zloirock.ru)'
 	});
@@ -1854,7 +1854,7 @@
 	  symbolPrototype.constructor = SymbolWrapper;
 
 	  var symbolToString = symbolPrototype.toString;
-	  var native = String(NativeSymbol('test')) == 'Symbol(test)';
+	  var nativeSymbol$1 = String(NativeSymbol('test')) == 'Symbol(test)';
 	  var regexp = /^Symbol\((.*)\)[^)]+$/;
 	  defineProperty$2(symbolPrototype, 'description', {
 	    configurable: true,
@@ -1862,7 +1862,7 @@
 	      var symbol = isObject(this) ? this.valueOf() : this;
 	      var string = symbolToString.call(symbol);
 	      if (has(EmptyStringDescriptionStore, symbol)) return '';
-	      var desc = native ? string.slice(7, -1) : string.replace(regexp, '$1');
+	      var desc = nativeSymbol$1 ? string.slice(7, -1) : string.replace(regexp, '$1');
 	      return desc === '' ? undefined : desc;
 	    }
 	  });
@@ -2578,11 +2578,31 @@
 	    || iterators[classof(it)];
 	};
 
-	var iteratorClose = function (iterator) {
-	  var returnMethod = iterator['return'];
-	  if (returnMethod !== undefined) {
-	    return anObject(returnMethod.call(iterator)).value;
+	var getIterator = function (it, usingIterator) {
+	  var iteratorMethod = arguments.length < 2 ? getIteratorMethod(it) : usingIterator;
+	  if (typeof iteratorMethod != 'function') {
+	    throw TypeError(String(it) + ' is not iterable');
+	  } return anObject(iteratorMethod.call(it));
+	};
+
+	var iteratorClose = function (iterator, kind, value) {
+	  var innerResult, innerError;
+	  anObject(iterator);
+	  try {
+	    innerResult = iterator['return'];
+	    if (innerResult === undefined) {
+	      if (kind === 'throw') throw value;
+	      return value;
+	    }
+	    innerResult = innerResult.call(iterator);
+	  } catch (error) {
+	    innerError = true;
+	    innerResult = error;
 	  }
+	  if (kind === 'throw') throw value;
+	  if (innerError) throw innerResult;
+	  anObject(innerResult);
+	  return value;
 	};
 
 	var Result = function (stopped, result) {
@@ -2599,7 +2619,7 @@
 	  var iterator, iterFn, index, length, result, next, step;
 
 	  var stop = function (condition) {
-	    if (iterator) iteratorClose(iterator);
+	    if (iterator) iteratorClose(iterator, 'normal', condition);
 	    return new Result(true, condition);
 	  };
 
@@ -2622,7 +2642,7 @@
 	        if (result && result instanceof Result) return result;
 	      } return new Result(false);
 	    }
-	    iterator = iterFn.call(iterable);
+	    iterator = getIterator(iterable, iterFn);
 	  }
 
 	  next = iterator.next;
@@ -2630,8 +2650,7 @@
 	    try {
 	      result = callFn(step.value);
 	    } catch (error) {
-	      iteratorClose(iterator);
-	      throw error;
+	      iteratorClose(iterator, 'throw', error);
 	    }
 	    if (typeof result == 'object' && result && result instanceof Result) return result;
 	  } return new Result(false);
@@ -3344,7 +3363,7 @@
 	  var iteratorMethod = getIteratorMethod(O);
 	  var i, length, result, step, iterator, next;
 	  if (iteratorMethod != undefined && !isArrayIteratorMethod(iteratorMethod)) {
-	    iterator = iteratorMethod.call(O);
+	    iterator = getIterator(O, iteratorMethod);
 	    next = iterator.next;
 	    O = [];
 	    while (!(step = next.call(iterator)).done) {
@@ -4323,8 +4342,7 @@
 	  try {
 	    return ENTRIES ? fn(anObject(value)[0], value[1]) : fn(value);
 	  } catch (error) {
-	    iteratorClose(iterator);
-	    throw error;
+	    iteratorClose(iterator, 'throw', error);
 	  }
 	};
 
@@ -4342,7 +4360,7 @@
 	  if (mapping) mapfn = functionBindContext(mapfn, argumentsLength > 2 ? arguments[2] : undefined, 2);
 	  // if the target is not iterable or it's an array with the default iterator - use a simple case
 	  if (iteratorMethod != undefined && !(C == Array && isArrayIteratorMethod(iteratorMethod))) {
-	    iterator = iteratorMethod.call(O);
+	    iterator = getIterator(O, iteratorMethod);
 	    next = iterator.next;
 	    result = new C();
 	    for (;!(step = next.call(iterator)).done; index++) {
@@ -4529,13 +4547,6 @@
 	  return encoded.join('.');
 	};
 
-	var getIterator = function (it) {
-	  var iteratorMethod = getIteratorMethod(it);
-	  if (typeof iteratorMethod != 'function') {
-	    throw TypeError(String(it) + ' is not iterable');
-	  } return anObject(iteratorMethod.call(it));
-	};
-
 	// TODO: in core-js@4, move /modules/ dependencies to public entries for better optimization by tools like `preset-env`
 
 
@@ -4680,7 +4691,7 @@
 	    if (isObject(init)) {
 	      iteratorMethod = getIteratorMethod(init);
 	      if (typeof iteratorMethod === 'function') {
-	        iterator = iteratorMethod.call(init);
+	        iterator = getIterator(init, iteratorMethod);
 	        next = iterator.next;
 	        while (!(step = next.call(iterator)).done) {
 	          entryIterator = getIterator(anObject(step.value));
@@ -5022,19 +5033,19 @@
 	  var pointer = 0;
 	  var value, length, numbersSeen, ipv4Piece, number, swaps, swap;
 
-	  var char = function () {
+	  var chr = function () {
 	    return input.charAt(pointer);
 	  };
 
-	  if (char() == ':') {
+	  if (chr() == ':') {
 	    if (input.charAt(1) != ':') return;
 	    pointer += 2;
 	    pieceIndex++;
 	    compress = pieceIndex;
 	  }
-	  while (char()) {
+	  while (chr()) {
 	    if (pieceIndex == 8) return;
-	    if (char() == ':') {
+	    if (chr() == ':') {
 	      if (compress !== null) return;
 	      pointer++;
 	      pieceIndex++;
@@ -5042,25 +5053,25 @@
 	      continue;
 	    }
 	    value = length = 0;
-	    while (length < 4 && HEX.test(char())) {
-	      value = value * 16 + parseInt(char(), 16);
+	    while (length < 4 && HEX.test(chr())) {
+	      value = value * 16 + parseInt(chr(), 16);
 	      pointer++;
 	      length++;
 	    }
-	    if (char() == '.') {
+	    if (chr() == '.') {
 	      if (length == 0) return;
 	      pointer -= length;
 	      if (pieceIndex > 6) return;
 	      numbersSeen = 0;
-	      while (char()) {
+	      while (chr()) {
 	        ipv4Piece = null;
 	        if (numbersSeen > 0) {
-	          if (char() == '.' && numbersSeen < 4) pointer++;
+	          if (chr() == '.' && numbersSeen < 4) pointer++;
 	          else return;
 	        }
-	        if (!DIGIT.test(char())) return;
-	        while (DIGIT.test(char())) {
-	          number = parseInt(char(), 10);
+	        if (!DIGIT.test(chr())) return;
+	        while (DIGIT.test(chr())) {
+	          number = parseInt(chr(), 10);
 	          if (ipv4Piece === null) ipv4Piece = number;
 	          else if (ipv4Piece == 0) return;
 	          else ipv4Piece = ipv4Piece * 10 + number;
@@ -5073,10 +5084,10 @@
 	      }
 	      if (numbersSeen != 4) return;
 	      break;
-	    } else if (char() == ':') {
+	    } else if (chr() == ':') {
 	      pointer++;
-	      if (!char()) return;
-	    } else if (char()) return;
+	      if (!chr()) return;
+	    } else if (chr()) return;
 	    address[pieceIndex++] = value;
 	  }
 	  if (compress !== null) {
@@ -5156,9 +5167,9 @@
 	  '/': 1, ':': 1, ';': 1, '=': 1, '@': 1, '[': 1, '\\': 1, ']': 1, '^': 1, '|': 1
 	});
 
-	var percentEncode = function (char, set) {
-	  var code = codeAt(char, 0);
-	  return code > 0x20 && code < 0x7F && !has(set, char) ? char : encodeURIComponent(char);
+	var percentEncode = function (chr, set) {
+	  var code = codeAt(chr, 0);
+	  return code > 0x20 && code < 0x7F && !has(set, chr) ? chr : encodeURIComponent(chr);
 	};
 
 	var specialSchemes = {
@@ -5244,7 +5255,7 @@
 	  var seenAt = false;
 	  var seenBracket = false;
 	  var seenPasswordToken = false;
-	  var codePoints, char, bufferCodePoints, failure;
+	  var codePoints, chr, bufferCodePoints, failure;
 
 	  if (!stateOverride) {
 	    url.scheme = '';
@@ -5264,11 +5275,11 @@
 	  codePoints = arrayFrom(input);
 
 	  while (pointer <= codePoints.length) {
-	    char = codePoints[pointer];
+	    chr = codePoints[pointer];
 	    switch (state) {
 	      case SCHEME_START:
-	        if (char && ALPHA.test(char)) {
-	          buffer += char.toLowerCase();
+	        if (chr && ALPHA.test(chr)) {
+	          buffer += chr.toLowerCase();
 	          state = SCHEME;
 	        } else if (!stateOverride) {
 	          state = NO_SCHEME;
@@ -5277,9 +5288,9 @@
 	        break;
 
 	      case SCHEME:
-	        if (char && (ALPHANUMERIC.test(char) || char == '+' || char == '-' || char == '.')) {
-	          buffer += char.toLowerCase();
-	        } else if (char == ':') {
+	        if (chr && (ALPHANUMERIC.test(chr) || chr == '+' || chr == '-' || chr == '.')) {
+	          buffer += chr.toLowerCase();
+	        } else if (chr == ':') {
 	          if (stateOverride && (
 	            (isSpecial(url) != has(specialSchemes, buffer)) ||
 	            (buffer == 'file' && (includesCredentials(url) || url.port !== null)) ||
@@ -5314,8 +5325,8 @@
 	        break;
 
 	      case NO_SCHEME:
-	        if (!base || (base.cannotBeABaseURL && char != '#')) return INVALID_SCHEME;
-	        if (base.cannotBeABaseURL && char == '#') {
+	        if (!base || (base.cannotBeABaseURL && chr != '#')) return INVALID_SCHEME;
+	        if (base.cannotBeABaseURL && chr == '#') {
 	          url.scheme = base.scheme;
 	          url.path = base.path.slice();
 	          url.query = base.query;
@@ -5328,7 +5339,7 @@
 	        continue;
 
 	      case SPECIAL_RELATIVE_OR_AUTHORITY:
-	        if (char == '/' && codePoints[pointer + 1] == '/') {
+	        if (chr == '/' && codePoints[pointer + 1] == '/') {
 	          state = SPECIAL_AUTHORITY_IGNORE_SLASHES;
 	          pointer++;
 	        } else {
@@ -5337,7 +5348,7 @@
 	        } break;
 
 	      case PATH_OR_AUTHORITY:
-	        if (char == '/') {
+	        if (chr == '/') {
 	          state = AUTHORITY;
 	          break;
 	        } else {
@@ -5347,16 +5358,16 @@
 
 	      case RELATIVE:
 	        url.scheme = base.scheme;
-	        if (char == EOF) {
+	        if (chr == EOF) {
 	          url.username = base.username;
 	          url.password = base.password;
 	          url.host = base.host;
 	          url.port = base.port;
 	          url.path = base.path.slice();
 	          url.query = base.query;
-	        } else if (char == '/' || (char == '\\' && isSpecial(url))) {
+	        } else if (chr == '/' || (chr == '\\' && isSpecial(url))) {
 	          state = RELATIVE_SLASH;
-	        } else if (char == '?') {
+	        } else if (chr == '?') {
 	          url.username = base.username;
 	          url.password = base.password;
 	          url.host = base.host;
@@ -5364,7 +5375,7 @@
 	          url.path = base.path.slice();
 	          url.query = '';
 	          state = QUERY;
-	        } else if (char == '#') {
+	        } else if (chr == '#') {
 	          url.username = base.username;
 	          url.password = base.password;
 	          url.host = base.host;
@@ -5385,9 +5396,9 @@
 	        } break;
 
 	      case RELATIVE_SLASH:
-	        if (isSpecial(url) && (char == '/' || char == '\\')) {
+	        if (isSpecial(url) && (chr == '/' || chr == '\\')) {
 	          state = SPECIAL_AUTHORITY_IGNORE_SLASHES;
-	        } else if (char == '/') {
+	        } else if (chr == '/') {
 	          state = AUTHORITY;
 	        } else {
 	          url.username = base.username;
@@ -5400,18 +5411,18 @@
 
 	      case SPECIAL_AUTHORITY_SLASHES:
 	        state = SPECIAL_AUTHORITY_IGNORE_SLASHES;
-	        if (char != '/' || buffer.charAt(pointer + 1) != '/') continue;
+	        if (chr != '/' || buffer.charAt(pointer + 1) != '/') continue;
 	        pointer++;
 	        break;
 
 	      case SPECIAL_AUTHORITY_IGNORE_SLASHES:
-	        if (char != '/' && char != '\\') {
+	        if (chr != '/' && chr != '\\') {
 	          state = AUTHORITY;
 	          continue;
 	        } break;
 
 	      case AUTHORITY:
-	        if (char == '@') {
+	        if (chr == '@') {
 	          if (seenAt) buffer = '%40' + buffer;
 	          seenAt = true;
 	          bufferCodePoints = arrayFrom(buffer);
@@ -5427,14 +5438,14 @@
 	          }
 	          buffer = '';
 	        } else if (
-	          char == EOF || char == '/' || char == '?' || char == '#' ||
-	          (char == '\\' && isSpecial(url))
+	          chr == EOF || chr == '/' || chr == '?' || chr == '#' ||
+	          (chr == '\\' && isSpecial(url))
 	        ) {
 	          if (seenAt && buffer == '') return INVALID_AUTHORITY;
 	          pointer -= arrayFrom(buffer).length + 1;
 	          buffer = '';
 	          state = HOST;
-	        } else buffer += char;
+	        } else buffer += chr;
 	        break;
 
 	      case HOST:
@@ -5442,7 +5453,7 @@
 	        if (stateOverride && url.scheme == 'file') {
 	          state = FILE_HOST;
 	          continue;
-	        } else if (char == ':' && !seenBracket) {
+	        } else if (chr == ':' && !seenBracket) {
 	          if (buffer == '') return INVALID_HOST;
 	          failure = parseHost(url, buffer);
 	          if (failure) return failure;
@@ -5450,8 +5461,8 @@
 	          state = PORT;
 	          if (stateOverride == HOSTNAME) return;
 	        } else if (
-	          char == EOF || char == '/' || char == '?' || char == '#' ||
-	          (char == '\\' && isSpecial(url))
+	          chr == EOF || chr == '/' || chr == '?' || chr == '#' ||
+	          (chr == '\\' && isSpecial(url))
 	        ) {
 	          if (isSpecial(url) && buffer == '') return INVALID_HOST;
 	          if (stateOverride && buffer == '' && (includesCredentials(url) || url.port !== null)) return;
@@ -5462,17 +5473,17 @@
 	          if (stateOverride) return;
 	          continue;
 	        } else {
-	          if (char == '[') seenBracket = true;
-	          else if (char == ']') seenBracket = false;
-	          buffer += char;
+	          if (chr == '[') seenBracket = true;
+	          else if (chr == ']') seenBracket = false;
+	          buffer += chr;
 	        } break;
 
 	      case PORT:
-	        if (DIGIT.test(char)) {
-	          buffer += char;
+	        if (DIGIT.test(chr)) {
+	          buffer += chr;
 	        } else if (
-	          char == EOF || char == '/' || char == '?' || char == '#' ||
-	          (char == '\\' && isSpecial(url)) ||
+	          chr == EOF || chr == '/' || chr == '?' || chr == '#' ||
+	          (chr == '\\' && isSpecial(url)) ||
 	          stateOverride
 	        ) {
 	          if (buffer != '') {
@@ -5489,18 +5500,18 @@
 
 	      case FILE:
 	        url.scheme = 'file';
-	        if (char == '/' || char == '\\') state = FILE_SLASH;
+	        if (chr == '/' || chr == '\\') state = FILE_SLASH;
 	        else if (base && base.scheme == 'file') {
-	          if (char == EOF) {
+	          if (chr == EOF) {
 	            url.host = base.host;
 	            url.path = base.path.slice();
 	            url.query = base.query;
-	          } else if (char == '?') {
+	          } else if (chr == '?') {
 	            url.host = base.host;
 	            url.path = base.path.slice();
 	            url.query = '';
 	            state = QUERY;
-	          } else if (char == '#') {
+	          } else if (chr == '#') {
 	            url.host = base.host;
 	            url.path = base.path.slice();
 	            url.query = base.query;
@@ -5521,7 +5532,7 @@
 	        } break;
 
 	      case FILE_SLASH:
-	        if (char == '/' || char == '\\') {
+	        if (chr == '/' || chr == '\\') {
 	          state = FILE_HOST;
 	          break;
 	        }
@@ -5533,7 +5544,7 @@
 	        continue;
 
 	      case FILE_HOST:
-	        if (char == EOF || char == '/' || char == '\\' || char == '?' || char == '#') {
+	        if (chr == EOF || chr == '/' || chr == '\\' || chr == '?' || chr == '#') {
 	          if (!stateOverride && isWindowsDriveLetter(buffer)) {
 	            state = PATH;
 	          } else if (buffer == '') {
@@ -5548,37 +5559,37 @@
 	            buffer = '';
 	            state = PATH_START;
 	          } continue;
-	        } else buffer += char;
+	        } else buffer += chr;
 	        break;
 
 	      case PATH_START:
 	        if (isSpecial(url)) {
 	          state = PATH;
-	          if (char != '/' && char != '\\') continue;
-	        } else if (!stateOverride && char == '?') {
+	          if (chr != '/' && chr != '\\') continue;
+	        } else if (!stateOverride && chr == '?') {
 	          url.query = '';
 	          state = QUERY;
-	        } else if (!stateOverride && char == '#') {
+	        } else if (!stateOverride && chr == '#') {
 	          url.fragment = '';
 	          state = FRAGMENT;
-	        } else if (char != EOF) {
+	        } else if (chr != EOF) {
 	          state = PATH;
-	          if (char != '/') continue;
+	          if (chr != '/') continue;
 	        } break;
 
 	      case PATH:
 	        if (
-	          char == EOF || char == '/' ||
-	          (char == '\\' && isSpecial(url)) ||
-	          (!stateOverride && (char == '?' || char == '#'))
+	          chr == EOF || chr == '/' ||
+	          (chr == '\\' && isSpecial(url)) ||
+	          (!stateOverride && (chr == '?' || chr == '#'))
 	        ) {
 	          if (isDoubleDot(buffer)) {
 	            shortenURLsPath(url);
-	            if (char != '/' && !(char == '\\' && isSpecial(url))) {
+	            if (chr != '/' && !(chr == '\\' && isSpecial(url))) {
 	              url.path.push('');
 	            }
 	          } else if (isSingleDot(buffer)) {
-	            if (char != '/' && !(char == '\\' && isSpecial(url))) {
+	            if (chr != '/' && !(chr == '\\' && isSpecial(url))) {
 	              url.path.push('');
 	            }
 	          } else {
@@ -5589,45 +5600,45 @@
 	            url.path.push(buffer);
 	          }
 	          buffer = '';
-	          if (url.scheme == 'file' && (char == EOF || char == '?' || char == '#')) {
+	          if (url.scheme == 'file' && (chr == EOF || chr == '?' || chr == '#')) {
 	            while (url.path.length > 1 && url.path[0] === '') {
 	              url.path.shift();
 	            }
 	          }
-	          if (char == '?') {
+	          if (chr == '?') {
 	            url.query = '';
 	            state = QUERY;
-	          } else if (char == '#') {
+	          } else if (chr == '#') {
 	            url.fragment = '';
 	            state = FRAGMENT;
 	          }
 	        } else {
-	          buffer += percentEncode(char, pathPercentEncodeSet);
+	          buffer += percentEncode(chr, pathPercentEncodeSet);
 	        } break;
 
 	      case CANNOT_BE_A_BASE_URL_PATH:
-	        if (char == '?') {
+	        if (chr == '?') {
 	          url.query = '';
 	          state = QUERY;
-	        } else if (char == '#') {
+	        } else if (chr == '#') {
 	          url.fragment = '';
 	          state = FRAGMENT;
-	        } else if (char != EOF) {
-	          url.path[0] += percentEncode(char, C0ControlPercentEncodeSet);
+	        } else if (chr != EOF) {
+	          url.path[0] += percentEncode(chr, C0ControlPercentEncodeSet);
 	        } break;
 
 	      case QUERY:
-	        if (!stateOverride && char == '#') {
+	        if (!stateOverride && chr == '#') {
 	          url.fragment = '';
 	          state = FRAGMENT;
-	        } else if (char != EOF) {
-	          if (char == "'" && isSpecial(url)) url.query += '%27';
-	          else if (char == '#') url.query += '%23';
-	          else url.query += percentEncode(char, C0ControlPercentEncodeSet);
+	        } else if (chr != EOF) {
+	          if (chr == "'" && isSpecial(url)) url.query += '%27';
+	          else if (chr == '#') url.query += '%23';
+	          else url.query += percentEncode(chr, C0ControlPercentEncodeSet);
 	        } break;
 
 	      case FRAGMENT:
-	        if (char != EOF) url.fragment += percentEncode(char, fragmentPercentEncodeSet);
+	        if (chr != EOF) url.fragment += percentEncode(chr, fragmentPercentEncodeSet);
 	        break;
 	    }
 
@@ -31296,6 +31307,144 @@
 	  };
 	}
 
+	var valueOf = 1.0.valueOf;
+
+	// `thisNumberValue` abstract operation
+	// https://tc39.es/ecma262/#sec-thisnumbervalue
+	var thisNumberValue = function (value) {
+	  return valueOf.call(value);
+	};
+
+	// `String.prototype.repeat` method implementation
+	// https://tc39.es/ecma262/#sec-string.prototype.repeat
+	var stringRepeat = function repeat(count) {
+	  var str = toString_1(requireObjectCoercible(this));
+	  var result = '';
+	  var n = toInteger(count);
+	  if (n < 0 || n == Infinity) throw RangeError('Wrong number of repetitions');
+	  for (;n > 0; (n >>>= 1) && (str += str)) if (n & 1) result += str;
+	  return result;
+	};
+
+	var nativeToFixed = 1.0.toFixed;
+	var floor$8 = Math.floor;
+
+	var pow$2 = function (x, n, acc) {
+	  return n === 0 ? acc : n % 2 === 1 ? pow$2(x, n - 1, acc * x) : pow$2(x * x, n / 2, acc);
+	};
+
+	var log$2 = function (x) {
+	  var n = 0;
+	  var x2 = x;
+	  while (x2 >= 4096) {
+	    n += 12;
+	    x2 /= 4096;
+	  }
+	  while (x2 >= 2) {
+	    n += 1;
+	    x2 /= 2;
+	  } return n;
+	};
+
+	var multiply = function (data, n, c) {
+	  var index = -1;
+	  var c2 = c;
+	  while (++index < 6) {
+	    c2 += n * data[index];
+	    data[index] = c2 % 1e7;
+	    c2 = floor$8(c2 / 1e7);
+	  }
+	};
+
+	var divide = function (data, n) {
+	  var index = 6;
+	  var c = 0;
+	  while (--index >= 0) {
+	    c += data[index];
+	    data[index] = floor$8(c / n);
+	    c = (c % n) * 1e7;
+	  }
+	};
+
+	var dataToString = function (data) {
+	  var index = 6;
+	  var s = '';
+	  while (--index >= 0) {
+	    if (s !== '' || index === 0 || data[index] !== 0) {
+	      var t = String(data[index]);
+	      s = s === '' ? t : s + stringRepeat.call('0', 7 - t.length) + t;
+	    }
+	  } return s;
+	};
+
+	var FORCED$c = nativeToFixed && (
+	  0.00008.toFixed(3) !== '0.000' ||
+	  0.9.toFixed(0) !== '1' ||
+	  1.255.toFixed(2) !== '1.25' ||
+	  1000000000000000128.0.toFixed(0) !== '1000000000000000128'
+	) || !fails(function () {
+	  // V8 ~ Android 4.3-
+	  nativeToFixed.call({});
+	});
+
+	// `Number.prototype.toFixed` method
+	// https://tc39.es/ecma262/#sec-number.prototype.tofixed
+	_export({ target: 'Number', proto: true, forced: FORCED$c }, {
+	  toFixed: function toFixed(fractionDigits) {
+	    var number = thisNumberValue(this);
+	    var fractDigits = toInteger(fractionDigits);
+	    var data = [0, 0, 0, 0, 0, 0];
+	    var sign = '';
+	    var result = '0';
+	    var e, z, j, k;
+
+	    if (fractDigits < 0 || fractDigits > 20) throw RangeError('Incorrect fraction digits');
+	    // eslint-disable-next-line no-self-compare -- NaN check
+	    if (number != number) return 'NaN';
+	    if (number <= -1e21 || number >= 1e21) return String(number);
+	    if (number < 0) {
+	      sign = '-';
+	      number = -number;
+	    }
+	    if (number > 1e-21) {
+	      e = log$2(number * pow$2(2, 69, 1)) - 69;
+	      z = e < 0 ? number * pow$2(2, -e, 1) : number / pow$2(2, e, 1);
+	      z *= 0x10000000000000;
+	      e = 52 - e;
+	      if (e > 0) {
+	        multiply(data, 0, z);
+	        j = fractDigits;
+	        while (j >= 7) {
+	          multiply(data, 1e7, 0);
+	          j -= 7;
+	        }
+	        multiply(data, pow$2(10, j, 1), 0);
+	        j = e - 1;
+	        while (j >= 23) {
+	          divide(data, 1 << 23);
+	          j -= 23;
+	        }
+	        divide(data, 1 << j);
+	        multiply(data, 1, 1);
+	        divide(data, 2);
+	        result = dataToString(data);
+	      } else {
+	        multiply(data, 0, z);
+	        multiply(data, 1 << -e, 0);
+	        result = dataToString(data) + stringRepeat.call('0', fractDigits);
+	      }
+	    }
+	    if (fractDigits > 0) {
+	      k = result.length;
+	      result = sign + (k <= fractDigits
+	        ? '0.' + stringRepeat.call('0', fractDigits - k) + result
+	        : result.slice(0, k - fractDigits) + '.' + result.slice(k - fractDigits));
+	    } else {
+	      result = sign + result;
+	    } return result;
+	  }
+	});
+
 	function findConnectionPoint(graph, newNode, targetWay, nodeA, nodeB) {
 	  // Find the place to newNode on targetWay between nodeA and nodeB if it does
 	  // not alter the existing segment's angle much. There may be other nodes
@@ -31385,7 +31534,13 @@
 	        node.tags = Object.assign({}, node.tags);
 	        var conn = node.tags.conn && node.tags.conn.split(',');
 	        var dupeId = node.tags.dupe;
-	        removeMetadata(node);
+	        removeMetadata(node); // if there is a node in exactly the same location, re-use that instead.
+
+	        var coordId = node.loc[0].toFixed(4) + ',' + node.loc[1].toFixed(4);
+
+	        if (coordId in window._seenNodes) {
+	          node = graph.entity(window._seenNodes[coordId]);
+	        }
 
 	        if (dupeId && graph.hasEntity(dupeId) && !locationChanged(graph.entity(dupeId).loc, node.loc)) {
 	          node = graph.entity(dupeId); // keep original node with dupeId
@@ -32139,145 +32294,6 @@
 
 	  return i0 > 0 ? s.slice(0, i0) + s.slice(i1 + 1) : s;
 	}
-
-	// `thisNumberValue` abstract operation
-	// https://tc39.es/ecma262/#sec-thisnumbervalue
-	var thisNumberValue = function (value) {
-	  if (typeof value != 'number' && classofRaw(value) != 'Number') {
-	    throw TypeError('Incorrect invocation');
-	  }
-	  return +value;
-	};
-
-	// `String.prototype.repeat` method implementation
-	// https://tc39.es/ecma262/#sec-string.prototype.repeat
-	var stringRepeat = function repeat(count) {
-	  var str = toString_1(requireObjectCoercible(this));
-	  var result = '';
-	  var n = toInteger(count);
-	  if (n < 0 || n == Infinity) throw RangeError('Wrong number of repetitions');
-	  for (;n > 0; (n >>>= 1) && (str += str)) if (n & 1) result += str;
-	  return result;
-	};
-
-	var nativeToFixed = 1.0.toFixed;
-	var floor$8 = Math.floor;
-
-	var pow$2 = function (x, n, acc) {
-	  return n === 0 ? acc : n % 2 === 1 ? pow$2(x, n - 1, acc * x) : pow$2(x * x, n / 2, acc);
-	};
-
-	var log$2 = function (x) {
-	  var n = 0;
-	  var x2 = x;
-	  while (x2 >= 4096) {
-	    n += 12;
-	    x2 /= 4096;
-	  }
-	  while (x2 >= 2) {
-	    n += 1;
-	    x2 /= 2;
-	  } return n;
-	};
-
-	var multiply = function (data, n, c) {
-	  var index = -1;
-	  var c2 = c;
-	  while (++index < 6) {
-	    c2 += n * data[index];
-	    data[index] = c2 % 1e7;
-	    c2 = floor$8(c2 / 1e7);
-	  }
-	};
-
-	var divide = function (data, n) {
-	  var index = 6;
-	  var c = 0;
-	  while (--index >= 0) {
-	    c += data[index];
-	    data[index] = floor$8(c / n);
-	    c = (c % n) * 1e7;
-	  }
-	};
-
-	var dataToString = function (data) {
-	  var index = 6;
-	  var s = '';
-	  while (--index >= 0) {
-	    if (s !== '' || index === 0 || data[index] !== 0) {
-	      var t = String(data[index]);
-	      s = s === '' ? t : s + stringRepeat.call('0', 7 - t.length) + t;
-	    }
-	  } return s;
-	};
-
-	var FORCED$c = nativeToFixed && (
-	  0.00008.toFixed(3) !== '0.000' ||
-	  0.9.toFixed(0) !== '1' ||
-	  1.255.toFixed(2) !== '1.25' ||
-	  1000000000000000128.0.toFixed(0) !== '1000000000000000128'
-	) || !fails(function () {
-	  // V8 ~ Android 4.3-
-	  nativeToFixed.call({});
-	});
-
-	// `Number.prototype.toFixed` method
-	// https://tc39.es/ecma262/#sec-number.prototype.tofixed
-	_export({ target: 'Number', proto: true, forced: FORCED$c }, {
-	  toFixed: function toFixed(fractionDigits) {
-	    var number = thisNumberValue(this);
-	    var fractDigits = toInteger(fractionDigits);
-	    var data = [0, 0, 0, 0, 0, 0];
-	    var sign = '';
-	    var result = '0';
-	    var e, z, j, k;
-
-	    if (fractDigits < 0 || fractDigits > 20) throw RangeError('Incorrect fraction digits');
-	    // eslint-disable-next-line no-self-compare -- NaN check
-	    if (number != number) return 'NaN';
-	    if (number <= -1e21 || number >= 1e21) return String(number);
-	    if (number < 0) {
-	      sign = '-';
-	      number = -number;
-	    }
-	    if (number > 1e-21) {
-	      e = log$2(number * pow$2(2, 69, 1)) - 69;
-	      z = e < 0 ? number * pow$2(2, -e, 1) : number / pow$2(2, e, 1);
-	      z *= 0x10000000000000;
-	      e = 52 - e;
-	      if (e > 0) {
-	        multiply(data, 0, z);
-	        j = fractDigits;
-	        while (j >= 7) {
-	          multiply(data, 1e7, 0);
-	          j -= 7;
-	        }
-	        multiply(data, pow$2(10, j, 1), 0);
-	        j = e - 1;
-	        while (j >= 23) {
-	          divide(data, 1 << 23);
-	          j -= 23;
-	        }
-	        divide(data, 1 << j);
-	        multiply(data, 1, 1);
-	        divide(data, 2);
-	        result = dataToString(data);
-	      } else {
-	        multiply(data, 0, z);
-	        multiply(data, 1 << -e, 0);
-	        result = dataToString(data) + stringRepeat.call('0', fractDigits);
-	      }
-	    }
-	    if (fractDigits > 0) {
-	      k = result.length;
-	      result = sign + (k <= fractDigits
-	        ? '0.' + stringRepeat.call('0', fractDigits - k) + result
-	        : result.slice(0, k - fractDigits) + '.' + result.slice(k - fractDigits));
-	    } else {
-	      result = sign + result;
-	    } return result;
-	  }
-	});
 
 	var nativeToPrecision = 1.0.toPrecision;
 
@@ -82313,7 +82329,18 @@
 
 	    window._dsState[_datum.__datasetid__][id] = 'done';
 	    if (fromAccept === true) return;
-	    if (!prefixedLinzRef) return; // if the user cancels a DELETE or EDIT, add a check_date= tag
+
+	    if (!prefixedLinzRef) {
+	      // the user cancelled a normal ADD, so we tell the API to not
+	      // show this feature again
+	      fetch(window.APIROOT + '/__ignoreFeature?' + new URLSearchParams({
+	        reportedBy: (window.__user || {}).display_name,
+	        id: id,
+	        sector: _datum.__datasetid__
+	      }).toString());
+	      return;
+	    } // if the user cancels a DELETE or EDIT, add a check_date= tag
+
 
 	    if (prefixedLinzRef.startsWith(DELETE_PREFIX)) {
 	      var linzRef = prefixedLinzRef && prefixedLinzRef.slice(DELETE_PREFIX.length);
@@ -83594,19 +83621,22 @@
 	  }; // custom close handler
 
 
-	  function render() {
+	  function openMap() {
 	    // won't work when developing since cross origin window.open. Use 127.0.0.1 to bypass this
-	    if (!popupOpen && location.hostname !== 'localhost') {
+	    if (!popupOpen) {
 	      popupOpen = true;
 	      var w = window.open('https://linz-addr.kyle.kiwi/map', '', 'width=800,height=600');
 
 	      w.onunload = function () {
 	        popupOpen = false;
 	      };
-	    } // Unfortunately `uiModal` is written in a way that there can be only one at a time.
+	    }
+	  }
+
+	  function render() {
+	    // openMap(); // don't open the map by default
+	    // Unfortunately `uiModal` is written in a way that there can be only one at a time.
 	    // So we have to roll our own modal here instead of just creating a second `uiModal`.
-
-
 	    var shaded = context.container().selectAll('.shaded'); // container for the existing modal
 
 	    if (shaded.empty()) return;
@@ -83780,7 +83810,9 @@
 	      return !d.filtered;
 	    }).length;
 
-	    _content.selectAll('.rapid-view-manage-filter-results').text("".concat(count, " dataset(s) found"));
+	    _content.selectAll('.rapid-view-manage-filter-results').text("".concat(count, " dataset(s) found "));
+
+	    _content.selectAll('.rapid-view-manage-filter-results').append('button').style('height', 'auto').text(' Open map').on('click', openMap);
 	  }
 
 	  function toggleDataset(d3_event, d, source) {
@@ -97789,7 +97821,8 @@
 
 	var _seenAddresses = {};
 	window._seenAddresses = _seenAddresses; // temporary escape hatch
-	// set a default but also load this from the API status
+
+	window._seenNodes = {}; // set a default but also load this from the API status
 
 	var _maxWayNodes = 2000;
 
@@ -98782,20 +98815,30 @@
 
 	    function tileCallback(err, parsed) {
 	      var needToRebaseRapid = false;
-	      parsed.forEach(function (node) {
-	        if (!node.tags) return;
-	        var linzId = node.tags['ref:linz:address_id'] || node.tags.ref; // skip man_made=monitoring_station since they use the same ref= as the adjacent survey markers
+	      parsed.forEach(function (feature) {
+	        // we keep track of every single node we download from OSM so that
+	        // when we accept a RapiD feature, we can re-use existing nodes by
+	        // looking up a node by its coordinates
+	        // this is probably very inefficient
+	        if (feature.loc) {
+	          // if it's a node
+	          var coordId = feature.loc[0].toFixed(4) + ',' + feature.loc[1].toFixed(4);
+	          window._seenNodes[coordId] = feature.id;
+	        }
 
-	        if (linzId && node.tags.man_made !== 'monitoring_station') {
-	          _seenAddresses[linzId] = node;
+	        if (!feature.tags) return;
+	        var linzId = feature.tags['ref:linz:address_id'] || feature.tags['ref:linz:topo50_id'] || feature.tags.ref; // skip man_made=monitoring_station since they use the same ref= as the adjacent survey markers
+
+	        if (linzId && feature.tags.man_made !== 'monitoring_station') {
+	          _seenAddresses[linzId] = feature;
 	          var ds = window._dsState[window._mostRecentDsId];
 
 	          if (ds && ds[linzId] && ds[linzId] !== 'done') {
 	            // too late, RapiD node has already been added. so remove it
 	            needToRebaseRapid = true;
 	          }
-	        } else if (node.tags['addr:housenumber'] && node.tags['addr:street']) {
-	          _seenAddresses["noRef|".concat(node.id)] = node;
+	        } else if (feature.tags['addr:housenumber'] && feature.tags['addr:street']) {
+	          _seenAddresses["noRef|".concat(feature.id)] = feature;
 	        }
 	      });
 	      delete _tileCache.inflight[tile.id];

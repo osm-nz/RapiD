@@ -22484,6 +22484,12 @@
                   var dupeId = node.tags.dupe;
                   removeMetadata(node);
 
+                  // if there is a node in exactly the same location, re-use that instead.
+                  const coordId = node.loc[0].toFixed(4)+','+node.loc[1].toFixed(4);
+                  if (coordId in window._seenNodes) {
+                      node = graph.entity(window._seenNodes[coordId]);
+                  }
+
                   if (dupeId && graph.hasEntity(dupeId) && !locationChanged(graph.entity(dupeId).loc, node.loc)) {
                       node = graph.entity(dupeId);           // keep original node with dupeId
                   } else if (graph.hasEntity(node.id) && locationChanged(graph.entity(node.id).loc, node.loc)) {
@@ -79318,7 +79324,16 @@
 
       if (fromAccept === true) return;
 
-      if (!prefixedLinzRef) return;
+      if (!prefixedLinzRef) {
+        // the user cancelled a normal ADD, so we tell the API to not
+        // show this feature again
+        fetch(window.APIROOT + '/__ignoreFeature?' + (new URLSearchParams({
+          reportedBy: (window.__user || {}).display_name,
+          id,
+          sector: _datum.__datasetid__
+        }).toString()));
+        return;
+      }
 
       // if the user cancels a DELETE or EDIT, add a check_date= tag
       if (prefixedLinzRef.startsWith(DELETE_PREFIX)) {
@@ -81080,16 +81095,19 @@
     let _datasetInfo;
     let _myClose = () => true;   // custom close handler
 
-
-    function render() {
+    function openMap() {
       // won't work when developing since cross origin window.open. Use 127.0.0.1 to bypass this
-      if (!popupOpen && location.hostname !== 'localhost') {
+      if (!popupOpen) {
         popupOpen = true;
         const w = window.open('https://linz-addr.kyle.kiwi/map', '', 'width=800,height=600');
         w.onunload = () => {
           popupOpen = false;
         };
       }
+    }
+
+    function render() {
+      // openMap(); // don't open the map by default
 
       // Unfortunately `uiModal` is written in a way that there can be only one at a time.
       // So we have to roll our own modal here instead of just creating a second `uiModal`.
@@ -81361,7 +81379,13 @@
 
       const count = _datasetInfo.filter(d => !d.filtered).length;
       _content.selectAll('.rapid-view-manage-filter-results')
-        .text(`${count} dataset(s) found`);
+        .text(`${count} dataset(s) found `);
+
+      _content.selectAll('.rapid-view-manage-filter-results')
+        .append('button')
+        .style('height', 'auto')
+        .text(' Open map')
+        .on('click', openMap);
     }
 
 
@@ -97616,6 +97640,7 @@
 
   const _seenAddresses = {};
   window._seenAddresses= _seenAddresses; // temporary escape hatch
+  window._seenNodes = {};
 
   // set a default but also load this from the API status
   var _maxWayNodes = 2000;
@@ -98598,20 +98623,30 @@
 
           function tileCallback(err, parsed) {
               let needToRebaseRapid = false;
-              parsed.forEach(node => {
-                  if (!node.tags) return;
-                  const linzId = node.tags['ref:linz:address_id'] || node.tags.ref;
+              parsed.forEach(feature => {
+                  // we keep track of every single node we download from OSM so that
+                  // when we accept a RapiD feature, we can re-use existing nodes by
+                  // looking up a node by its coordinates
+                  // this is probably very inefficient
+                  if (feature.loc) {
+                      // if it's a node
+                      const coordId = feature.loc[0].toFixed(4)+','+feature.loc[1].toFixed(4);
+                      window._seenNodes[coordId] = feature.id;
+                  }
+
+                  if (!feature.tags) return;
+                  const linzId = feature.tags['ref:linz:address_id'] || feature.tags['ref:linz:topo50_id'] || feature.tags.ref;
                   // skip man_made=monitoring_station since they use the same ref= as the adjacent survey markers
-                  if (linzId && node.tags.man_made !== 'monitoring_station') {
-                      _seenAddresses[linzId] = node;
+                  if (linzId && feature.tags.man_made !== 'monitoring_station') {
+                      _seenAddresses[linzId] = feature;
 
                       const ds = window._dsState[window._mostRecentDsId];
                       if (ds && ds[linzId] && ds[linzId] !== 'done') {
                           // too late, RapiD node has already been added. so remove it
                           needToRebaseRapid = true;
                       }
-                  } else if (node.tags['addr:housenumber'] && node.tags['addr:street']) {
-                      _seenAddresses[`noRef|${node.id}`] = node;
+                  } else if (feature.tags['addr:housenumber'] && feature.tags['addr:street']) {
+                      _seenAddresses[`noRef|${feature.id}`] = feature;
                   }
               });
 
