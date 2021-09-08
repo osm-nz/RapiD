@@ -1374,6 +1374,9 @@ en:
         # lockable=*
         label: Lockable
         terms: '[translate with synonyms or related terms for ''Lockable'', separated by commas]'
+      locked:
+        # locked=*
+        label: Locked
       man_made:
         # man_made=*
         label: Type

@@ -105,6 +105,7 @@ const whitelist = [
 sources.concat(whitelist).forEach(function(source) {
     if (source.type !== 'tms' && source.type !== 'wms' && source.type !== 'bing') return;
     if (source.id in blacklist) return;
+    if (source.id === 'mapbox_locator_overlay') return; // this sends hundreds of API requests that 403
     var supportedProjection = source.available_projections &&
         supportedWMSProjections.find(function(supportedProjection) {
             return source.available_projections.some(function(projection) {

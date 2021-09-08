@@ -242,7 +242,16 @@ export function uiRapidFeatureInspector(context, keybinding) {
 
     if (fromAccept === true) return;
 
-    if (!prefixedLinzRef) return;
+    if (!prefixedLinzRef) {
+      // the user cancelled a normal ADD, so we tell the API to not
+      // show this feature again
+      fetch(window.APIROOT + '/__ignoreFeature?' + (new URLSearchParams({
+        reportedBy: (window.__user || {}).display_name,
+        id,
+        sector: _datum.__datasetid__
+      }).toString()));
+      return;
+    }
 
     // if the user cancels a DELETE or EDIT, add a check_date= tag
     if (prefixedLinzRef.startsWith(DELETE_PREFIX)) {

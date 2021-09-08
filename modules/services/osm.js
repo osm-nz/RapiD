@@ -47,6 +47,7 @@ var _off;
 
 const _seenAddresses = {};
 window._seenAddresses= _seenAddresses; // temporary escape hatch
+window._seenNodes = {};
 
 // set a default but also load this from the API status
 var _maxWayNodes = 2000;
@@ -1029,20 +1030,30 @@ export default {
 
         function tileCallback(err, parsed) {
             let needToRebaseRapid = false;
-            parsed.forEach(node => {
-                if (!node.tags) return;
-                const linzId = node.tags['ref:linz:address_id'] || node.tags.ref;
+            parsed.forEach(feature => {
+                // we keep track of every single node we download from OSM so that
+                // when we accept a RapiD feature, we can re-use existing nodes by
+                // looking up a node by its coordinates
+                // this is probably very inefficient
+                if (feature.loc) {
+                    // if it's a node
+                    const coordId = feature.loc[0].toFixed(4)+','+feature.loc[1].toFixed(4);
+                    window._seenNodes[coordId] = feature.id;
+                }
+
+                if (!feature.tags) return;
+                const linzId = feature.tags['ref:linz:address_id'] || feature.tags['ref:linz:topo50_id'] || feature.tags.ref;
                 // skip man_made=monitoring_station since they use the same ref= as the adjacent survey markers
-                if (linzId && node.tags.man_made !== 'monitoring_station') {
-                    _seenAddresses[linzId] = node;
+                if (linzId && feature.tags.man_made !== 'monitoring_station') {
+                    _seenAddresses[linzId] = feature;
 
                     const ds = window._dsState[window._mostRecentDsId];
                     if (ds && ds[linzId] && ds[linzId] !== 'done') {
                         // too late, RapiD node has already been added. so remove it
                         needToRebaseRapid = true;
                     }
-                } else if (node.tags['addr:housenumber'] && node.tags['addr:street']) {
-                    _seenAddresses[`noRef|${node.id}`] = node;
+                } else if (feature.tags['addr:housenumber'] && feature.tags['addr:street']) {
+                    _seenAddresses[`noRef|${feature.id}`] = feature;
                 }
             });
 

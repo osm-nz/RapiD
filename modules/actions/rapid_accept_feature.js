@@ -114,6 +114,12 @@ export function actionRapidAcceptFeature(entityID, extGraph) {
                 var dupeId = node.tags.dupe;
                 removeMetadata(node);
 
+                // if there is a node in exactly the same location, re-use that instead.
+                const coordId = node.loc[0].toFixed(4)+','+node.loc[1].toFixed(4);
+                if (coordId in window._seenNodes) {
+                    node = graph.entity(window._seenNodes[coordId]);
+                }
+
                 if (dupeId && graph.hasEntity(dupeId) && !locationChanged(graph.entity(dupeId).loc, node.loc)) {
                     node = graph.entity(dupeId);           // keep original node with dupeId
                 } else if (graph.hasEntity(node.id) && locationChanged(graph.entity(node.id).loc, node.loc)) {

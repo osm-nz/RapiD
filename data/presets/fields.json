@@ -265,6 +265,7 @@
   "location": {"key": "location", "type": "combo", "label": "Location"},
   "lock": {"key": "lock", "type": "check", "label": "Lock"},
   "lockable": {"key": "lockable", "type": "check", "label": "Lockable"},
+  "locked": {"key": "locked", "type": "check", "label": "Locked"},
   "man_made": {"key": "man_made", "type": "typeCombo", "label": "Type"},
   "manhole": {"key": "manhole", "type": "typeCombo", "label": "Type"},
   "manufacturer": {"key": "manufacturer", "type": "combo", "snake_case": false, "caseSensitive": true, "label": "Manufacturer"},

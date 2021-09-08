@@ -21,16 +21,19 @@ export function uiRapidViewManageDatasets(context, parentModal) {
   let _datasetInfo;
   let _myClose = () => true;   // custom close handler
 
-
-  function render() {
+  function openMap() {
     // won't work when developing since cross origin window.open. Use 127.0.0.1 to bypass this
-    if (!popupOpen && location.hostname !== 'localhost') {
+    if (!popupOpen) {
       popupOpen = true;
       const w = window.open('https://linz-addr.kyle.kiwi/map', '', 'width=800,height=600');
       w.onunload = () => {
         popupOpen = false;
       };
     }
+  }
+
+  function render() {
+    // openMap(); // don't open the map by default
 
     // Unfortunately `uiModal` is written in a way that there can be only one at a time.
     // So we have to roll our own modal here instead of just creating a second `uiModal`.
@@ -307,7 +310,13 @@ export function uiRapidViewManageDatasets(context, parentModal) {
 
     const count = _datasetInfo.filter(d => !d.filtered).length;
     _content.selectAll('.rapid-view-manage-filter-results')
-      .text(`${count} dataset(s) found`);
+      .text(`${count} dataset(s) found `);
+
+    _content.selectAll('.rapid-view-manage-filter-results')
+      .append('button')
+      .style('height', 'auto')
+      .text(' Open map')
+      .on('click', openMap);
   }
 
 

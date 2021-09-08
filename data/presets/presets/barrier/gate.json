@@ -1,6 +1,7 @@
 {
     "icon": "temaki-gate",
     "fields": [
+        "locked",
         "access",
         "wheelchair",
         "opening_hours",
