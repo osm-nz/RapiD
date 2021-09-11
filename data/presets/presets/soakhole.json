@@ -1,0 +1,10 @@
+{
+    "icon": "maki-circle-stroked",
+    "fields": ["name"],
+    "geometry": ["point", "vertex"],
+    "tags": {
+        "waterway": "soakhole"
+    },
+    "terms": ["soakhole", "hole"],
+    "name": "Soakhole"
+}

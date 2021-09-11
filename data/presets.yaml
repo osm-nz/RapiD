@@ -3580,6 +3580,10 @@ en:
         # amenity=love_hotel
         name: Love Hotel
         terms: '<translate with synonyms or related terms for ''Love Hotel'', separated by commas>'
+      amenity/marae:
+        # amenity=marae
+        name: Marae
+        terms: '<translate with synonyms or related terms for ''Marae'', separated by commas>'
       amenity/marketplace:
         # amenity=marketplace
         name: Marketplace
@@ -6836,6 +6840,11 @@ en:
         name: Coastline
         # 'terms: shore'
         terms: '<translate with synonyms or related terms for ''Coastline'', separated by commas>'
+      natural/crevasse:
+        # natural=crevasse
+        name: Crevasse
+        # 'terms: crevasse,cliff'
+        terms: '<translate with synonyms or related terms for ''Crevasse'', separated by commas>'
       natural/fell:
         # natural=fell
         name: Fell
@@ -6919,6 +6928,11 @@ en:
         name: Shrub
         # 'terms: bush,scrub'
         terms: '<translate with synonyms or related terms for ''Shrub'', separated by commas>'
+      natural/sinkhole:
+        # natural=sinkhole
+        name: Sinkhole
+        # 'terms: sinkhole,hole'
+        terms: '<translate with synonyms or related terms for ''Sinkhole'', separated by commas>'
       natural/spring:
         # natural=spring
         name: Spring
@@ -8719,6 +8733,11 @@ en:
         # shop=wine
         name: Wine Shop
         terms: '<translate with synonyms or related terms for ''Wine Shop'', separated by commas>'
+      soakhole:
+        # waterway=soakhole
+        name: Soakhole
+        # 'terms: soakhole,hole'
+        terms: '<translate with synonyms or related terms for ''Soakhole'', separated by commas>'
       telecom:
         # telecom=*
         name: Telecom Feature

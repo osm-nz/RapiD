@@ -340,6 +340,10 @@ export function uiRapidViewManageDatasets(context, parentModal) {
         if (!confirm(msg)) return;
       }
 
+      if (d.instructions) {
+        alert(`Special instructions: ${d.instructions}`);
+      }
+
       const isBeta = d.groupCategories.some(d => d === '/Categories/Preview');
       const isBuildings = d.groupCategories.some(d => d === '/Categories/Buildings');
 

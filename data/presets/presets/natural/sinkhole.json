@@ -1,0 +1,10 @@
+{
+    "icon": "temaki-trench",
+    "fields": ["name"],
+    "geometry": ["point", "vertex"],
+    "tags": {
+        "natural": "sinkhole"
+    },
+    "terms": ["sinkhole", "hole"],
+    "name": "Sinkhole"
+}

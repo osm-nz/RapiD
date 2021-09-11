@@ -87,8 +87,10 @@ export function uiCommit(context) {
             prefs('commentDate', Date.now());
         }
 
+        let comment = services.esriData.getLoadedDatasetNames().join(', ');
+
         var tags = {
-            comment: prefs('comment') || services.esriData.getLoadedDatasetNames().join(', '),
+            comment: prefs('comment') || (comment.includes('Address Update') ? comment : `Import ${comment}`),
             created_by: context.cleanTagValue('LINZ Address Import ' + context.rapidContext().version),
             host: context.cleanTagValue('https://github.com/osm-nz/linz-address-import'),
             source: context.cleanTagValue(services.esriData.getLoadedDatasetSources().join(', ')),

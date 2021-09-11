@@ -1,0 +1,10 @@
+{
+    "icon": "temaki-mountain_range",
+    "fields": ["name"],
+    "geometry": ["line"],
+    "tags": {
+        "natural": "crevasse"
+    },
+    "terms": ["crevasse", "cliff"],
+    "name": "Crevasse"
+}
