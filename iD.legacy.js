@@ -195,7 +195,7 @@
 	(module.exports = function (key, value) {
 	  return sharedStore[key] || (sharedStore[key] = value !== undefined ? value : {});
 	})('versions', []).push({
-	  version: '3.17.2',
+	  version: '3.17.3',
 	  mode:  'global',
 	  copyright: '© 2021 Denis Pushkarev (zloirock.ru)'
 	});
@@ -1018,8 +1018,6 @@
 	var ITERATOR = wellKnownSymbol('iterator');
 	var BUGGY_SAFARI_ITERATORS = false;
 
-	var returnThis = function () { return this; };
-
 	// `%IteratorPrototype%` object
 	// https://tc39.es/ecma262/#sec-%iteratorprototype%-object
 	var IteratorPrototype, PrototypeOfArrayIteratorPrototype, arrayIterator;
@@ -1045,8 +1043,10 @@
 
 	// `%IteratorPrototype%[@@iterator]()` method
 	// https://tc39.es/ecma262/#sec-%iteratorprototype%-@@iterator
-	if ( !has(IteratorPrototype, ITERATOR)) {
-	  createNonEnumerableProperty(IteratorPrototype, ITERATOR, returnThis);
+	if (typeof IteratorPrototype[ITERATOR] !== 'function') {
+	  createNonEnumerableProperty(IteratorPrototype, ITERATOR, function () {
+	    return this;
+	  });
 	}
 
 	var iteratorsCore = {
@@ -1072,13 +1072,13 @@
 
 
 
-	var returnThis$1 = function () { return this; };
+	var returnThis = function () { return this; };
 
 	var createIteratorConstructor = function (IteratorConstructor, NAME, next) {
 	  var TO_STRING_TAG = NAME + ' Iterator';
 	  IteratorConstructor.prototype = objectCreate(IteratorPrototype$1, { next: createPropertyDescriptor(1, next) });
 	  setToStringTag(IteratorConstructor, TO_STRING_TAG, false);
-	  iterators[TO_STRING_TAG] = returnThis$1;
+	  iterators[TO_STRING_TAG] = returnThis;
 	  return IteratorConstructor;
 	};
 
@@ -1122,7 +1122,7 @@
 	var VALUES = 'values';
 	var ENTRIES = 'entries';
 
-	var returnThis$2 = function () { return this; };
+	var returnThis$1 = function () { return this; };
 
 	var defineIterator = function (Iterable, NAME, IteratorConstructor, next, DEFAULT, IS_SET, FORCED) {
 	  createIteratorConstructor(IteratorConstructor, NAME, next);
@@ -1150,12 +1150,12 @@
 	  // fix native
 	  if (anyNativeIterator) {
 	    CurrentIteratorPrototype = objectGetPrototypeOf(anyNativeIterator.call(new Iterable()));
-	    if (IteratorPrototype$2 !== Object.prototype && CurrentIteratorPrototype.next) {
+	    if (CurrentIteratorPrototype !== Object.prototype && CurrentIteratorPrototype.next) {
 	      if ( objectGetPrototypeOf(CurrentIteratorPrototype) !== IteratorPrototype$2) {
 	        if (objectSetPrototypeOf) {
 	          objectSetPrototypeOf(CurrentIteratorPrototype, IteratorPrototype$2);
 	        } else if (typeof CurrentIteratorPrototype[ITERATOR$1] != 'function') {
-	          createNonEnumerableProperty(CurrentIteratorPrototype, ITERATOR$1, returnThis$2);
+	          createNonEnumerableProperty(CurrentIteratorPrototype, ITERATOR$1, returnThis$1);
 	        }
 	      }
 	      // Set @@toStringTag to native iterators
@@ -1377,13 +1377,19 @@
 	  TouchList: 0
 	};
 
+	// in old WebKit versions, `element.classList` is not an instance of global `DOMTokenList`
+
+
+	var classList = documentCreateElement('span').classList;
+	var DOMTokenListPrototype = classList && classList.constructor && classList.constructor.prototype;
+
+	var domTokenListPrototype = DOMTokenListPrototype === Object.prototype ? undefined : DOMTokenListPrototype;
+
 	var ITERATOR$2 = wellKnownSymbol('iterator');
 	var TO_STRING_TAG$3 = wellKnownSymbol('toStringTag');
 	var ArrayValues = es_array_iterator.values;
 
-	for (var COLLECTION_NAME in domIterables) {
-	  var Collection = global_1[COLLECTION_NAME];
-	  var CollectionPrototype = Collection && Collection.prototype;
+	var handlePrototype = function (CollectionPrototype, COLLECTION_NAME) {
 	  if (CollectionPrototype) {
 	    // some Chrome versions have non-configurable methods on DOMTokenList
 	    if (CollectionPrototype[ITERATOR$2] !== ArrayValues) try {
@@ -1403,7 +1409,13 @@
 	      }
 	    }
 	  }
+	};
+
+	for (var COLLECTION_NAME in domIterables) {
+	  handlePrototype(global_1[COLLECTION_NAME] && global_1[COLLECTION_NAME].prototype, COLLECTION_NAME);
 	}
+
+	handlePrototype(domTokenListPrototype, 'DOMTokenList');
 
 	// `IsArray` abstract operation
 	// https://tc39.es/ecma262/#sec-isarray
@@ -2532,16 +2544,20 @@
 	  forEach: arrayForEach
 	});
 
-	for (var COLLECTION_NAME$1 in domIterables) {
-	  var Collection$1 = global_1[COLLECTION_NAME$1];
-	  var CollectionPrototype$1 = Collection$1 && Collection$1.prototype;
+	var handlePrototype$1 = function (CollectionPrototype) {
 	  // some Chrome versions have non-configurable methods on DOMTokenList
-	  if (CollectionPrototype$1 && CollectionPrototype$1.forEach !== arrayForEach) try {
-	    createNonEnumerableProperty(CollectionPrototype$1, 'forEach', arrayForEach);
+	  if (CollectionPrototype && CollectionPrototype.forEach !== arrayForEach) try {
+	    createNonEnumerableProperty(CollectionPrototype, 'forEach', arrayForEach);
 	  } catch (error) {
-	    CollectionPrototype$1.forEach = arrayForEach;
+	    CollectionPrototype.forEach = arrayForEach;
 	  }
+	};
+
+	for (var COLLECTION_NAME$1 in domIterables) {
+	  handlePrototype$1(global_1[COLLECTION_NAME$1] && global_1[COLLECTION_NAME$1].prototype);
 	}
+
+	handlePrototype$1(domTokenListPrototype);
 
 	// `Array.isArray` method
 	// https://tc39.es/ecma262/#sec-array.isarray
@@ -14153,7 +14169,7 @@
 	  return string.trim().split(/^|\s+/);
 	}
 
-	function classList(node) {
+	function classList$1(node) {
 	  return node.classList || new ClassList(node);
 	}
 
@@ -14187,7 +14203,7 @@
 	};
 
 	function classedAdd(node, names) {
-	  var list = classList(node),
+	  var list = classList$1(node),
 	      i = -1,
 	      n = names.length;
 
@@ -14197,7 +14213,7 @@
 	}
 
 	function classedRemove(node, names) {
-	  var list = classList(node),
+	  var list = classList$1(node),
 	      i = -1,
 	      n = names.length;
 
@@ -14228,7 +14244,7 @@
 	  var names = classArray(name + "");
 
 	  if (arguments.length < 2) {
-	    var list = classList(this.node()),
+	    var list = classList$1(this.node()),
 	        i = -1,
 	        n = names.length;
 
@@ -31548,6 +31564,11 @@
 	          node = osmNode({
 	            loc: node.loc
 	          }); // replace (unnecessary copy of node?)
+	          // we add this to _seenNodes in case another imported feature abuts this feature
+
+	          var _coordId = node.loc[0].toFixed(4) + ',' + node.loc[1].toFixed(4);
+
+	          window._seenNodes[_coordId] = node.id;
 	        }
 
 	        if (conn && graph.hasEntity(conn[0])) {
@@ -64428,8 +64449,9 @@
 	      corePreferences('commentDate', Date.now());
 	    }
 
+	    var comment = services.esriData.getLoadedDatasetNames().join(', ');
 	    var tags = {
-	      comment: corePreferences('comment') || services.esriData.getLoadedDatasetNames().join(', '),
+	      comment: corePreferences('comment') || (comment.includes('Address Update') ? comment : "Import ".concat(comment)),
 	      created_by: context.cleanTagValue('LINZ Address Import ' + context.rapidContext().version),
 	      host: context.cleanTagValue('https://github.com/osm-nz/linz-address-import'),
 	      source: context.cleanTagValue(services.esriData.getLoadedDatasetSources().join(', ')),
@@ -83834,6 +83856,10 @@
 
 	        var msg = minutesAgo === 'done' ? 'This dataset may already have been uploaded by someone else!' : "Someone else (".concat(user, ") started editing ").concat(d.name, " ").concat(minutesAgo, " minutes ago. If you continue, you might override or duplicate their work!");
 	        if (!confirm(msg)) return;
+	      }
+
+	      if (d.instructions) {
+	        alert("Special instructions: ".concat(d.instructions));
 	      }
 
 	      var isBeta = d.groupCategories.some(function (d) {

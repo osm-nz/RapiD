@@ -22494,6 +22494,10 @@
                       node = graph.entity(dupeId);           // keep original node with dupeId
                   } else if (graph.hasEntity(node.id) && locationChanged(graph.entity(node.id).loc, node.loc)) {
                       node = osmNode({ loc: node.loc });     // replace (unnecessary copy of node?)
+
+                      // we add this to _seenNodes in case another imported feature abuts this feature
+                      const coordId = node.loc[0].toFixed(4)+','+node.loc[1].toFixed(4);
+                      window._seenNodes[coordId] = node.id;
                   }
 
                   if (conn && graph.hasEntity(conn[0])) {
@@ -58535,8 +58539,10 @@
               corePreferences('commentDate', Date.now());
           }
 
+          let comment = services.esriData.getLoadedDatasetNames().join(', ');
+
           var tags = {
-              comment: corePreferences('comment') || services.esriData.getLoadedDatasetNames().join(', '),
+              comment: corePreferences('comment') || (comment.includes('Address Update') ? comment : `Import ${comment}`),
               created_by: context.cleanTagValue('LINZ Address Import ' + context.rapidContext().version),
               host: context.cleanTagValue('https://github.com/osm-nz/linz-address-import'),
               source: context.cleanTagValue(services.esriData.getLoadedDatasetSources().join(', ')),
@@ -81407,6 +81413,10 @@
             : `Someone else (${user}) started editing ${d.name} ${minutesAgo} minutes ago. If you continue, you might override or duplicate their work!`;
 
           if (!confirm(msg)) return;
+        }
+
+        if (d.instructions) {
+          alert(`Special instructions: ${d.instructions}`);
         }
 
         const isBeta = d.groupCategories.some(d => d === '/Categories/Preview');

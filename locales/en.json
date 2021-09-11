@@ -1308,8 +1308,8 @@
             "dev": "dev"
         },
         "rapid_splash": {
-            "welcome": "LINZ Street Address Import",
-            "text": "Once you close this popup, click the {rapidicon} icon to select a suburb and start adding data. See the [wiki page](https://wiki.openstreetmap.org/wiki/Import/New_Zealand_Street_Addresses_(2021)) for more info.",
+            "welcome": "LINZ Data Import",
+            "text": "Once you close this popup, click the {rapidicon} icon to select a dataset and start importing data. See the [wiki page](https://wiki.openstreetmap.org/wiki/Import/New_Zealand_Street_Addresses_(2021)) for more info. If you prefer to use JOSM, see [this page](https://osm-nz.github.io/josm).",
             "walkthrough": "Start the whole walkthrough",
             "skip_to_rapid": "Learn about RapiD!",
             "start": "Start"
@@ -6169,6 +6169,10 @@
                     "name": "Love Hotel",
                     "terms": ""
                 },
+                "amenity/marae": {
+                    "name": "Marae",
+                    "terms": ""
+                },
                 "amenity/marketplace": {
                     "name": "Marketplace",
                     "terms": ""
@@ -8899,6 +8903,10 @@
                     "name": "Coastline",
                     "terms": "shore"
                 },
+                "natural/crevasse": {
+                    "name": "Crevasse",
+                    "terms": "crevasse,cliff"
+                },
                 "natural/fell": {
                     "name": "Fell",
                     "terms": ""
@@ -8966,6 +8974,10 @@
                 "natural/shrub": {
                     "name": "Shrub",
                     "terms": "bush,scrub"
+                },
+                "natural/sinkhole": {
+                    "name": "Sinkhole",
+                    "terms": "sinkhole,hole"
                 },
                 "natural/spring": {
                     "name": "Spring",
@@ -10483,6 +10495,10 @@
                 "shop/wine": {
                     "name": "Wine Shop",
                     "terms": ""
+                },
+                "soakhole": {
+                    "name": "Soakhole",
+                    "terms": "soakhole,hole"
                 },
                 "telecom/data_center": {
                     "name": "Data Center",
