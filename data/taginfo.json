@@ -1187,7 +1187,7 @@
     {"key": "shop", "value": "wigs", "description": "🄿 Wig Shop", "object_types": ["node", "area"], "icon_url": "https://cdn.jsdelivr.net/gh/mapbox/maki/icons/shop-15.svg"},
     {"key": "shop", "value": "window_blind", "description": "🄿 Window Blind Store", "object_types": ["node", "area"], "icon_url": "https://cdn.jsdelivr.net/gh/ideditor/temaki/icons/window.svg"},
     {"key": "shop", "value": "wine", "description": "🄿 Wine Shop", "object_types": ["node", "area"], "icon_url": "https://cdn.jsdelivr.net/gh/mapbox/maki/icons/alcohol-shop-15.svg"},
-    {"key": "waterway", "value": "soakhole", "description": "🄿 Soakhole", "object_types": ["node"], "icon_url": "https://cdn.jsdelivr.net/gh/mapbox/maki/icons/barrier-15.svg"},
+    {"key": "waterway", "value": "soakhole", "description": "🄿 Soakhole", "object_types": ["node"], "icon_url": "https://cdn.jsdelivr.net/gh/mapbox/maki/icons/circle-stroked-15.svg"},
     {"key": "telecom", "value": "data_center", "description": "🄿 Data Center", "object_types": ["node", "area"], "icon_url": "https://cdn.jsdelivr.net/gh/openstreetmap/iD@develop/svg/fontawesome/fas-server.svg"},
     {"key": "telecom", "value": "exchange", "description": "🄿 Telecom Exchange", "object_types": ["node", "area"], "icon_url": "https://cdn.jsdelivr.net/gh/ideditor/temaki/icons/cable.svg"},
     {"key": "tourism", "value": "alpine_hut", "description": "🄿 Alpine Hut", "object_types": ["node", "area"], "icon_url": "https://cdn.jsdelivr.net/gh/ideditor/temaki/icons/cabin.svg"},
