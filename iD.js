@@ -22727,10 +22727,10 @@
 
                   // What are we hovering over?
                   if (datum.__fbid__) {    // hovering a RapiD feature
-                      selector += ', .data' + btoa(datum.__fbid__).replace(/\=/g, '');
+                      selector += ', .data' + window.toBase64(datum.__fbid__).replace(/\=/g, '');
 
                   } else if (datum.__featurehash__) {  // hovering custom data
-                      selector += ', .data' + btoa(datum.__featurehash__).replace(/\=/g, '');
+                      selector += ', .data' + window.toBase64(datum.__featurehash__).replace(/\=/g, '');
 
                   } else if (datum instanceof QAItem) {
                       selector += ', .' + datum.service + '.itemId-' + datum.id;
@@ -49021,7 +49021,7 @@
       // enter
       let dsPatternsEnter = dsPatterns.enter()
         .append('pattern')
-        .attr('id', d => `fill-${btoa(d.id)}`)
+        .attr('id', d => `fill-${window.toBase64(d.id)}`)
         .attr('class', 'rapid-fill-pattern')
         .attr('width', 5)
         .attr('height', 15)
@@ -49165,7 +49165,7 @@
       // enter/update
       paths = paths.enter()
         .append('path')
-        .attr('style', d => isArea(d) ? `fill: url(#fill-${btoa(dataset.id)})` : null)
+        .attr('style', d => isArea(d) ? `fill: url(#fill-${window.toBase64(dataset.id)})` : null)
         .attr('class', (d, i, nodes) => {
           const currNode = nodes[i];
           const linegroup = currNode.parentNode.__data__;
@@ -86810,7 +86810,7 @@
 
     // class the data as selected, or return to browse mode if the data is gone
     function selectData(d3_event, drawn) {
-      let selection = context.surface().selectAll('.layer-ai-features .data' + btoa(selectedDatum.__fbid__).replace(/\=/g, ''));
+      let selection = context.surface().selectAll('.layer-ai-features .data' + window.toBase64(selectedDatum.__fbid__).replace(/\=/g, ''));
 
       if (selection.empty()) {
         // Return to browse mode if selected DOM elements have
@@ -105225,7 +105225,7 @@
 
       // class the data as selected, or return to browse mode if the data is gone
       function selectData(d3_event, drawn) {
-          var selection = context.surface().selectAll('.layer-mapdata .data' + btoa(selectedDatum.__featurehash__).replace(/\=/g, ''));
+          var selection = context.surface().selectAll('.layer-mapdata .data' + window.toBase64(selectedDatum.__featurehash__).replace(/\=/g, ''));
 
           if (selection.empty()) {
               // Return to browse mode if selected DOM elements have
@@ -106754,6 +106754,24 @@
 
       return behavior;
   }
+
+  // btoa/atob are not URL-safe and crash when provided some UTF-8 characters
+  window.toBase64 = (text) =>
+    btoa(
+      encodeURIComponent(text).replace(/%([0-9A-F]{2})/g, (_, g1) =>
+        String.fromCharCode(+`0x${g1}`),
+      )
+    )
+      .replace(/[=]/g, '')
+      .replace(/\+/g, '-')
+      .replace(/\//g, '_');
+  window.fromBase64 = (b64) =>
+    decodeURIComponent(
+      atob(b64.replace(/_/g, '/').replace(/-/g, '+'))
+        .split('')
+        .map((c) => `%${`00${c.charCodeAt(0).toString(16)}`.slice(-2)}`)
+        .join(''),
+    );
 
   // When `debug = true`, we use `Object.freeze` on immutables in iD.
   // This is only done in testing because of the performance penalty.

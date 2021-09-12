@@ -31783,10 +31783,10 @@
 
 	        if (datum.__fbid__) {
 	          // hovering a RapiD feature
-	          selector += ', .data' + btoa(datum.__fbid__).replace(/\=/g, '');
+	          selector += ', .data' + window.toBase64(datum.__fbid__).replace(/\=/g, '');
 	        } else if (datum.__featurehash__) {
 	          // hovering custom data
-	          selector += ', .data' + btoa(datum.__featurehash__).replace(/\=/g, '');
+	          selector += ', .data' + window.toBase64(datum.__featurehash__).replace(/\=/g, '');
 	        } else if (datum instanceof QAItem) {
 	          selector += ', .' + datum.service + '.itemId-' + datum.id;
 	        } else if (datum instanceof osmNote) {
@@ -56167,7 +56167,7 @@
 	    dsPatterns.exit().remove(); // enter
 
 	    var dsPatternsEnter = dsPatterns.enter().append('pattern').attr('id', function (d) {
-	      return "fill-".concat(btoa(d.id));
+	      return "fill-".concat(window.toBase64(d.id));
 	    }).attr('class', 'rapid-fill-pattern').attr('width', 5).attr('height', 15).attr('patternUnits', 'userSpaceOnUse').attr('patternTransform', function (d, i) {
 	      var r = (45 + 67 * i) % 180; // generate something different for each layer
 
@@ -56278,7 +56278,7 @@
 	    paths.exit().remove(); // enter/update
 
 	    paths = paths.enter().append('path').attr('style', function (d) {
-	      return isArea(d) ? "fill: url(#fill-".concat(btoa(dataset.id), ")") : null;
+	      return isArea(d) ? "fill: url(#fill-".concat(window.toBase64(dataset.id), ")") : null;
 	    }).attr('class', function (d, i, nodes) {
 	      var currNode = nodes[i];
 	      var linegroup = currNode.parentNode.__data__;
@@ -87139,7 +87139,7 @@
 	  var behaviors = [behaviorBreathe(), behaviorHover(context), behaviorSelect(context), behaviorLasso(context), modeDragNode(context).behavior, modeDragNote(context).behavior]; // class the data as selected, or return to browse mode if the data is gone
 
 	  function selectData(d3_event, drawn) {
-	    var selection = context.surface().selectAll('.layer-ai-features .data' + btoa(selectedDatum.__fbid__).replace(/\=/g, ''));
+	    var selection = context.surface().selectAll('.layer-ai-features .data' + window.toBase64(selectedDatum.__fbid__).replace(/\=/g, ''));
 
 	    if (selection.empty()) {
 	      // Return to browse mode if selected DOM elements have
@@ -105314,7 +105314,7 @@
 	  var behaviors = [behaviorBreathe(), behaviorHover(context), behaviorSelect(context), behaviorLasso(context), modeDragNode(context).behavior, modeDragNote(context).behavior]; // class the data as selected, or return to browse mode if the data is gone
 
 	  function selectData(d3_event, drawn) {
-	    var selection = context.surface().selectAll('.layer-mapdata .data' + btoa(selectedDatum.__featurehash__).replace(/\=/g, ''));
+	    var selection = context.surface().selectAll('.layer-mapdata .data' + window.toBase64(selectedDatum.__featurehash__).replace(/\=/g, ''));
 
 	    if (selection.empty()) {
 	      // Return to browse mode if selected DOM elements have
@@ -106580,6 +106580,18 @@
 	  return behavior;
 	}
 
+	// btoa/atob are not URL-safe and crash when provided some UTF-8 characters
+	window.toBase64 = function (text) {
+	  return btoa(encodeURIComponent(text).replace(/%([0-9A-F]{2})/g, function (_, g1) {
+	    return String.fromCharCode(+"0x".concat(g1));
+	  })).replace(/[=]/g, '').replace(/\+/g, '-').replace(/\//g, '_');
+	};
+
+	window.fromBase64 = function (b64) {
+	  return decodeURIComponent(atob(b64.replace(/_/g, '/').replace(/-/g, '+')).split('').map(function (c) {
+	    return "%".concat("00".concat(c.charCodeAt(0).toString(16)).slice(-2));
+	  }).join(''));
+	};
 	// This is only done in testing because of the performance penalty.
 
 	var debug = false; // Reexport just what our tests use, see #4379
