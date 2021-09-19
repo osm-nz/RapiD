@@ -1,0 +1,10 @@
+{
+    "icon": "maki-dam",
+    "fields": ["name"],
+    "geometry": ["point", "vertex"],
+    "tags": {
+        "waterway": "sluice_gate"
+    },
+    "terms": ["sluice gate", "gate", "floodgate", "flood gate"],
+    "name": "Sluice Gate"
+}

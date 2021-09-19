@@ -6849,6 +6849,11 @@ en:
         # natural=fell
         name: Fell
         terms: '<translate with synonyms or related terms for ''Fell'', separated by commas>'
+      natural/fumarole:
+        # natural=fumarole
+        name: Fumarole
+        # 'terms: fumarole,erupting spring,geiser,gieser,guyser,hot water,hydrogeology,hydrothermal explosion,steam'
+        terms: '<translate with synonyms or related terms for ''Fumarole'', separated by commas>'
       natural/geyser:
         # natural=geyser
         name: Geyser
@@ -8733,6 +8738,11 @@ en:
         # shop=wine
         name: Wine Shop
         terms: '<translate with synonyms or related terms for ''Wine Shop'', separated by commas>'
+      sluice_gate:
+        # waterway=sluice_gate
+        name: Sluice Gate
+        # 'terms: sluice gate,gate,floodgate,flood gate'
+        terms: '<translate with synonyms or related terms for ''Sluice Gate'', separated by commas>'
       soakhole:
         # waterway=soakhole
         name: Soakhole

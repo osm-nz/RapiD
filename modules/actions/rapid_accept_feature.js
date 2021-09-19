@@ -118,16 +118,15 @@ export function actionRapidAcceptFeature(entityID, extGraph) {
                 const coordId = node.loc[0].toFixed(4)+','+node.loc[1].toFixed(4);
                 if (coordId in window._seenNodes) {
                     node = graph.entity(window._seenNodes[coordId]);
+                } else {
+                    // we add this to _seenNodes in case another imported feature abuts this feature
+                    window._seenNodes[coordId] = node.id;
                 }
 
                 if (dupeId && graph.hasEntity(dupeId) && !locationChanged(graph.entity(dupeId).loc, node.loc)) {
                     node = graph.entity(dupeId);           // keep original node with dupeId
                 } else if (graph.hasEntity(node.id) && locationChanged(graph.entity(node.id).loc, node.loc)) {
                     node = osmNode({ loc: node.loc });     // replace (unnecessary copy of node?)
-
-                    // we add this to _seenNodes in case another imported feature abuts this feature
-                    const coordId = node.loc[0].toFixed(4)+','+node.loc[1].toFixed(4);
-                    window._seenNodes[coordId] = node.id;
                 }
 
                 if (conn && graph.hasEntity(conn[0])) {
