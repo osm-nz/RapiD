@@ -8911,6 +8911,10 @@
                     "name": "Fell",
                     "terms": ""
                 },
+                "natural/fumarole": {
+                    "name": "Fumarole",
+                    "terms": "fumarole,erupting spring,geiser,gieser,guyser,hot water,hydrogeology,hydrothermal explosion,steam"
+                },
                 "natural/geyser": {
                     "name": "Geyser",
                     "terms": "erupting spring,geiser,gieser,guyser,hot water,hydrogeology,hydrothermal explosion,steam"
@@ -10495,6 +10499,10 @@
                 "shop/wine": {
                     "name": "Wine Shop",
                     "terms": ""
+                },
+                "sluice_gate": {
+                    "name": "Sluice Gate",
+                    "terms": "sluice gate,gate,floodgate,flood gate"
                 },
                 "soakhole": {
                     "name": "Soakhole",
