@@ -117,7 +117,10 @@ export function actionRapidAcceptFeature(entityID, extGraph) {
                 // if there is a node in exactly the same location, re-use that instead.
                 const coordId = node.loc[0].toFixed(4)+','+node.loc[1].toFixed(4);
                 if (coordId in window._seenNodes) {
-                    node = graph.entity(window._seenNodes[coordId]);
+                    const nId = window._seenNodes[coordId];
+                    // even tho we have seen this node, it may have been deleted (e.g. via CTRL-Z) so
+                    // check if it still exists
+                    if (graph.hasEntity(nId)) node = graph.entity(nId);
                 } else {
                     // we add this to _seenNodes in case another imported feature abuts this feature
                     window._seenNodes[coordId] = node.id;
