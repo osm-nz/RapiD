@@ -58544,7 +58544,7 @@
               comment: corePreferences('comment') || (comment.includes('Address Update') ? comment : `Import ${comment}`),
               created_by: context.cleanTagValue('LINZ Address Import ' + context.rapidContext().version),
               host: context.cleanTagValue('https://github.com/osm-nz/linz-address-import'),
-              source: context.cleanTagValue(services.esriData.getLoadedDatasetSources().join(', ')),
+              source: context.cleanTagValue('https://wiki.osm.org/LINZ'),
               attribution: context.cleanTagValue('https://wiki.openstreetmap.org/wiki/Contributors#LINZ'),
               locale: context.cleanTagValue(_mainLocalizer.localeCode())
           };
