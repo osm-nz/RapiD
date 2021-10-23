@@ -81107,7 +81107,11 @@
       // won't work when developing since cross origin window.open. Use 127.0.0.1 to bypass this
       if (!popupOpen) {
         popupOpen = true;
-        const w = window.open('https://linz-addr.kyle.kiwi/map', '', 'width=800,height=600');
+        const width = window.outerWidth*0.8;
+        const height = window.outerHeight*0.8;
+        const left = window.outerWidth / 2 - width / 2;
+        const top = window.outerHeight / 2 - height / 2;
+        const w = window.open(location.origin + '/#/map', '', `width=${width},height=${height},left=${left},top=${top}`);
         w.onunload = () => {
           popupOpen = false;
         };
@@ -81115,7 +81119,7 @@
     }
 
     function render() {
-      // openMap(); // don't open the map by default
+      openMap();
 
       // Unfortunately `uiModal` is written in a way that there can be only one at a time.
       // So we have to roll our own modal here instead of just creating a second `uiModal`.

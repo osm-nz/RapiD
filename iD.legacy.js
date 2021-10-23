@@ -222,7 +222,7 @@
 	(module.exports = function (key, value) {
 	  return sharedStore[key] || (sharedStore[key] = value !== undefined ? value : {});
 	})('versions', []).push({
-	  version: '3.18.2',
+	  version: '3.18.3',
 	  mode:  'global',
 	  copyright: '© 2021 Denis Pushkarev (zloirock.ru)'
 	});
@@ -7390,7 +7390,7 @@
 	var $parseInt = global_1.parseInt;
 	var Symbol$3 = global_1.Symbol;
 	var ITERATOR$a = Symbol$3 && Symbol$3.iterator;
-	var hex$1 = /^[+-]?0[Xx]/;
+	var hex$1 = /^[+-]?0x/i;
 	var FORCED$9 = $parseInt(whitespaces + '08') !== 8 || $parseInt(whitespaces + '0x16') !== 22
 	  // MS Edge 18- broken with boxed symbols
 	  || (ITERATOR$a && !fails(function () { $parseInt(Object(ITERATOR$a)); }));
@@ -13074,7 +13074,8 @@
 	}
 
 	function defaultView (node) {
-	  return node.ownerDocument && node.ownerDocument.defaultView || node.document && node // node is a Window
+	  return node.ownerDocument && node.ownerDocument.defaultView // node is a Node
+	  || node.document && node // node is a Window
 	  || node.defaultView; // node is a Document
 	}
 
@@ -19109,7 +19110,8 @@
 	      } else if (reference.tashkeel.indexOf(word[w]) > -1) {
 	        // tashkeel - add without changing state
 	        output += word[w];
-	      } else if (nextLetter === ' ' || reference.lineBreakers.indexOf(word[w]) > -1) {
+	      } else if (nextLetter === ' ' // last Arabic letter in this word
+	      || reference.lineBreakers.indexOf(word[w]) > -1) {
 	        // the current letter is known to break lines
 	        output += CharShaper_1.CharShaper(word[w], state === 'initial' ? 'isolated' : 'final');
 	        state = 'initial';
@@ -19673,7 +19675,9 @@
 	    _detected.platform = 'Unknown';
 	  }
 
-	  _detected.isMobileWebKit = (/\b(iPad|iPhone|iPod)\b/.test(ua) || navigator.platform === 'MacIntel' && 'maxTouchPoints' in navigator && navigator.maxTouchPoints > 1) && /WebKit/.test(ua) && !/Edge/.test(ua) && !window.MSStream;
+	  _detected.isMobileWebKit = (/\b(iPad|iPhone|iPod)\b/.test(ua) || // HACK: iPadOS 13+ requests desktop sites by default by using a Mac user agent,
+	  // so assume any "mac" with multitouch is actually iOS
+	  navigator.platform === 'MacIntel' && 'maxTouchPoints' in navigator && navigator.maxTouchPoints > 1) && /WebKit/.test(ua) && !/Edge/.test(ua) && !window.MSStream;
 	  /* Locale */
 	  // An array of locales requested by the browser in priority order.
 
@@ -21482,7 +21486,8 @@
 	      _dataLanguages = results[0];
 	      _dataLocales = results[1];
 	    }).then(function () {
-	      var requestedLocales = (_preferredLocaleCodes || []).concat(utilDetect().browserLocales) // fallback to English since it's the only guaranteed complete language
+	      var requestedLocales = (_preferredLocaleCodes || [] // List of locales preferred by the browser in priority order.
+	      ).concat(utilDetect().browserLocales) // fallback to English since it's the only guaranteed complete language
 	      .concat(['en']);
 
 	      _localeCodes = localesToUseFrom(requestedLocales); // Run iD in the highest-priority locale; the rest are fallbacks
@@ -40090,7 +40095,8 @@
 	      return [entity];
 	    } else if (entity.type === 'relation') {
 	      return entity.members.reduce(function (array, member) {
-	        if (member.type === 'way' && (!member.role || member.role === 'outer' || member.role === 'inner')) {
+	        if (member.type === 'way' && ( // only look at geometry ways
+	        !member.role || member.role === 'outer' || member.role === 'inner')) {
 	          var entity = graph.hasEntity(member.id); // don't add duplicates
 
 	          if (entity && array.indexOf(entity) === -1) {
@@ -40835,7 +40841,8 @@
 
 	  drawWay.addNode = function (node, d) {
 	    // finish drawing if the mapper targets the prior node
-	    if (node.id === _headNodeID || _origWay.isClosed() && node.id === _origWay.first()) {
+	    if (node.id === _headNodeID || // or the first node when drawing an area
+	    _origWay.isClosed() && node.id === _origWay.first()) {
 	      drawWay.finish();
 	      return;
 	    }
@@ -44680,14 +44687,14 @@
 	var INVALID_HOST = 'Invalid host';
 	var INVALID_PORT = 'Invalid port';
 
-	var ALPHA = /[A-Za-z]/;
+	var ALPHA = /[a-z]/i;
 	// eslint-disable-next-line regexp/no-obscure-range -- safe
-	var ALPHANUMERIC = /[\d+-.A-Za-z]/;
+	var ALPHANUMERIC = /[\d+-.a-z]/i;
 	var DIGIT = /\d/;
 	var HEX_START = /^0x/i;
 	var OCT = /^[0-7]+$/;
 	var DEC = /^\d+$/;
-	var HEX = /^[\dA-Fa-f]+$/;
+	var HEX = /^[\da-f]+$/i;
 	/* eslint-disable regexp/no-control-character -- safe */
 	var FORBIDDEN_HOST_CODE_POINT = /[\0\t\n\r #%/:<>?@[\\\]^|]/;
 	var FORBIDDEN_HOST_CODE_POINT_EXCLUDING_PERCENT = /[\0\t\n\r #/:<>?@[\\\]^|]/;
@@ -58113,7 +58120,9 @@
 
 	  for (var key in value) {
 	    if ((inherited || hasOwnProperty$6.call(value, key)) && !(skipIndexes && ( // Safari 9 has enumerable `arguments.length` in strict mode.
-	    key == 'length' || isBuff && (key == 'offset' || key == 'parent') || isType && (key == 'buffer' || key == 'byteLength' || key == 'byteOffset') || // Skip index properties.
+	    key == 'length' || // Node.js 0.10 has enumerable non-index properties on buffers.
+	    isBuff && (key == 'offset' || key == 'parent') || // PhantomJS 2 has enumerable non-index properties on typed arrays.
+	    isType && (key == 'buffer' || key == 'byteLength' || key == 'byteOffset') || // Skip index properties.
 	    isIndex(key, length)))) {
 	      result.push(key);
 	    }
@@ -65361,7 +65370,9 @@
 	 * @license MIT
 	 * @preserve
 	 */
-	var Node$1 = function () {
+	var Node$1 =
+	/** @class */
+	function () {
 	  function Node(key, data) {
 	    this.next = null;
 	    this.key = key;
@@ -65514,7 +65525,9 @@
 	  }
 	}
 
-	var Tree = function () {
+	var Tree =
+	/** @class */
+	function () {
 	  function Tree(comparator) {
 	    if (comparator === void 0) {
 	      comparator = DEFAULT_COMPARE;
@@ -77187,7 +77200,8 @@
 	          if (entity.type === 'way') {
 	            var parents = features.getParents(entity, resolver, geometry); //   2a. belongs only to a single multipolygon relation
 
-	            if (parents.length === 1 && parents[0].isMultipolygon() || parents.length > 0 && parents.every(function (parent) {
+	            if (parents.length === 1 && parents[0].isMultipolygon() || // 2b. or belongs only to boundary relations
+	            parents.length > 0 && parents.every(function (parent) {
 	              return parent.tags.type === 'boundary';
 	            })) {
 	              // ...then match whatever feature rules the parent relation has matched.
@@ -83789,7 +83803,11 @@
 	    // won't work when developing since cross origin window.open. Use 127.0.0.1 to bypass this
 	    if (!popupOpen) {
 	      popupOpen = true;
-	      var w = window.open('https://linz-addr.kyle.kiwi/map', '', 'width=800,height=600');
+	      var width = window.outerWidth * 0.8;
+	      var height = window.outerHeight * 0.8;
+	      var left = window.outerWidth / 2 - width / 2;
+	      var top = window.outerHeight / 2 - height / 2;
+	      var w = window.open(location.origin + '/#/map', '', "width=".concat(width, ",height=").concat(height, ",left=").concat(left, ",top=").concat(top));
 
 	      w.onunload = function () {
 	        popupOpen = false;
@@ -83798,9 +83816,9 @@
 	  }
 
 	  function render() {
-	    // openMap(); // don't open the map by default
-	    // Unfortunately `uiModal` is written in a way that there can be only one at a time.
+	    openMap(); // Unfortunately `uiModal` is written in a way that there can be only one at a time.
 	    // So we have to roll our own modal here instead of just creating a second `uiModal`.
+
 	    var shaded = context.container().selectAll('.shaded'); // container for the existing modal
 
 	    if (shaded.empty()) return;
@@ -86731,7 +86749,8 @@
 
 	      var isOkayTarget = d3_event.composedPath().some(function (node) {
 	        // we only care about element nodes
-	        return node.nodeType === 1 && (node.nodeName === 'INPUT' || // clicking <label> affects its <input> by default
+	        return node.nodeType === 1 && ( // clicking <input> focuses it and/or changes a value
+	        node.nodeName === 'INPUT' || // clicking <label> affects its <input> by default
 	        node.nodeName === 'LABEL' || // clicking <a> opens a hyperlink by default
 	        node.nodeName === 'A');
 	      });
@@ -105700,7 +105719,8 @@
 
 	    var isMultiselect = context.mode().id === 'select' && ( // and shift key is down
 	    lastEvent && lastEvent.shiftKey || // or we're lasso-selecting
-	    context.surface().select('.lasso').node() || _multiselectionPointerId && !multiselectEntityId);
+	    context.surface().select('.lasso').node() || // or a pointer is down over a selected feature
+	    _multiselectionPointerId && !multiselectEntityId);
 
 	    processClick(targetDatum, isMultiselect, p2, multiselectEntityId);
 
@@ -106329,7 +106349,8 @@
 
 	    if (_newFeature && entity && entity.type === 'relation' && // no tags
 	    Object.keys(entity.tags).length === 0 && // no parent relations
-	    context.graph().parentRelations(entity).length === 0 && (entity.members.length === 0 || entity.members.length === 1 && !entity.members[0].role)) {
+	    context.graph().parentRelations(entity).length === 0 && ( // no members or one member with no role
+	    entity.members.length === 0 || entity.members.length === 1 && !entity.members[0].role)) {
 	      // the user added this relation but didn't edit it at all, so just delete it
 	      var deleteAction = actionDeleteRelation(entity.id, true
 	      /* don't delete untagged members */
