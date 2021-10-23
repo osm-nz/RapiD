@@ -19,6 +19,18 @@
 
   "sub_sea:type": true,
 
+  "linz2osm:objectid": true,
+  "LINZ2OSM:dataset": true,
+  "LINZ2OSM:source_version": true,
+  "LINZ2OSM:layer": true,
+  "LINZ:layer": true,
+  "LINZ:source_version": true,
+  "LINZ:dataset": true,
+  "linz:garmin_type": true,
+  "linz:garmin_road_class": true,
+  "linz:sufi": true,
+  "linz:RoadID": true,
+
   "KSJ2:ADS": true,
   "KSJ2:ARE": true,
   "KSJ2:AdminArea": true,
