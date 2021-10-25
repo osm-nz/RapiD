@@ -1335,7 +1335,8 @@
           key !== 'odbl' &&
           key.indexOf('source:') !== 0 &&
           key.indexOf('source_ref') !== 0 && // purposely exclude colon
-          key.indexOf('tiger:') !== 0;
+          key.indexOf('tiger:') !== 0 &&
+          !key.startsWith('ref:');
   }
 
   var osmAreaKeys = {};
