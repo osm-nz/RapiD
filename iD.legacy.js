@@ -2728,6 +2728,182 @@
 	  }
 	});
 
+	// `RegExp.prototype.flags` getter implementation
+	// https://tc39.es/ecma262/#sec-get-regexp.prototype.flags
+	var regexpFlags = function () {
+	  var that = anObject(this);
+	  var result = '';
+	  if (that.global) result += 'g';
+	  if (that.ignoreCase) result += 'i';
+	  if (that.multiline) result += 'm';
+	  if (that.dotAll) result += 's';
+	  if (that.unicode) result += 'u';
+	  if (that.sticky) result += 'y';
+	  return result;
+	};
+
+	// babel-minify and Closure Compiler transpiles RegExp('a', 'y') -> /a/y and it causes SyntaxError
+	var $RegExp = global_1.RegExp;
+
+	var UNSUPPORTED_Y = fails(function () {
+	  var re = $RegExp('a', 'y');
+	  re.lastIndex = 2;
+	  return re.exec('abcd') != null;
+	});
+
+	var BROKEN_CARET = fails(function () {
+	  // https://bugzilla.mozilla.org/show_bug.cgi?id=773687
+	  var re = $RegExp('^r', 'gy');
+	  re.lastIndex = 2;
+	  return re.exec('str') != null;
+	});
+
+	var regexpStickyHelpers = {
+		UNSUPPORTED_Y: UNSUPPORTED_Y,
+		BROKEN_CARET: BROKEN_CARET
+	};
+
+	// babel-minify and Closure Compiler transpiles RegExp('.', 's') -> /./s and it causes SyntaxError
+	var $RegExp$1 = global_1.RegExp;
+
+	var regexpUnsupportedDotAll = fails(function () {
+	  var re = $RegExp$1('.', 's');
+	  return !(re.dotAll && re.exec('\n') && re.flags === 's');
+	});
+
+	// babel-minify and Closure Compiler transpiles RegExp('(?<a>b)', 'g') -> /(?<a>b)/g and it causes SyntaxError
+	var $RegExp$2 = global_1.RegExp;
+
+	var regexpUnsupportedNcg = fails(function () {
+	  var re = $RegExp$2('(?<a>b)', 'g');
+	  return re.exec('b').groups.a !== 'b' ||
+	    'b'.replace(re, '$<a>c') !== 'bc';
+	});
+
+	/* eslint-disable regexp/no-empty-capturing-group, regexp/no-empty-group, regexp/no-lazy-ends -- testing */
+	/* eslint-disable regexp/no-useless-quantifier -- testing */
+
+
+
+
+
+
+
+	var getInternalState$4 = internalState.get;
+
+
+
+	var nativeReplace = shared('native-string-replace', String.prototype.replace);
+	var nativeExec = RegExp.prototype.exec;
+	var patchedExec = nativeExec;
+	var charAt$2 = functionUncurryThis(''.charAt);
+	var indexOf$1 = functionUncurryThis(''.indexOf);
+	var replace$1 = functionUncurryThis(''.replace);
+	var stringSlice$3 = functionUncurryThis(''.slice);
+
+	var UPDATES_LAST_INDEX_WRONG = (function () {
+	  var re1 = /a/;
+	  var re2 = /b*/g;
+	  functionCall(nativeExec, re1, 'a');
+	  functionCall(nativeExec, re2, 'a');
+	  return re1.lastIndex !== 0 || re2.lastIndex !== 0;
+	})();
+
+	var UNSUPPORTED_Y$1 = regexpStickyHelpers.UNSUPPORTED_Y || regexpStickyHelpers.BROKEN_CARET;
+
+	// nonparticipating capturing group, copied from es5-shim's String#split patch.
+	var NPCG_INCLUDED = /()??/.exec('')[1] !== undefined;
+
+	var PATCH = UPDATES_LAST_INDEX_WRONG || NPCG_INCLUDED || UNSUPPORTED_Y$1 || regexpUnsupportedDotAll || regexpUnsupportedNcg;
+
+	if (PATCH) {
+	  // eslint-disable-next-line max-statements -- TODO
+	  patchedExec = function exec(string) {
+	    var re = this;
+	    var state = getInternalState$4(re);
+	    var str = toString_1(string);
+	    var raw = state.raw;
+	    var result, reCopy, lastIndex, match, i, object, group;
+
+	    if (raw) {
+	      raw.lastIndex = re.lastIndex;
+	      result = functionCall(patchedExec, raw, str);
+	      re.lastIndex = raw.lastIndex;
+	      return result;
+	    }
+
+	    var groups = state.groups;
+	    var sticky = UNSUPPORTED_Y$1 && re.sticky;
+	    var flags = functionCall(regexpFlags, re);
+	    var source = re.source;
+	    var charsAdded = 0;
+	    var strCopy = str;
+
+	    if (sticky) {
+	      flags = replace$1(flags, 'y', '');
+	      if (indexOf$1(flags, 'g') === -1) {
+	        flags += 'g';
+	      }
+
+	      strCopy = stringSlice$3(str, re.lastIndex);
+	      // Support anchored sticky behavior.
+	      if (re.lastIndex > 0 && (!re.multiline || re.multiline && charAt$2(str, re.lastIndex - 1) !== '\n')) {
+	        source = '(?: ' + source + ')';
+	        strCopy = ' ' + strCopy;
+	        charsAdded++;
+	      }
+	      // ^(? + rx + ) is needed, in combination with some str slicing, to
+	      // simulate the 'y' flag.
+	      reCopy = new RegExp('^(?:' + source + ')', flags);
+	    }
+
+	    if (NPCG_INCLUDED) {
+	      reCopy = new RegExp('^' + source + '$(?!\\s)', flags);
+	    }
+	    if (UPDATES_LAST_INDEX_WRONG) lastIndex = re.lastIndex;
+
+	    match = functionCall(nativeExec, sticky ? reCopy : re, strCopy);
+
+	    if (sticky) {
+	      if (match) {
+	        match.input = stringSlice$3(match.input, charsAdded);
+	        match[0] = stringSlice$3(match[0], charsAdded);
+	        match.index = re.lastIndex;
+	        re.lastIndex += match[0].length;
+	      } else re.lastIndex = 0;
+	    } else if (UPDATES_LAST_INDEX_WRONG && match) {
+	      re.lastIndex = re.global ? match.index + match[0].length : lastIndex;
+	    }
+	    if (NPCG_INCLUDED && match && match.length > 1) {
+	      // Fix browsers whose `exec` methods don't consistently return `undefined`
+	      // for NPCG, like IE8. NOTE: This doesn' work for /(.?)?/
+	      functionCall(nativeReplace, match[0], reCopy, function () {
+	        for (i = 1; i < arguments.length - 2; i++) {
+	          if (arguments[i] === undefined) match[i] = undefined;
+	        }
+	      });
+	    }
+
+	    if (match && groups) {
+	      match.groups = object = objectCreate(null);
+	      for (i = 0; i < groups.length; i++) {
+	        group = groups[i];
+	        object[group[0]] = match[group[1]];
+	      }
+	    }
+
+	    return match;
+	  };
+	}
+
+	var regexpExec = patchedExec;
+
+	// `RegExp.prototype.exec` method
+	// https://tc39.es/ecma262/#sec-regexp.prototype.exec
+	_export({ target: 'RegExp', proto: true, forced: /./.exec !== regexpExec }, {
+	  exec: regexpExec
+	});
+
 	var SPECIES$3 = wellKnownSymbol('species');
 
 	var arrayMethodHasSpeciesSupport = function (METHOD_NAME) {
@@ -3206,7 +3382,7 @@
 	var SPECIES$4 = wellKnownSymbol('species');
 	var PROMISE = 'Promise';
 
-	var getInternalState$4 = internalState.get;
+	var getInternalState$5 = internalState.get;
 	var setInternalState$4 = internalState.set;
 	var getInternalPromiseState = internalState.getterFor(PROMISE);
 	var NativePromisePrototype = nativePromiseConstructor && nativePromiseConstructor.prototype;
@@ -3409,7 +3585,7 @@
 	    anInstance(this, PromisePrototype);
 	    aCallable(executor);
 	    functionCall(Internal, this);
-	    var state = getInternalState$4(this);
+	    var state = getInternalState$5(this);
 	    try {
 	      executor(bind$3(internalResolve, state), bind$3(internalReject, state));
 	    } catch (error) {
@@ -3453,7 +3629,7 @@
 	  });
 	  OwnPromiseCapability = function () {
 	    var promise = new Internal();
-	    var state = getInternalState$4(promise);
+	    var state = getInternalState$5(promise);
 	    this.promise = promise;
 	    this.resolve = bind$3(internalResolve, state);
 	    this.reject = bind$3(internalReject, state);
@@ -4603,14 +4779,14 @@
 	var TypeError$h = global_1.TypeError;
 	var decodeURIComponent$1 = global_1.decodeURIComponent;
 	var encodeURIComponent$1 = global_1.encodeURIComponent;
-	var charAt$2 = functionUncurryThis(''.charAt);
+	var charAt$3 = functionUncurryThis(''.charAt);
 	var join$1 = functionUncurryThis([].join);
 	var push$3 = functionUncurryThis([].push);
-	var replace$1 = functionUncurryThis(''.replace);
+	var replace$2 = functionUncurryThis(''.replace);
 	var shift = functionUncurryThis([].shift);
 	var splice = functionUncurryThis([].splice);
 	var split$1 = functionUncurryThis(''.split);
-	var stringSlice$3 = functionUncurryThis(''.slice);
+	var stringSlice$4 = functionUncurryThis(''.slice);
 
 	var plus = /\+/g;
 	var sequences = Array(4);
@@ -4628,13 +4804,13 @@
 	};
 
 	var deserialize = function (it) {
-	  var result = replace$1(it, plus, ' ');
+	  var result = replace$2(it, plus, ' ');
 	  var bytes = 4;
 	  try {
 	    return decodeURIComponent$1(result);
 	  } catch (error) {
 	    while (bytes) {
-	      result = replace$1(result, percentSequence(bytes--), percentDecode);
+	      result = replace$2(result, percentSequence(bytes--), percentDecode);
 	    }
 	    return result;
 	  }
@@ -4656,7 +4832,7 @@
 	};
 
 	var serialize = function (it) {
-	  return replace$1(encodeURIComponent$1(it), find, replacer);
+	  return replace$2(encodeURIComponent$1(it), find, replacer);
 	};
 
 	var parseSearchParams = function (result, query) {
@@ -4738,7 +4914,7 @@
 	    } else {
 	      parseSearchParams(
 	        entries,
-	        typeof init == 'string' ? charAt$2(init, 0) === '?' ? stringSlice$3(init, 1) : init : toString_1(init)
+	        typeof init == 'string' ? charAt$3(init, 0) === '?' ? stringSlice$4(init, 1) : init : toString_1(init)
 	      );
 	    }
 	  }
@@ -4936,20 +5112,6 @@
 	  getState: getInternalParamsState
 	};
 
-	// `RegExp.prototype.flags` getter implementation
-	// https://tc39.es/ecma262/#sec-get-regexp.prototype.flags
-	var regexpFlags = function () {
-	  var that = anObject(this);
-	  var result = '';
-	  if (that.global) result += 'g';
-	  if (that.ignoreCase) result += 'i';
-	  if (that.multiline) result += 'm';
-	  if (that.dotAll) result += 's';
-	  if (that.unicode) result += 'u';
-	  if (that.sticky) result += 'y';
-	  return result;
-	};
-
 	var PROPER_FUNCTION_NAME$3 = functionName.PROPER;
 
 
@@ -4978,168 +5140,6 @@
 	    return '/' + p + '/' + f;
 	  }, { unsafe: true });
 	}
-
-	// babel-minify and Closure Compiler transpiles RegExp('a', 'y') -> /a/y and it causes SyntaxError
-	var $RegExp = global_1.RegExp;
-
-	var UNSUPPORTED_Y = fails(function () {
-	  var re = $RegExp('a', 'y');
-	  re.lastIndex = 2;
-	  return re.exec('abcd') != null;
-	});
-
-	var BROKEN_CARET = fails(function () {
-	  // https://bugzilla.mozilla.org/show_bug.cgi?id=773687
-	  var re = $RegExp('^r', 'gy');
-	  re.lastIndex = 2;
-	  return re.exec('str') != null;
-	});
-
-	var regexpStickyHelpers = {
-		UNSUPPORTED_Y: UNSUPPORTED_Y,
-		BROKEN_CARET: BROKEN_CARET
-	};
-
-	// babel-minify and Closure Compiler transpiles RegExp('.', 's') -> /./s and it causes SyntaxError
-	var $RegExp$1 = global_1.RegExp;
-
-	var regexpUnsupportedDotAll = fails(function () {
-	  var re = $RegExp$1('.', 's');
-	  return !(re.dotAll && re.exec('\n') && re.flags === 's');
-	});
-
-	// babel-minify and Closure Compiler transpiles RegExp('(?<a>b)', 'g') -> /(?<a>b)/g and it causes SyntaxError
-	var $RegExp$2 = global_1.RegExp;
-
-	var regexpUnsupportedNcg = fails(function () {
-	  var re = $RegExp$2('(?<a>b)', 'g');
-	  return re.exec('b').groups.a !== 'b' ||
-	    'b'.replace(re, '$<a>c') !== 'bc';
-	});
-
-	/* eslint-disable regexp/no-empty-capturing-group, regexp/no-empty-group, regexp/no-lazy-ends -- testing */
-	/* eslint-disable regexp/no-useless-quantifier -- testing */
-
-
-
-
-
-
-
-	var getInternalState$5 = internalState.get;
-
-
-
-	var nativeReplace = shared('native-string-replace', String.prototype.replace);
-	var nativeExec = RegExp.prototype.exec;
-	var patchedExec = nativeExec;
-	var charAt$3 = functionUncurryThis(''.charAt);
-	var indexOf$1 = functionUncurryThis(''.indexOf);
-	var replace$2 = functionUncurryThis(''.replace);
-	var stringSlice$4 = functionUncurryThis(''.slice);
-
-	var UPDATES_LAST_INDEX_WRONG = (function () {
-	  var re1 = /a/;
-	  var re2 = /b*/g;
-	  functionCall(nativeExec, re1, 'a');
-	  functionCall(nativeExec, re2, 'a');
-	  return re1.lastIndex !== 0 || re2.lastIndex !== 0;
-	})();
-
-	var UNSUPPORTED_Y$1 = regexpStickyHelpers.UNSUPPORTED_Y || regexpStickyHelpers.BROKEN_CARET;
-
-	// nonparticipating capturing group, copied from es5-shim's String#split patch.
-	var NPCG_INCLUDED = /()??/.exec('')[1] !== undefined;
-
-	var PATCH = UPDATES_LAST_INDEX_WRONG || NPCG_INCLUDED || UNSUPPORTED_Y$1 || regexpUnsupportedDotAll || regexpUnsupportedNcg;
-
-	if (PATCH) {
-	  // eslint-disable-next-line max-statements -- TODO
-	  patchedExec = function exec(string) {
-	    var re = this;
-	    var state = getInternalState$5(re);
-	    var str = toString_1(string);
-	    var raw = state.raw;
-	    var result, reCopy, lastIndex, match, i, object, group;
-
-	    if (raw) {
-	      raw.lastIndex = re.lastIndex;
-	      result = functionCall(patchedExec, raw, str);
-	      re.lastIndex = raw.lastIndex;
-	      return result;
-	    }
-
-	    var groups = state.groups;
-	    var sticky = UNSUPPORTED_Y$1 && re.sticky;
-	    var flags = functionCall(regexpFlags, re);
-	    var source = re.source;
-	    var charsAdded = 0;
-	    var strCopy = str;
-
-	    if (sticky) {
-	      flags = replace$2(flags, 'y', '');
-	      if (indexOf$1(flags, 'g') === -1) {
-	        flags += 'g';
-	      }
-
-	      strCopy = stringSlice$4(str, re.lastIndex);
-	      // Support anchored sticky behavior.
-	      if (re.lastIndex > 0 && (!re.multiline || re.multiline && charAt$3(str, re.lastIndex - 1) !== '\n')) {
-	        source = '(?: ' + source + ')';
-	        strCopy = ' ' + strCopy;
-	        charsAdded++;
-	      }
-	      // ^(? + rx + ) is needed, in combination with some str slicing, to
-	      // simulate the 'y' flag.
-	      reCopy = new RegExp('^(?:' + source + ')', flags);
-	    }
-
-	    if (NPCG_INCLUDED) {
-	      reCopy = new RegExp('^' + source + '$(?!\\s)', flags);
-	    }
-	    if (UPDATES_LAST_INDEX_WRONG) lastIndex = re.lastIndex;
-
-	    match = functionCall(nativeExec, sticky ? reCopy : re, strCopy);
-
-	    if (sticky) {
-	      if (match) {
-	        match.input = stringSlice$4(match.input, charsAdded);
-	        match[0] = stringSlice$4(match[0], charsAdded);
-	        match.index = re.lastIndex;
-	        re.lastIndex += match[0].length;
-	      } else re.lastIndex = 0;
-	    } else if (UPDATES_LAST_INDEX_WRONG && match) {
-	      re.lastIndex = re.global ? match.index + match[0].length : lastIndex;
-	    }
-	    if (NPCG_INCLUDED && match && match.length > 1) {
-	      // Fix browsers whose `exec` methods don't consistently return `undefined`
-	      // for NPCG, like IE8. NOTE: This doesn' work for /(.?)?/
-	      functionCall(nativeReplace, match[0], reCopy, function () {
-	        for (i = 1; i < arguments.length - 2; i++) {
-	          if (arguments[i] === undefined) match[i] = undefined;
-	        }
-	      });
-	    }
-
-	    if (match && groups) {
-	      match.groups = object = objectCreate(null);
-	      for (i = 0; i < groups.length; i++) {
-	        group = groups[i];
-	        object[group[0]] = match[group[1]];
-	      }
-	    }
-
-	    return match;
-	  };
-	}
-
-	var regexpExec = patchedExec;
-
-	// `RegExp.prototype.exec` method
-	// https://tc39.es/ecma262/#sec-regexp.prototype.exec
-	_export({ target: 'RegExp', proto: true, forced: /./.exec !== regexpExec }, {
-	  exec: regexpExec
-	});
 
 	// TODO: Remove from `core-js@4` since it's moved to entry points
 
@@ -23811,8 +23811,15 @@
 	        merged[k] = t2;
 	      } else if (t1 !== t2) {
 	        changed = true;
-	        merged[k] = utilUnicodeCharsTruncated(utilArrayUnion(t1.split(/;\s*/), t2.split(/;\s*/)).join(';'), 255 // avoid exceeding character limit; see also services/osm.js -> maxCharsForTagValue()
-	        );
+
+	        if (t1 === 'yes' || t2 === 'yes') {
+	          // if one of the values is the generic =yes, use the other (more specific) value
+	          // e.g. merging building=yes + building=farm --> building=farm
+	          merged[k] = t1 === 'yes' ? t2 : t1;
+	        } else {
+	          merged[k] = utilUnicodeCharsTruncated(utilArrayUnion(t1.split(/;\s*/), t2.split(/;\s*/)).join(';'), 255 // avoid exceeding character limit; see also services/osm.js -> maxCharsForTagValue()
+	          );
+	        }
 	      }
 	    }
 
@@ -25765,14 +25772,15 @@
 	    for (i = 0; i < nodeIDs.length; i++) {
 	      survivor = graph.entity(nodeIDs[i]);
 	      if (survivor.version) break; // found one
-	    } // 1. disable if the nodes being connected have conflicting relation roles
+	    }
 
+	    var countWithLinzAddr = 0; // 1. disable if the nodes being connected have conflicting relation roles
 
 	    for (i = 0; i < nodeIDs.length; i++) {
 	      node = graph.entity(nodeIDs[i]);
 	      relations = graph.parentRelations(node); // don't allow linz addresses to be merged
 
-	      if (node.tags && node.tags['ref:linz:address_id']) return 'relation';
+	      if (node.tags && node.tags['ref:linz:address_id']) countWithLinzAddr++;
 
 	      for (j = 0; j < relations.length; j++) {
 	        relation = relations[j];
@@ -25788,8 +25796,10 @@
 	          seen[relation.id] = role;
 	        }
 	      }
-	    } // gather restrictions for parent ways
+	    } // you can merge an address with a non-address, but you can't merge multiple addresses together
 
+
+	    if (countWithLinzAddr > 1) return 'relation'; // gather restrictions for parent ways
 
 	    for (i = 0; i < nodeIDs.length; i++) {
 	      node = graph.entity(nodeIDs[i]);
@@ -26027,8 +26037,38 @@
 	  };
 	}
 
+	// we replace these with the appropriate source= tag instead
+	var nzCrap = {
+	  attribution: {
+	    'http://wiki.osm.org/wiki/Attribution#LINZ': 'LINZ',
+	    'http://wiki.openstreetmap.org/wiki/Attribution#LINZ': 'LINZ',
+	    'http://www.aucklandcouncil.govt.nz/EN/ratesbuildingproperty/propertyinformation/GIS_maps/Pages/opendata.aspx': 'Auckland Council',
+	    'https://koordinates.com/publisher/wcc/': 'Wellington City Council',
+	    'http://wiki.openstreetmap.org/wiki/Contributors#Statistics_New_Zealand': 'Statistics NZ'
+	  },
+	  source_ref: {
+	    'http://www.linz.govt.nz/topography/topo-maps/': 'LINZ',
+	    'http://www.linz.govt.nz/topography/topo-maps/index.aspx': 'LINZ',
+	    'http://www.linz.govt.nz/about-linz/linz-data-service/dataset-information': 'LINZ',
+	    'http://www.stats.govt.nz/browse_for_stats/people_and_communities/Geographic-areas/digital-boundary-files.aspx': 'Statistics NZ'
+	  }
+	};
+	var json = {
+	  'linz2osm:objectid': true,
+	  'LINZ2OSM:dataset': true,
+	  'LINZ2OSM:source_version': true,
+	  'LINZ2OSM:layer': true,
+	  'LINZ:layer': true,
+	  'LINZ:source_version': true,
+	  'LINZ:dataset': true,
+	  'linz:garmin_type': true,
+	  'linz:garmin_road_class': true,
+	  'linz:sufi': true,
+	  'linz:RoadID': true
+	};
 	function actionDiscardTags(difference, discardTags) {
 	  discardTags = discardTags || {};
+	  Object.assign(discardTags, json);
 	  return function (graph) {
 	    difference.modified().forEach(checkTags);
 	    difference.created().forEach(checkTags);
@@ -26037,15 +26077,30 @@
 	    function checkTags(entity) {
 	      var keys = Object.keys(entity.tags);
 	      var didDiscard = false;
+	      var didDiscardLinz = false;
 	      var tags = {};
 
 	      for (var i = 0; i < keys.length; i++) {
 	        var k = keys[i];
+	        var v = entity.tags[k];
 
 	        if (discardTags[k] || !entity.tags[k]) {
 	          didDiscard = true;
+	        } else if (k in nzCrap && v in nzCrap[k]) {
+	          didDiscard = true;
+	          didDiscardLinz = nzCrap[k][v];
 	        } else {
 	          tags[k] = entity.tags[k];
+	        }
+	      } // if we removed attribution=* or source_ref=*, add source=* instead
+
+
+	      if (didDiscardLinz) {
+	        if (tags.source) {
+	          // merge with existing source tag
+	          tags.source = _toConsumableArray(new Set([didDiscardLinz].concat(_toConsumableArray(tags.source.split(';'))))).join(';');
+	        } else {
+	          tags.source = didDiscardLinz;
 	        }
 	      }
 
@@ -56467,7 +56522,9 @@
 
 	  }
 
-	  function onHistoryChange() {
+	  function
+	    /* difference */
+	  onHistoryChange() {
 	    var annotation = context.history().peekAnnotation();
 	    if (!wasRapidEdit(annotation)) return;
 
@@ -82551,6 +82608,11 @@
 	var MOVE_PREFIX = 'LOCATION_WRONG_SPECIAL_';
 	var DELETE_PREFIX = 'SPECIAL_DELETE_';
 	var EDIT_PREFIX = 'SPECIAL_EDIT_';
+	var MAP = {
+	  n: 'node',
+	  r: 'relation',
+	  w: 'way'
+	};
 	function uiRapidFeatureInspector(context, keybinding) {
 	  var rapidContext = context.rapidContext();
 	  var ACCEPT_FEATURES_LIMIT = Infinity;
@@ -82873,6 +82935,22 @@
 	    var isDelete = linzRef && linzRef.startsWith(DELETE_PREFIX);
 	    var isEdit = linzRef && linzRef.startsWith(EDIT_PREFIX);
 	    var type = isEdit ? 'edit' : isMove ? 'move' : isDelete ? 'delete' : 'normal';
+	    var recentlyEditted = false;
+
+	    try {
+	      if (type === 'edit') {
+	        var entity = window._seenAddresses[linzRef.replace(EDIT_PREFIX, '')];
+
+	        var daysAgo = (new Date() - new Date(entity.timestamp)) / 1000 / 60 / 60 / 24;
+
+	        if (daysAgo < 30) {
+	          recentlyEditted = [entity, daysAgo];
+	        }
+	      }
+	    } catch (ex) {
+	      console.error(ex);
+	    }
+
 	    var acceptMessages = {
 	      move: 'Move this address',
 	      normal: _t('rapid_feature_inspector.option_accept.label'),
@@ -82904,6 +82982,7 @@
 	      label: acceptMessages[type],
 	      description: acceptDescriptions[type],
 	      onClick: onAcceptFeature,
+	      flag: !!recentlyEditted,
 	      isDelete: isDelete
 	    }, {
 	      key: 'ignore',
@@ -82915,6 +82994,12 @@
 	    var choices = body.selectAll('.rapid-inspector-choices').data([0]);
 	    var choicesEnter = choices.enter().append('div').attr('class', 'rapid-inspector-choices');
 	    choicesEnter.append('p').text(mainMessages[type]);
+
+	    if (recentlyEditted) {
+	      var osmUrl = "https://openstreetmap.org/".concat(MAP[recentlyEditted[0].id[0]], "/").concat(recentlyEditted[0].id.slice(1));
+	      choicesEnter.append('p').html("Last editted by <strong>".concat(recentlyEditted[0].user, "</strong> <a href=\"").concat(osmUrl, "\" target=\"_blank\">").concat(Math.round(recentlyEditted[1]), " days ago</a>"));
+	    }
+
 	    choicesEnter.selectAll('.rapid-inspector-choice').data(choiceData, function (d) {
 	      return d.key;
 	    }).enter().append('div').attr('class', function (d) {
@@ -82929,7 +83014,7 @@
 	    var choiceReference = selection.append('div').attr('class', 'tag-reference-body');
 	    choiceReference.text(d.description);
 	    var onClick = d.onClick;
-	    var choiceButton = choiceWrap.append('button').attr('class', "choice-button choice-button-".concat(d.key, " ").concat(disableClass, " ").concat(d.isDelete ? 'del-btn' : '')).on('click', onClick); // build tooltips
+	    var choiceButton = choiceWrap.append('button').attr('class', "choice-button choice-button-".concat(d.key, " ").concat(disableClass, " ").concat(d.isDelete ? 'del-btn' : '', " ").concat(d.flag ? 'flag-btn' : '')).on('click', onClick); // build tooltips
 
 	    var title, keys;
 
@@ -90941,6 +91026,11 @@
 	  return window.__locked = obj;
 	})["catch"](console.error);
 
+	function esc(str) {
+	  // because btoa/atob is stupid but we need to use it for our data-url gpx extent thing
+	  return str.replace(/ā/ig, 'aa').replace(/ē/ig, 'ee').replace(/ī/ig, 'ii').replace(/ō/ig, 'oo').replace(/ū/ig, 'uu');
+	}
+
 	function abortRequest(controller) {
 	  controller.abort();
 	} // API
@@ -91278,7 +91368,7 @@
 	            maxLng = _ds$extent$2[0],
 	            maxLat = _ds$extent$2[1];
 
-	        var xml = "<gpx xmlns=\"http://www.topografix.com/GPX/1/1\" creator=\"LINZ Addr\" version=\"1.1\">\n        <metadata>\n          <link href=\"https://github.com/hotosm/tasking-manager\">\n            <text>LINZ Addr</text>\n          </link>\n          <time>2021-03-08T22:14:43.088005</time>\n        </metadata>\n        <trk>\n          <name>Extent of the ".concat(ds.name, " data</name>\n          <trkseg>\n          <trkpt lat=\"").concat(minLat - 0.0003, "\" lon=\"").concat(minLng - 0.0003, "\"/>\n          <trkpt lat=\"").concat(maxLat + 0.0003, "\" lon=\"").concat(minLng - 0.0003, "\"/>\n          <trkpt lat=\"").concat(maxLat + 0.0003, "\" lon=\"").concat(maxLng + 0.0003, "\"/>\n          <trkpt lat=\"").concat(minLat - 0.0003, "\" lon=\"").concat(maxLng + 0.0003, "\"/>\n          <trkpt lat=\"").concat(minLat - 0.0003, "\" lon=\"").concat(minLng - 0.0003, "\"/>\n          </trkseg>\n        </trk>\n        <wpt lat=\"").concat(minLat - 0.0003, "\" lon=\"").concat(minLng - 0.0003, "\"/>\n        <wpt lat=\"").concat(maxLat + 0.0003, "\" lon=\"").concat(minLng - 0.0003, "\"/>\n        <wpt lat=\"").concat(maxLat + 0.0003, "\" lon=\"").concat(maxLng + 0.0003, "\"/>\n        <wpt lat=\"").concat(minLat - 0.0003, "\" lon=\"").concat(maxLng + 0.0003, "\"/>\n        <wpt lat=\"").concat(minLat - 0.0003, "\" lon=\"").concat(minLng - 0.0003, "\"/>\n        </gpx>");
+	        var xml = "<gpx xmlns=\"http://www.topografix.com/GPX/1/1\" creator=\"LINZ Addr\" version=\"1.1\">\n        <metadata>\n          <link href=\"https://github.com/hotosm/tasking-manager\">\n            <text>LINZ Addr</text>\n          </link>\n          <time>2021-03-08T22:14:43.088005</time>\n        </metadata>\n        <trk>\n          <name>Extent of the ".concat(esc(ds.name), " data</name>\n          <trkseg>\n          <trkpt lat=\"").concat(minLat - 0.0003, "\" lon=\"").concat(minLng - 0.0003, "\"/>\n          <trkpt lat=\"").concat(maxLat + 0.0003, "\" lon=\"").concat(minLng - 0.0003, "\"/>\n          <trkpt lat=\"").concat(maxLat + 0.0003, "\" lon=\"").concat(maxLng + 0.0003, "\"/>\n          <trkpt lat=\"").concat(minLat - 0.0003, "\" lon=\"").concat(maxLng + 0.0003, "\"/>\n          <trkpt lat=\"").concat(minLat - 0.0003, "\" lon=\"").concat(minLng - 0.0003, "\"/>\n          </trkseg>\n        </trk>\n        <wpt lat=\"").concat(minLat - 0.0003, "\" lon=\"").concat(minLng - 0.0003, "\"/>\n        <wpt lat=\"").concat(maxLat + 0.0003, "\" lon=\"").concat(minLng - 0.0003, "\"/>\n        <wpt lat=\"").concat(maxLat + 0.0003, "\" lon=\"").concat(maxLng + 0.0003, "\"/>\n        <wpt lat=\"").concat(minLat - 0.0003, "\" lon=\"").concat(maxLng + 0.0003, "\"/>\n        <wpt lat=\"").concat(minLat - 0.0003, "\" lon=\"").concat(minLng - 0.0003, "\"/>\n        </gpx>");
 	        var url = 'data:text/xml;base64,' + btoa(xml);
 	        var layer = context.layers().layer('data');
 	        layer.url(url);
@@ -96761,7 +96851,9 @@
 	      module.exports = factory();
 	    }
 	  }(commonjsGlobal, function () {
-	    function resolveUrl() {
+	    function
+	      /* ...urls */
+	    resolveUrl() {
 	      var numUrls = arguments.length;
 
 	      if (numUrls === 0) {

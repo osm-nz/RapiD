@@ -3366,6 +3366,7 @@
     height: 3rem;
 }
 .ideditor .rapid-inspector button.del-btn, .ideditor .modal.rapid-modal button.del-btn { background: #f44336!important; }
+.ideditor .rapid-inspector button.flag-btn, .ideditor .modal.rapid-modal button.flag-btn { background: #ffa500!important; }
 .ideditor .rapid-inspector button svg,
 .ideditor .modal.rapid-modal button svg {
     color: #eee;

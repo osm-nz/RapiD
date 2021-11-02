@@ -15685,10 +15685,16 @@
                   merged[k] = t2;
               } else if (t1 !== t2) {
                   changed = true;
+                  if (t1 === 'yes' || t2 === 'yes') {
+                      // if one of the values is the generic =yes, use the other (more specific) value
+                      // e.g. merging building=yes + building=farm --> building=farm
+                      merged[k] = (t1 === 'yes' ? t2 : t1);
+                  } else {
                   merged[k] = utilUnicodeCharsTruncated(
                       utilArrayUnion(t1.split(/;\s*/), t2.split(/;\s*/)).join(';'),
                       255 // avoid exceeding character limit; see also services/osm.js -> maxCharsForTagValue()
                   );
+                  }
               }
           }
           return changed ? this.update({ tags: merged }) : this;
@@ -17750,13 +17756,15 @@
               if (survivor.version) break;  // found one
           }
 
+          let countWithLinzAddr = 0;
+
           // 1. disable if the nodes being connected have conflicting relation roles
           for (i = 0; i < nodeIDs.length; i++) {
               node = graph.entity(nodeIDs[i]);
               relations = graph.parentRelations(node);
 
               // don't allow linz addresses to be merged
-              if (node.tags && node.tags['ref:linz:address_id']) return 'relation';
+              if (node.tags && node.tags['ref:linz:address_id']) countWithLinzAddr++;
 
               for (j = 0; j < relations.length; j++) {
                   relation = relations[j];
@@ -17774,6 +17782,9 @@
                   }
               }
           }
+
+          // you can merge an address with a non-address, but you can't merge multiple addresses together
+          if (countWithLinzAddr > 1) return 'relation';
 
           // gather restrictions for parent ways
           for (i = 0; i < nodeIDs.length; i++) {
@@ -17977,8 +17988,41 @@
       };
   }
 
+  // we replace these with the appropriate source= tag instead
+  const nzCrap = {
+    attribution: {
+      'http://wiki.osm.org/wiki/Attribution#LINZ': 'LINZ',
+      'http://wiki.openstreetmap.org/wiki/Attribution#LINZ': 'LINZ',
+      'http://www.aucklandcouncil.govt.nz/EN/ratesbuildingproperty/propertyinformation/GIS_maps/Pages/opendata.aspx': 'Auckland Council',
+      'https://koordinates.com/publisher/wcc/': 'Wellington City Council',
+      'http://wiki.openstreetmap.org/wiki/Contributors#Statistics_New_Zealand': 'Statistics NZ',
+    },
+    source_ref: {
+      'http://www.linz.govt.nz/topography/topo-maps/': 'LINZ',
+      'http://www.linz.govt.nz/topography/topo-maps/index.aspx': 'LINZ',
+      'http://www.linz.govt.nz/about-linz/linz-data-service/dataset-information': 'LINZ',
+      'http://www.stats.govt.nz/browse_for_stats/people_and_communities/Geographic-areas/digital-boundary-files.aspx': 'Statistics NZ',
+    }
+  };
+
+  const json = {
+    'linz2osm:objectid': true,
+    'LINZ2OSM:dataset': true,
+    'LINZ2OSM:source_version': true,
+    'LINZ2OSM:layer': true,
+    'LINZ:layer': true,
+    'LINZ:source_version': true,
+    'LINZ:dataset': true,
+    'linz:garmin_type': true,
+    'linz:garmin_road_class': true,
+    'linz:sufi': true,
+    'linz:RoadID': true,
+  };
+
   function actionDiscardTags(difference, discardTags) {
     discardTags = discardTags || {};
+
+    Object.assign(discardTags, json);
 
     return (graph) => {
       difference.modified().forEach(checkTags);
@@ -17988,16 +18032,32 @@
       function checkTags(entity) {
         const keys = Object.keys(entity.tags);
         let didDiscard = false;
+        let didDiscardLinz = false;
         let tags = {};
 
         for (let i = 0; i < keys.length; i++) {
           const k = keys[i];
+          const v = entity.tags[k];
           if (discardTags[k] || !entity.tags[k]) {
             didDiscard = true;
+          } else if (k in nzCrap && v in nzCrap[k]) {
+            didDiscard = true;
+            didDiscardLinz = nzCrap[k][v];
           } else {
             tags[k] = entity.tags[k];
           }
         }
+
+        // if we removed attribution=* or source_ref=*, add source=* instead
+        if (didDiscardLinz) {
+          if (tags.source) {
+            // merge with existing source tag
+            tags.source = [ ...new Set([didDiscardLinz, ...tags.source.split(';')])].join(';');
+          } else {
+            tags.source = didDiscardLinz;
+          }
+        }
+
         if (didDiscard) {
           graph = graph.replace(entity.update({ tags: tags }));
         }
@@ -79104,6 +79164,7 @@
   const DELETE_PREFIX = 'SPECIAL_DELETE_';
   const EDIT_PREFIX = 'SPECIAL_EDIT_';
 
+  const MAP = { n: 'node', r: 'relation', w: 'way' };
 
   function uiRapidFeatureInspector(context, keybinding) {
     const rapidContext = context.rapidContext();
@@ -79510,6 +79571,17 @@
       const isEdit = linzRef && linzRef.startsWith(EDIT_PREFIX);
       const type = isEdit ? 'edit' : isMove ? 'move' : isDelete ? 'delete' : 'normal';
 
+      let recentlyEditted = false;
+      try {
+        if (type === 'edit') {
+          const entity = window._seenAddresses[linzRef.replace(EDIT_PREFIX, '')];
+          const daysAgo = (new Date() - new Date(entity.timestamp))/1000/60/60/24;
+          if (daysAgo < 30) {
+            recentlyEditted = [entity, daysAgo];
+          }
+        }
+      } catch (ex) { console.error(ex); }
+
       const acceptMessages = {
         move: 'Move this address',
         normal: _t('rapid_feature_inspector.option_accept.label'),
@@ -79543,6 +79615,7 @@
           label: acceptMessages[type],
           description: acceptDescriptions[type],
           onClick: onAcceptFeature,
+          flag: !!recentlyEditted,
           isDelete,
         }, {
           key: 'ignore',
@@ -79564,6 +79637,14 @@
       choicesEnter
         .append('p')
         .text(mainMessages[type]);
+
+      if (recentlyEditted) {
+        const osmUrl = `https://openstreetmap.org/${MAP[recentlyEditted[0].id[0]]}/${recentlyEditted[0].id.slice(1)}`;
+        choicesEnter
+          .append('p')
+          .html(`Last editted by <strong>${recentlyEditted[0].user}</strong> <a href="${osmUrl}" target="_blank">${Math.round(recentlyEditted[1])} days ago</a>`);
+
+      }
 
       choicesEnter.selectAll('.rapid-inspector-choice')
         .data(choiceData, d => d.key)
@@ -79592,7 +79673,7 @@
       const onClick = d.onClick;
       let choiceButton = choiceWrap
         .append('button')
-        .attr('class', `choice-button choice-button-${d.key} ${disableClass} ${d.isDelete ? 'del-btn' : ''}`)
+        .attr('class', `choice-button choice-button-${d.key} ${disableClass} ${d.isDelete ? 'del-btn' : ''} ${d.flag ? 'flag-btn' : ''}`)
         .on('click', onClick);
 
       // build tooltips
@@ -90196,6 +90277,12 @@
     .catch(console.error);
 
 
+  function esc(str) {
+    // because btoa/atob is stupid but we need to use it for our data-url gpx extent thing
+    return str.replace(/ā/ig, 'aa').replace(/ē/ig, 'ee').replace(/ī/ig, 'ii').replace(/ō/ig, 'oo').replace(/ū/ig, 'uu');
+  }
+
+
   function abortRequest(controller) {
     controller.abort();
   }
@@ -90503,7 +90590,7 @@
           <time>2021-03-08T22:14:43.088005</time>
         </metadata>
         <trk>
-          <name>Extent of the ${ds.name} data</name>
+          <name>Extent of the ${esc(ds.name)} data</name>
           <trkseg>
           <trkpt lat="${minLat-0.0003}" lon="${minLng-0.0003}"/>
           <trkpt lat="${maxLat+0.0003}" lon="${minLng-0.0003}"/>
