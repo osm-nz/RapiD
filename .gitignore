@@ -9,6 +9,10 @@ package-lock.json
 
 transifex.auth
 
+# this is so annoying
+dist
+
+
 /dist/*.js
 /dist/*.css
 /dist/*.map

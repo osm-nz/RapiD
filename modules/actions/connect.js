@@ -77,13 +77,15 @@ export function actionConnect(nodeIDs) {
             if (survivor.version) break;  // found one
         }
 
+        let countWithLinzAddr = 0;
+
         // 1. disable if the nodes being connected have conflicting relation roles
         for (i = 0; i < nodeIDs.length; i++) {
             node = graph.entity(nodeIDs[i]);
             relations = graph.parentRelations(node);
 
             // don't allow linz addresses to be merged
-            if (node.tags && node.tags['ref:linz:address_id']) return 'relation';
+            if (node.tags && node.tags['ref:linz:address_id']) countWithLinzAddr++;
 
             for (j = 0; j < relations.length; j++) {
                 relation = relations[j];
@@ -101,6 +103,9 @@ export function actionConnect(nodeIDs) {
                 }
             }
         }
+
+        // you can merge an address with a non-address, but you can't merge multiple addresses together
+        if (countWithLinzAddr > 1) return 'relation';
 
         // gather restrictions for parent ways
         for (i = 0; i < nodeIDs.length; i++) {

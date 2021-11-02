@@ -13,6 +13,7 @@ const MOVE_PREFIX = 'LOCATION_WRONG_SPECIAL_';
 const DELETE_PREFIX = 'SPECIAL_DELETE_';
 const EDIT_PREFIX = 'SPECIAL_EDIT_';
 
+const MAP = { n: 'node', r: 'relation', w: 'way' };
 
 export function uiRapidFeatureInspector(context, keybinding) {
   const rapidContext = context.rapidContext();
@@ -419,6 +420,17 @@ export function uiRapidFeatureInspector(context, keybinding) {
     const isEdit = linzRef && linzRef.startsWith(EDIT_PREFIX);
     const type = isEdit ? 'edit' : isMove ? 'move' : isDelete ? 'delete' : 'normal';
 
+    let recentlyEditted = false;
+    try {
+      if (type === 'edit') {
+        const entity = window._seenAddresses[linzRef.replace(EDIT_PREFIX, '')];
+        const daysAgo = (new Date() - new Date(entity.timestamp))/1000/60/60/24;
+        if (daysAgo < 30) {
+          recentlyEditted = [entity, daysAgo];
+        }
+      }
+    } catch (ex) { console.error(ex); }
+
     const acceptMessages = {
       move: 'Move this address',
       normal: t('rapid_feature_inspector.option_accept.label'),
@@ -452,6 +464,7 @@ export function uiRapidFeatureInspector(context, keybinding) {
         label: acceptMessages[type],
         description: acceptDescriptions[type],
         onClick: onAcceptFeature,
+        flag: !!recentlyEditted,
         isDelete,
       }, {
         key: 'ignore',
@@ -473,6 +486,14 @@ export function uiRapidFeatureInspector(context, keybinding) {
     choicesEnter
       .append('p')
       .text(mainMessages[type]);
+
+    if (recentlyEditted) {
+      const osmUrl = `https://openstreetmap.org/${MAP[recentlyEditted[0].id[0]]}/${recentlyEditted[0].id.slice(1)}`;
+      choicesEnter
+        .append('p')
+        .html(`Last editted by <strong>${recentlyEditted[0].user}</strong> <a href="${osmUrl}" target="_blank">${Math.round(recentlyEditted[1])} days ago</a>`);
+
+    }
 
     choicesEnter.selectAll('.rapid-inspector-choice')
       .data(choiceData, d => d.key)
@@ -501,7 +522,7 @@ export function uiRapidFeatureInspector(context, keybinding) {
     const onClick = d.onClick;
     let choiceButton = choiceWrap
       .append('button')
-      .attr('class', `choice-button choice-button-${d.key} ${disableClass} ${d.isDelete ? 'del-btn' : ''}`)
+      .attr('class', `choice-button choice-button-${d.key} ${disableClass} ${d.isDelete ? 'del-btn' : ''} ${d.flag ? 'flag-btn' : ''}`)
       .on('click', onClick);
 
     // build tooltips

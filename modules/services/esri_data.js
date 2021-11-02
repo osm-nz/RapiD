@@ -31,6 +31,12 @@ fetch(APIROOT+'/__locked')
   .catch(console.error);
 
 
+function esc(str) {
+  // because btoa/atob is stupid but we need to use it for our data-url gpx extent thing
+  return str.replace(/ā/ig, 'aa').replace(/ē/ig, 'ee').replace(/ī/ig, 'ii').replace(/ō/ig, 'oo').replace(/ū/ig, 'uu');
+}
+
+
 function abortRequest(controller) {
   controller.abort();
 }
@@ -338,7 +344,7 @@ export default {
           <time>2021-03-08T22:14:43.088005</time>
         </metadata>
         <trk>
-          <name>Extent of the ${ds.name} data</name>
+          <name>Extent of the ${esc(ds.name)} data</name>
           <trkseg>
           <trkpt lat="${minLat-0.0003}" lon="${minLng-0.0003}"/>
           <trkpt lat="${maxLat+0.0003}" lon="${minLng-0.0003}"/>

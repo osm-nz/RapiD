@@ -150,10 +150,16 @@ osmEntity.prototype = {
                 merged[k] = t2;
             } else if (t1 !== t2) {
                 changed = true;
+                if (t1 === 'yes' || t2 === 'yes') {
+                    // if one of the values is the generic =yes, use the other (more specific) value
+                    // e.g. merging building=yes + building=farm --> building=farm
+                    merged[k] = (t1 === 'yes' ? t2 : t1);
+                } else {
                 merged[k] = utilUnicodeCharsTruncated(
                     utilArrayUnion(t1.split(/;\s*/), t2.split(/;\s*/)).join(';'),
                     255 // avoid exceeding character limit; see also services/osm.js -> maxCharsForTagValue()
                 );
+                }
             }
         }
         return changed ? this.update({ tags: merged }) : this;

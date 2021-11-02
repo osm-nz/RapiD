@@ -70,6 +70,7 @@ button.rapid-features.layer-off use {
     height: 3rem;
 }
 .rapid-inspector button.del-btn, .modal.rapid-modal button.del-btn { background: #f44336!important; }
+.rapid-inspector button.flag-btn, .modal.rapid-modal button.flag-btn { background: #ffa500!important; }
 .rapid-inspector button svg,
 .modal.rapid-modal button svg {
     color: #eee;
