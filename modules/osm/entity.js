@@ -154,6 +154,10 @@ osmEntity.prototype = {
                     // if one of the values is the generic =yes, use the other (more specific) value
                     // e.g. merging building=yes + building=farm --> building=farm
                     merged[k] = (t1 === 'yes' ? t2 : t1);
+                } else if (k === 'seamark:type') {
+                    // it's quite common to merge lights and topmarks onto other types, so we prefer the non-light non-topmark tag
+                    if (t2 && (t1 === 'topmark' || t1 === 'light_minor')) merged[k] = t2;
+                    if (t1 && (t2 === 'topmark' || t2 === 'light_minor')) merged[k] = t1;
                 } else {
                 merged[k] = utilUnicodeCharsTruncated(
                     utilArrayUnion(t1.split(/;\s*/), t2.split(/;\s*/)).join(';'),
