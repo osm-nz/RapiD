@@ -3658,7 +3658,57 @@
                     }
                 },
                 "depth": {
-                    "label": "Depth (Meters)"
+                    "label": "Depth (Meters)",
+                    "terms": ""
+                },
+                "depth/accuracy": {
+                    "label": "Depth Accuracy (Meters)",
+                    "terms": ""
+                },
+                "depth/exposition": {
+                    "label": "Depth Exposition",
+                    "terms": "",
+                    "options": {
+                        "within_range": "Within the range of depth of the surrounding depth area",
+                        "shoaler": "Shoaler than the range of depth of the surrounding depth area",
+                        "deeper": "Deeper than the range of depth of the surrounding depth area"
+                    }
+                },
+                "depth/source_quality": {
+                    "label": "Depth Quality",
+                    "terms": "",
+                    "options": {
+                        "known": "Depth known",
+                        "unknown": "Depth unknown",
+                        "doubtful": "Doubtful sounding",
+                        "unreliable": "Unreliable sounding",
+                        "no_bottom": "No bottom found at value shown",
+                        "least_depth_known": "Least depth known",
+                        "least_depth_unknown": "Least depth unknown, safe clearance at value shown",
+                        "not_surveyed": "Value reported (not surveyed)",
+                        "not_confirmed": "Value reported (not confirmed)",
+                        "maintained": "Maintained depth",
+                        "not_maintained": "Not regularly maintained"
+                    }
+                },
+                "depth/technique": {
+                    "label": "Depth Sounding Technique",
+                    "terms": "",
+                    "options": {
+                        "echo": "Found by echo- sounder",
+                        "sonar": "Swept by side-scan sonar",
+                        "multi-beam": "Found by multi-beam",
+                        "diver": "Found by diver",
+                        "lead-line": "Found by lead-line",
+                        "wire-drag": "Swept by wire-drag",
+                        "laser": "Found by laser",
+                        "acoustic": "Swept by vertical acoustic system",
+                        "electromagnetic": "Found by electromagnetic sensor",
+                        "photogrammetry": "Photogrammetry",
+                        "satellite_imagery": "Satellite imagery",
+                        "levelling": "Found by levelling",
+                        "computer_generated": "Computer generated"
+                    }
                 },
                 "descent": {
                     "label": "Total Descent",
@@ -4029,6 +4079,9 @@
                 },
                 "historic/wreck/date_sunk": {
                     "label": "Date Sunk"
+                },
+                "historic/wreck/type": {
+                    "label": "Wreck Type"
                 },
                 "historic/wreck/visible_at_high_tide": {
                     "label": "Visible At High Tide"
@@ -4925,6 +4978,67 @@
                 "scuba_diving": {
                     "label": "Services"
                 },
+                "seamark/anchorage/category": {
+                    "label": "Category",
+                    "options": {
+                        "unrestricted": "Unrestricted anchorage",
+                        "deep_water": "Deep water anchorage",
+                        "tanker": "Tanker anchorage",
+                        "explosives": "Explosives anchorage",
+                        "quarantine": "Quarantine anchorage",
+                        "seaplane": "Sea-plane anchorage",
+                        "small_craft": "Small craft anchorage",
+                        "small_craft_mooring": "Small craft mooring area",
+                        "24_hour": "Anchorage for periods up to 24 hours",
+                        "limited_period": "Anchorage for a limited period of time",
+                        "pushing": "Anchorage for pushing-navigation vessels",
+                        "non_pushing": "Anchorage for other vessels than pushing-navigation vessels",
+                        "dry_cargo": "Anchorage for dry cargo vessels",
+                        "raft": "Anchorage for rafts"
+                    }
+                },
+                "seamark/anchorage/period_end": {
+                    "label": "Active Period End",
+                    "terms": "",
+                    "placeholder": "YYYY-MM-DD"
+                },
+                "seamark/anchorage/period_start": {
+                    "label": "Active Period Start",
+                    "terms": "",
+                    "placeholder": "YYYY-MM-DD"
+                },
+                "seamark/anchorage/status": {
+                    "label": "Status",
+                    "options": {
+                        "permanent": "Permanent",
+                        "occasional": "Occasional",
+                        "recommended": "Recommended",
+                        "not_in_use": "Not in use",
+                        "intermittent": "Periodic/intermittent",
+                        "reserved": "Reserved",
+                        "temporary": "Temporary",
+                        "private": "Private",
+                        "mandatory": "Mandatory",
+                        "destroyed": "Destroyed/ruined",
+                        "extinguished": "Extinguished",
+                        "illuminated": "Illuminated",
+                        "historic": "Historic",
+                        "public": "Public",
+                        "synchronized": "Synchronized",
+                        "watched": "Watched",
+                        "unwatched": "Un-watched",
+                        "existence_doubtful": "Existence doubtful",
+                        "on_request": " on request",
+                        "drop_away": "Drop away",
+                        "rising": "Rising",
+                        "increasing": "Increasing",
+                        "decreasing": "Decreasing",
+                        "strong": "Strong",
+                        "good": "Good",
+                        "moderate": "Moderate",
+                        "poor": "Poor"
+                    }
+                },
                 "seamark/beacon_isolated_danger/shape": {
                     "label": "Shape"
                 },
@@ -5000,14 +5114,309 @@
                     }
                 },
                 "seamark/mooring/category": {
-                    "label": "Category"
+                    "label": "Category",
+                    "options": {
+                        "dolphin": "Dolphin",
+                        "deviation_dolphin": "Deviation dolphin",
+                        "bollard": "Bollard",
+                        "wall": "Tie-up wall",
+                        "pile": "Post or pile",
+                        "chain": "Chain/wire/cable",
+                        "buoy": "Mooring buoy",
+                        "shore_ropes": "Shore ropes",
+                        "automatic": "Automatic",
+                        "trot": "Trot"
+                    }
+                },
+                "seamark/mooring/colour": {
+                    "label": "Colour",
+                    "terms": "",
+                    "options": {
+                        "white": "White",
+                        "black": "Black",
+                        "red": "Red",
+                        "green": "Green",
+                        "blue": "Blue",
+                        "yellow": "Yellow",
+                        "grey": "Grey",
+                        "brown": "Brown",
+                        "amber": "Amber",
+                        "violet": "Violet",
+                        "orange": "Orange",
+                        "magenta": "Magenta",
+                        "pink": "Pink"
+                    }
+                },
+                "seamark/mooring/shape": {
+                    "label": "Shape",
+                    "terms": "",
+                    "options": {
+                        "conical": "Conical (nun, ogival)",
+                        "can": "Can (cylindrical)",
+                        "spherical": "Spherical",
+                        "pillar": "Pillar",
+                        "spar": "Spar (spindle)",
+                        "barrel": "Barrel (tun)",
+                        "super-buoy": "Super-buoy",
+                        "ice_buoy": "Ice buoy"
+                    }
+                },
+                "seamark/obstruction/category": {
+                    "label": "Category",
+                    "options": {
+                        "stump": "Snag/stump",
+                        "wellhead": "Wellhead",
+                        "diffuser": "Diffuser",
+                        "crib": "Crib",
+                        "fish_haven": "Fish haven",
+                        "foul_area": "Foul area",
+                        "foul_ground": "Foul ground",
+                        "ice_boom": "Ice boom",
+                        "ground_tackle": "Ground tackle",
+                        "boom": "Boom"
+                    }
+                },
+                "seamark/obstruction/surface": {
+                    "label": "Obstruction Surface",
+                    "terms": "",
+                    "options": {
+                        "mud": "Mud",
+                        "clay": "Clay",
+                        "silt": "Silt",
+                        "sand": "Sand",
+                        "stone": "Stone",
+                        "gravel": "Gravel",
+                        "pebbles": "Pebbles",
+                        "cobbles": "Cobbles",
+                        "rock": "Rock",
+                        "marsh": "Marsh",
+                        "lava": "Lava",
+                        "snow": "Snow",
+                        "ice": "Ice",
+                        "coral": "Coral",
+                        "swamp": "Swamp",
+                        "bog": "Bog/moor",
+                        "shells": "Shells",
+                        "boulder": "Boulder"
+                    }
+                },
+                "seamark/obstruction/water_level": {
+                    "label": "Water Level",
+                    "options": {
+                        "part-submerged": "Partly submerged at high water",
+                        "dry": "Always dry",
+                        "submerged": "Always under water/submerged",
+                        "covers": "Covers and uncovers",
+                        "awash": "Awash",
+                        "floods": "Subject to inundation or flooding",
+                        "floating": "Floating",
+                        "above_mwl": "Above mean water level",
+                        "below_mwl": "Below mean water level"
+                    }
+                },
+                "seamark/pile/category": {
+                    "label": "Category",
+                    "options": {
+                        "stake": "Stake",
+                        "snag": "Snag",
+                        "post": "Post",
+                        "tripodal": "Tripodal"
+                    }
+                },
+                "seamark/platform/category": {
+                    "label": "Category",
+                    "options": {
+                        "oil": "Oil derrick/rig",
+                        "production": "Production platform",
+                        "observation": "Observation/research platform",
+                        "alp": "Articulated loading platform (alp)",
+                        "salm": "Single anchor leg mooring (salm)",
+                        "mooring": "Mooring tower",
+                        "artificial_island": "Artificial island",
+                        "fpso": "FPSO: floating production, storage and off-loading vessel",
+                        "accommodation": "Accommodation platform",
+                        "nccb": "NCCB: navigation, communication and control buoy"
+                    }
+                },
+                "seamark/platform/product": {
+                    "label": "Product",
+                    "options": {
+                        "oil": "Oil",
+                        "gas": "Gas",
+                        "water": "Water",
+                        "stone": "Stone",
+                        "coal": "Coal",
+                        "ore": "Ore",
+                        "chemicals": "Chemicals",
+                        "drinking_water": "Drinking water",
+                        "milk": "Milk",
+                        "bauxite": "Bauxite",
+                        "coke": "Coke",
+                        "iron_ingots": "Iron ingots",
+                        "salt": "Salt",
+                        "sand": "Sand",
+                        "timber": "Timber",
+                        "sawdust": "Sawdust/wood chips",
+                        "scrap metal": "Scrap metal",
+                        "lng": "Liquified natural gas (LNG)",
+                        "lpg": "Liquified petroleum gas (LPG)",
+                        "wine": "Wine",
+                        "cement": "Cement",
+                        "grain": "Grain"
+                    }
+                },
+                "seamark/rock/water_level": {
+                    "label": "Water Level",
+                    "options": {
+                        "part-submerged": "Partly submerged at high water",
+                        "dry": "Always dry",
+                        "submerged": "Always under water/submerged",
+                        "covers": "Covers and uncovers",
+                        "awash": "Awash",
+                        "floods": "Subject to inundation or flooding",
+                        "floating": "Floating",
+                        "above_mwl": "Above mean water level",
+                        "below_mwl": "Below mean water level"
+                    }
+                },
+                "seamark/topmark/category": {
+                    "label": "Topmark",
+                    "options": {
+                        "firing_danger_area": "Firing danger mark",
+                        "target": "Target mark",
+                        "marker_ship": "Marker ship mark",
+                        "degaussing_range": "Degaussing range mark",
+                        "barge": "Barge mark",
+                        "cable": "Cable mark",
+                        "spoil_ground": "Spoil ground mark",
+                        "outfall": "Outfall mark",
+                        "odas": "ODAS",
+                        "recording": "Recording mark",
+                        "seaplane_anchorage": "Seaplane anchorage mark",
+                        "recreation_zone": "Recreation zone mark",
+                        "private": "Private mark",
+                        "mooring": "Mooring mark",
+                        "lanby": "LANBY",
+                        "leading": "Leading mark",
+                        "measured_distance": "Measured distance mark",
+                        "notice": "Notice mark",
+                        "tss": "TSS mark",
+                        "no_anchoring": "Anchoring prohibited mark",
+                        "no_berthing": "Berthing prohibited mark",
+                        "no_overtaking": "Overtaking prohibited mark",
+                        "no_two-way_traffic": "Two-way traffic prohibited mark",
+                        "reduced_wake": "Reduced wake mark",
+                        "speed_limit": "Speed limit mark",
+                        "stop": "Stop mark",
+                        "warning": "General warning mark",
+                        "sound_ship_siren": "Sound ships siren mark",
+                        "restricted_vertical_clearance": "Restricted vertical clearance mark",
+                        "maximum_vessel_draught": "Maximum vessel's draught mark",
+                        "restricted_horizontal_clearance": "Restricted horizontal clearance mark",
+                        "strong_current": "Strong current warning mark",
+                        "berthing": "Berthing permitted mark",
+                        "overhead_power_cable": "Overhead power cable mark",
+                        "channel_edge_gradient": "Channel edge gradient mark",
+                        "telephone": "Telephone mark",
+                        "ferry_crossing": "Ferry crossing mark",
+                        "marine_traffic_lights": "Marine traffic lights",
+                        "pipeline": "Pipeline mark",
+                        "anchorage": "Anchorage mark",
+                        "clearing": "Clearing mark",
+                        "control": "Control mark",
+                        "diving": "Diving mark",
+                        "refuge_beacon": "Refuge beacon",
+                        "foul_ground": "Foul ground mark",
+                        "yachting": "Yachting mark",
+                        "heliport": "Heliport mark",
+                        "gps": "GPS mark",
+                        "seaplane_landing": "Seaplane landing mark",
+                        "no_entry": "Entry prohibited mark",
+                        "work_in_progress": "Work in progress mark",
+                        "unknown_purpose": "Mark with unknown purpose",
+                        "wellhead": "Wellhead mark",
+                        "channel_separation": "Channel separation mark",
+                        "marine_farm": "Marine farm mark",
+                        "artificial_reef": "Artificial reef mark",
+                        "ice": "Ice Mark",
+                        "nature_reserve": "Nature Reserve Mark",
+                        "fish_aggregator": "Fish Aggregating Device",
+                        "wreck": "Wreck mark",
+                        "customs": "Customs Mark",
+                        "causeway": "Causeway Mark",
+                        "wave_recorder": "Wave Recorder",
+                        "no_jetski": "Jetski Prohibited"
+                    }
+                },
+                "seamark/topmark/colour": {
+                    "label": "Topmark Colour",
+                    "options": {
+                        "white": "White",
+                        "black": "Black",
+                        "red": "Red",
+                        "green": "Green",
+                        "blue": "Blue",
+                        "yellow": "Yellow",
+                        "grey": "Grey",
+                        "brown": "Brown",
+                        "amber": "Amber",
+                        "violet": "Violet",
+                        "orange": "Orange",
+                        "magenta": "Magenta",
+                        "pink": "Pink"
+                    }
+                },
+                "seamark/topmark/shape": {
+                    "label": "Topmark Shape",
+                    "options": {
+                        "cone, point up": "Cone, point up",
+                        "cone, point down": "Cone, point down",
+                        "sphere": "Sphere",
+                        "2 spheres": "2 spheres",
+                        "cylinder": "Cylinder (can)",
+                        "board": "Board",
+                        "x-shape": "X-shape (St. Andrew's cross)",
+                        "cross": "Upright cross (St George's cross)",
+                        "cube, point up": "Cube, point up",
+                        "2 cones point together": "2 cones, point to point",
+                        "2 cones base together": "2 cones, base to base",
+                        "rhombus": "Rhombus (diamond)",
+                        "2 cones up": "2 cones (points upward)",
+                        "2 cones down": "2 cones (points downward)",
+                        "besom, point up": "Besom, point up (broom or perch)",
+                        "besom, point down": "Besom, point down (broom or perch)",
+                        "flag": "Flag",
+                        "sphere over rhombus": "Sphere over rhombus",
+                        "square": "Square",
+                        "rectangle, horizontal": "Rectangle, horizontal",
+                        "rectangle, vertical": "Rectangle, vertical",
+                        "trapezium, up": "Trapezium, up",
+                        "trapezium, down": "Trapezium, down",
+                        "triangle, point up": "Triangle, point up",
+                        "triangle, point down": "Triangle, point down",
+                        "circle": "Circle",
+                        "2 upright crosses": "Two upright crosses (one over the other)",
+                        "t-shape": "T-shape",
+                        "triangle, point up over circle": "Triangle pointing up over a circle",
+                        "upright cross over circle": "Upright cross over a circle",
+                        "rhombus over circle": "Rhombus over a circle",
+                        "circle over triangle, point up\t": "Circle over a triangle pointing up",
+                        "other": "Other shape (see INFORM)"
+                    }
                 },
                 "seamark/type": {
                     "label": "Seamark",
                     "terms": "marine"
                 },
                 "seamark/wreck/category": {
-                    "label": "Category"
+                    "label": "Category",
+                    "options": {
+                        "non-dangerous": "Non-dangerous wreck",
+                        "dangerous": "Dangerous wreck",
+                        "distributed_remains": "Distributed remains of wreck",
+                        "mast_showing": "Wreck showing mast/masts",
+                        "hull_showing": "Wreck showing any portion of hull or superstructure"
+                    }
                 },
                 "seasonal": {
                     "label": "Seasonal"
@@ -8703,6 +9112,10 @@
                     "name": "Observatory",
                     "terms": "astronomical,meteorological"
                 },
+                "man_made/offshore_platform": {
+                    "name": "Offshore Platform",
+                    "terms": "oil rig,offshore platform,platform,drilling rig,bore,drilling rig,oil derrick,oil drill,oil horse,oil rig,oil pump,petroleum well,pumpjack"
+                },
                 "man_made/petroleum_well": {
                     "name": "Oil Well",
                     "terms": "drilling rig,oil derrick,oil drill,oil horse,oil rig,oil pump,petroleum well,pumpjack"
@@ -9791,6 +10204,10 @@
                     "name": "Ferry Route",
                     "terms": "boat,merchant vessel,ship,water bus,water shuttle,water taxi"
                 },
+                "seamark/anchorage": {
+                    "name": "Anchorage Area",
+                    "terms": "dolphin,pile,bollard,buoy,post"
+                },
                 "seamark/beacon_isolated_danger": {
                     "name": "Danger Beacon",
                     "terms": "beacon isolated danger,isolated danger beacon,iala"
@@ -9811,9 +10228,29 @@
                     "name": "Red Buoy",
                     "terms": "lateral buoy,buoy lateral,cevni,channel marker,iala,lateral mark"
                 },
+                "seamark/mooring_dolphin": {
+                    "name": "Mooring Dolphin",
+                    "terms": "dolphin,pile,bollard,buoy,post"
+                },
                 "seamark/mooring": {
                     "name": "Mooring",
                     "terms": "dolphin,pile,bollard,buoy,post"
+                },
+                "seamark/obstruction": {
+                    "name": "Marine Obstruction",
+                    "terms": "obstruction,obstacle,hazard,block,barrier"
+                },
+                "seamark/pile": {
+                    "name": "Pile",
+                    "terms": "pile"
+                },
+                "seamark/rock": {
+                    "name": "Marine Rock",
+                    "terms": "boulder,stone,rock"
+                },
+                "seamark/seaplane_landing_area": {
+                    "name": "Seaplane Landing Area",
+                    "terms": "seaplane,seaplane landing,seaport,airport,water runway"
                 },
                 "shop": {
                     "name": "Shop",
