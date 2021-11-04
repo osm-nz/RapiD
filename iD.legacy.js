@@ -263,7 +263,7 @@
 	(module.exports = function (key, value) {
 	  return sharedStore[key] || (sharedStore[key] = value !== undefined ? value : {});
 	})('versions', []).push({
-	  version: '3.19.0',
+	  version: '3.19.1',
 	  mode:  'global',
 	  copyright: '© 2021 Denis Pushkarev (zloirock.ru)'
 	});
@@ -7638,6 +7638,29 @@
 	  parseInt: numberParseInt
 	});
 
+	// FF26- bug: ArrayBuffers are non-extensible, but Object.isExtensible does not report it
+
+
+	var arrayBufferNonExtensible = fails(function () {
+	  if (typeof ArrayBuffer == 'function') {
+	    var buffer = new ArrayBuffer(8);
+	    // eslint-disable-next-line es/no-object-isextensible, es/no-object-defineproperty -- safe
+	    if (Object.isExtensible(buffer)) Object.defineProperty(buffer, 'a', { value: 8 });
+	  }
+	});
+
+	// eslint-disable-next-line es/no-object-isextensible -- safe
+	var $isExtensible = Object.isExtensible;
+	var FAILS_ON_PRIMITIVES$4 = fails(function () { $isExtensible(1); });
+
+	// `Object.isExtensible` method
+	// https://tc39.es/ecma262/#sec-object.isextensible
+	var objectIsExtensible = (FAILS_ON_PRIMITIVES$4 || arrayBufferNonExtensible) ? function isExtensible(it) {
+	  if (!isObject(it)) return false;
+	  if (arrayBufferNonExtensible && classofRaw(it) == 'ArrayBuffer') return false;
+	  return $isExtensible ? $isExtensible(it) : true;
+	} : $isExtensible;
+
 	var freezing = !fails(function () {
 	  // eslint-disable-next-line es/no-object-isextensible, es/no-object-preventextensions -- required for testing
 	  return Object.isExtensible(Object.preventExtensions({}));
@@ -7650,14 +7673,10 @@
 
 
 
+
 	var REQUIRED = false;
 	var METADATA = uid('meta');
 	var id = 0;
-
-	// eslint-disable-next-line es/no-object-isextensible -- safe
-	var isExtensible = Object.isExtensible || function () {
-	  return true;
-	};
 
 	var setMetadata = function (it) {
 	  defineProperty(it, METADATA, { value: {
@@ -7671,7 +7690,7 @@
 	  if (!isObject(it)) return typeof it == 'symbol' ? it : (typeof it == 'string' ? 'S' : 'P') + it;
 	  if (!hasOwnProperty_1(it, METADATA)) {
 	    // can't set metadata to uncaught frozen object
-	    if (!isExtensible(it)) return 'F';
+	    if (!objectIsExtensible(it)) return 'F';
 	    // not necessary to add metadata
 	    if (!create) return 'E';
 	    // add missing metadata
@@ -7683,7 +7702,7 @@
 	var getWeakData = function (it, create) {
 	  if (!hasOwnProperty_1(it, METADATA)) {
 	    // can't set metadata to uncaught frozen object
-	    if (!isExtensible(it)) return true;
+	    if (!objectIsExtensible(it)) return true;
 	    // not necessary to add metadata
 	    if (!create) return false;
 	    // add missing metadata
@@ -7694,7 +7713,7 @@
 
 	// add metadata on freeze-family methods calling
 	var onFreeze = function (it) {
-	  if (freezing && REQUIRED && isExtensible(it) && !hasOwnProperty_1(it, METADATA)) setMetadata(it);
+	  if (freezing && REQUIRED && objectIsExtensible(it) && !hasOwnProperty_1(it, METADATA)) setMetadata(it);
 	  return it;
 	};
 
@@ -16794,11 +16813,11 @@
 
 	// eslint-disable-next-line es/no-object-freeze -- safe
 	var $freeze = Object.freeze;
-	var FAILS_ON_PRIMITIVES$4 = fails(function () { $freeze(1); });
+	var FAILS_ON_PRIMITIVES$5 = fails(function () { $freeze(1); });
 
 	// `Object.freeze` method
 	// https://tc39.es/ecma262/#sec-object.freeze
-	_export({ target: 'Object', stat: true, forced: FAILS_ON_PRIMITIVES$4, sham: !freezing }, {
+	_export({ target: 'Object', stat: true, forced: FAILS_ON_PRIMITIVES$5, sham: !freezing }, {
 	  freeze: function freeze(it) {
 	    return $freeze && isObject(it) ? $freeze(onFreeze(it)) : it;
 	  }
@@ -23816,6 +23835,10 @@
 	          // if one of the values is the generic =yes, use the other (more specific) value
 	          // e.g. merging building=yes + building=farm --> building=farm
 	          merged[k] = t1 === 'yes' ? t2 : t1;
+	        } else if (k === 'seamark:type') {
+	          // it's quite common to merge lights and topmarks onto other types, so we prefer the non-light non-topmark tag
+	          if (t2 && (t1 === 'topmark' || t1 === 'light_minor')) merged[k] = t2;
+	          if (t1 && (t2 === 'topmark' || t2 === 'light_minor')) merged[k] = t1;
 	        } else {
 	          merged[k] = utilUnicodeCharsTruncated(utilArrayUnion(t1.split(/;\s*/), t2.split(/;\s*/)).join(';'), 255 // avoid exceeding character limit; see also services/osm.js -> maxCharsForTagValue()
 	          );
