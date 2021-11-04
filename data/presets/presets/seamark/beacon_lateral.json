@@ -1,4 +1,5 @@
 {
+    "icon": "maki-communications-tower",
     "fields": [
         "ref",
         "operator",
@@ -6,12 +7,11 @@
         "seamark/beacon_lateral/category",
         "seamark/beacon_lateral/shape",
         "seamark/beacon_lateral/system",
-        "seamark/type"
+        "seamark/topmark/category",
+        "seamark/topmark/shape",
+        "seamark/topmark/colour"
     ],
-    "geometry": [
-        "point",
-        "vertex"
-    ],
+    "geometry": ["point", "vertex"],
     "terms": [
         "lateral beacon",
         "beacon lateral",

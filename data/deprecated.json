@@ -395,6 +395,10 @@
     "replace": {"changing_table": "yes"}
   },
   {
+    "old": {"man_made": "dolphin"},
+    "replace": {"man_made": "dolphin", "seamark:type": "mooring", "seamark:mooring:category": "dolphin"}
+  },
+  {
     "old": {"direction": "all"},
     "replace": {"direction": "both"}
   },

@@ -1,0 +1,12 @@
+{
+    "key": "depth:exposition",
+    "type": "combo",
+    "label": "Depth Exposition",
+    "strings": {
+        "options": {
+            "within_range": "Within the range of depth of the surrounding depth area",
+            "shoaler": "Shoaler than the range of depth of the surrounding depth area",
+            "deeper": "Deeper than the range of depth of the surrounding depth area"
+        }
+    }
+}

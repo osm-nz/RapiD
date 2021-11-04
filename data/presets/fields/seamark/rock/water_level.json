@@ -1,0 +1,18 @@
+{
+    "key": "seamark:rock:water_level",
+    "type": "combo",
+    "label": "Water Level",
+    "strings": {
+        "options": {
+            "part-submerged": "Partly submerged at high water",
+            "dry": "Always dry",
+            "submerged": "Always under water/submerged",
+            "covers": "Covers and uncovers",
+            "awash": "Awash",
+            "floods": "Subject to inundation or flooding",
+            "floating": "Floating",
+            "above_mwl": "Above mean water level",
+            "below_mwl": "Below mean water level"
+        }
+    }
+}

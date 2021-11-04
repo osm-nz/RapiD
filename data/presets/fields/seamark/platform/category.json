@@ -1,0 +1,19 @@
+{
+    "key": "seamark:platform:category",
+    "type": "combo",
+    "label": "Category",
+    "strings": {
+        "options": {
+            "oil": "Oil derrick/rig",
+            "production": "Production platform",
+            "observation": "Observation/research platform",
+            "alp": "Articulated loading platform (alp)",
+            "salm": "Single anchor leg mooring (salm)",
+            "mooring": "Mooring tower",
+            "artificial_island": "Artificial island",
+            "fpso": "FPSO: floating production, storage and off-loading vessel",
+            "accommodation": "Accommodation platform",
+            "nccb": "NCCB: navigation, communication and control buoy"
+        }
+    }
+}

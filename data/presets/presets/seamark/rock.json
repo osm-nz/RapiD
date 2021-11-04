@@ -1,0 +1,10 @@
+{
+    "icon": "temaki-boulder2",
+    "fields": ["name", "seamark/rock/water_level"],
+    "geometry": ["point", "area"],
+    "terms": ["boulder", "stone", "rock"],
+    "tags": {
+        "seamark:type": "rock"
+    },
+    "name": "Marine Rock"
+}

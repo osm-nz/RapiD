@@ -1,0 +1,36 @@
+{
+    "key": "seamark:anchorage:status",
+    "type": "combo",
+    "label": "Status",
+    "strings": {
+        "options": {
+            "permanent": "Permanent",
+            "occasional": "Occasional",
+            "recommended": "Recommended",
+            "not_in_use": "Not in use",
+            "intermittent": "Periodic/intermittent",
+            "reserved": "Reserved",
+            "temporary": "Temporary",
+            "private": "Private",
+            "mandatory": "Mandatory",
+            "destroyed": "Destroyed/ruined",
+            "extinguished": "Extinguished",
+            "illuminated": "Illuminated",
+            "historic": "Historic",
+            "public": "Public",
+            "synchronized": "Synchronized",
+            "watched": "Watched",
+            "unwatched": "Un-watched",
+            "existence_doubtful": "Existence doubtful",
+            "on_request": " on request",
+            "drop_away": "Drop away",
+            "rising": "Rising",
+            "increasing": "Increasing",
+            "decreasing": "Decreasing",
+            "strong": "Strong",
+            "good": "Good",
+            "moderate": "Moderate",
+            "poor": "Poor"
+        }
+    }
+}

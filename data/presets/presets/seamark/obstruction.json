@@ -1,0 +1,21 @@
+{
+    "icon": "maki-roadblock",
+    "fields": [
+        "seamark/obstruction/category",
+        "seamark/obstruction/water_level"
+    ],
+    "moreFields": [
+        "seamark/obstruction/surface",
+        "depth",
+        "depth/exposition",
+        "depth/source_quality",
+        "depth/technique",
+        "depth/accuracy"
+    ],
+    "geometry": ["point", "area"],
+    "terms": ["obstruction", "obstacle", "hazard", "block", "barrier"],
+    "tags": {
+        "seamark:type": "obstruction"
+    },
+    "name": "Marine Obstruction"
+}

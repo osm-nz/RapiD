@@ -1,0 +1,6 @@
+{
+    "key": "seamark:anchorage:period_start",
+    "type": "text",
+    "label": "Active Period Start",
+    "placeholder": "YYYY-MM-DD"
+}

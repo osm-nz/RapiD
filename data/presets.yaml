@@ -665,6 +665,80 @@ en:
       depth:
         # depth=*
         label: Depth (Meters)
+        terms: '[translate with synonyms or related terms for ''Depth (Meters)'', separated by commas]'
+      depth/accuracy:
+        # 'depth:accuracy=*'
+        label: Depth Accuracy (Meters)
+        terms: '[translate with synonyms or related terms for ''Depth Accuracy (Meters)'', separated by commas]'
+      depth/exposition:
+        # 'depth:exposition=*'
+        label: Depth Exposition
+        options:
+          # 'depth:exposition=deeper'
+          deeper: Deeper than the range of depth of the surrounding depth area
+          # 'depth:exposition=shoaler'
+          shoaler: Shoaler than the range of depth of the surrounding depth area
+          # 'depth:exposition=within_range'
+          within_range: Within the range of depth of the surrounding depth area
+        terms: '[translate with synonyms or related terms for ''Depth Exposition'', separated by commas]'
+      depth/source_quality:
+        # 'depth:source_quality=*'
+        label: Depth Quality
+        options:
+          # 'depth:source_quality=doubtful'
+          doubtful: Doubtful sounding
+          # 'depth:source_quality=known'
+          known: Depth known
+          # 'depth:source_quality=least_depth_known'
+          least_depth_known: Least depth known
+          # 'depth:source_quality=least_depth_unknown'
+          least_depth_unknown: 'Least depth unknown, safe clearance at value shown'
+          # 'depth:source_quality=maintained'
+          maintained: Maintained depth
+          # 'depth:source_quality=no_bottom'
+          no_bottom: No bottom found at value shown
+          # 'depth:source_quality=not_confirmed'
+          not_confirmed: Value reported (not confirmed)
+          # 'depth:source_quality=not_maintained'
+          not_maintained: Not regularly maintained
+          # 'depth:source_quality=not_surveyed'
+          not_surveyed: Value reported (not surveyed)
+          # 'depth:source_quality=unknown'
+          unknown: Depth unknown
+          # 'depth:source_quality=unreliable'
+          unreliable: Unreliable sounding
+        terms: '[translate with synonyms or related terms for ''Depth Quality'', separated by commas]'
+      depth/technique:
+        # 'depth:technique=*'
+        label: Depth Sounding Technique
+        options:
+          # 'depth:technique=acoustic'
+          acoustic: Swept by vertical acoustic system
+          # 'depth:technique=computer_generated'
+          computer_generated: Computer generated
+          # 'depth:technique=diver'
+          diver: Found by diver
+          # 'depth:technique=echo'
+          echo: Found by echo- sounder
+          # 'depth:technique=electromagnetic'
+          electromagnetic: Found by electromagnetic sensor
+          # 'depth:technique=laser'
+          laser: Found by laser
+          # 'depth:technique=lead-line'
+          lead-line: Found by lead-line
+          # 'depth:technique=levelling'
+          levelling: Found by levelling
+          # 'depth:technique=multi-beam'
+          multi-beam: Found by multi-beam
+          # 'depth:technique=photogrammetry'
+          photogrammetry: Photogrammetry
+          # 'depth:technique=satellite_imagery'
+          satellite_imagery: Satellite imagery
+          # 'depth:technique=sonar'
+          sonar: Swept by side-scan sonar
+          # 'depth:technique=wire-drag'
+          wire-drag: Swept by wire-drag
+        terms: '[translate with synonyms or related terms for ''Depth Sounding Technique'', separated by commas]'
       descent:
         # descent=*
         label: Total Descent
@@ -1075,6 +1149,9 @@ en:
       historic/wreck/date_sunk:
         # 'wreck:date_sunk=*'
         label: Date Sunk
+      historic/wreck/type:
+        # 'wreck:type=*'
+        label: Wreck Type
       historic/wreck/visible_at_high_tide:
         # 'wreck:visible_at_high_tide=*'
         label: Visible At High Tide
@@ -2158,6 +2235,108 @@ en:
       scuba_diving:
         # 'scuba_diving:=*'
         label: Services
+      seamark/anchorage/category:
+        # 'seamark:anchorage:category=*'
+        label: Category
+        options:
+          # 'seamark:anchorage:category=24_hour'
+          24_hour: Anchorage for periods up to 24 hours
+          # 'seamark:anchorage:category=deep_water'
+          deep_water: Deep water anchorage
+          # 'seamark:anchorage:category=dry_cargo'
+          dry_cargo: Anchorage for dry cargo vessels
+          # 'seamark:anchorage:category=explosives'
+          explosives: Explosives anchorage
+          # 'seamark:anchorage:category=limited_period'
+          limited_period: Anchorage for a limited period of time
+          # 'seamark:anchorage:category=non_pushing'
+          non_pushing: Anchorage for other vessels than pushing-navigation vessels
+          # 'seamark:anchorage:category=pushing'
+          pushing: Anchorage for pushing-navigation vessels
+          # 'seamark:anchorage:category=quarantine'
+          quarantine: Quarantine anchorage
+          # 'seamark:anchorage:category=raft'
+          raft: Anchorage for rafts
+          # 'seamark:anchorage:category=seaplane'
+          seaplane: Sea-plane anchorage
+          # 'seamark:anchorage:category=small_craft'
+          small_craft: Small craft anchorage
+          # 'seamark:anchorage:category=small_craft_mooring'
+          small_craft_mooring: Small craft mooring area
+          # 'seamark:anchorage:category=tanker'
+          tanker: Tanker anchorage
+          # 'seamark:anchorage:category=unrestricted'
+          unrestricted: Unrestricted anchorage
+      seamark/anchorage/period_end:
+        # 'seamark:anchorage:period_end=*'
+        label: Active Period End
+        # seamark/anchorage/period_end field placeholder
+        placeholder: YYYY-MM-DD
+        terms: '[translate with synonyms or related terms for ''Active Period End'', separated by commas]'
+      seamark/anchorage/period_start:
+        # 'seamark:anchorage:period_start=*'
+        label: Active Period Start
+        # seamark/anchorage/period_start field placeholder
+        placeholder: YYYY-MM-DD
+        terms: '[translate with synonyms or related terms for ''Active Period Start'', separated by commas]'
+      seamark/anchorage/status:
+        # 'seamark:anchorage:status=*'
+        label: Status
+        options:
+          # 'seamark:anchorage:status=decreasing'
+          decreasing: Decreasing
+          # 'seamark:anchorage:status=destroyed'
+          destroyed: Destroyed/ruined
+          # 'seamark:anchorage:status=drop_away'
+          drop_away: Drop away
+          # 'seamark:anchorage:status=existence_doubtful'
+          existence_doubtful: Existence doubtful
+          # 'seamark:anchorage:status=extinguished'
+          extinguished: Extinguished
+          # 'seamark:anchorage:status=good'
+          good: Good
+          # 'seamark:anchorage:status=historic'
+          historic: Historic
+          # 'seamark:anchorage:status=illuminated'
+          illuminated: Illuminated
+          # 'seamark:anchorage:status=increasing'
+          increasing: Increasing
+          # 'seamark:anchorage:status=intermittent'
+          intermittent: Periodic/intermittent
+          # 'seamark:anchorage:status=mandatory'
+          mandatory: Mandatory
+          # 'seamark:anchorage:status=moderate'
+          moderate: Moderate
+          # 'seamark:anchorage:status=not_in_use'
+          not_in_use: Not in use
+          # 'seamark:anchorage:status=occasional'
+          occasional: Occasional
+          # 'seamark:anchorage:status=on_request'
+          on_request: ' on request'
+          # 'seamark:anchorage:status=permanent'
+          permanent: Permanent
+          # 'seamark:anchorage:status=poor'
+          poor: Poor
+          # 'seamark:anchorage:status=private'
+          private: Private
+          # 'seamark:anchorage:status=public'
+          public: Public
+          # 'seamark:anchorage:status=recommended'
+          recommended: Recommended
+          # 'seamark:anchorage:status=reserved'
+          reserved: Reserved
+          # 'seamark:anchorage:status=rising'
+          rising: Rising
+          # 'seamark:anchorage:status=strong'
+          strong: Strong
+          # 'seamark:anchorage:status=synchronized'
+          synchronized: Synchronized
+          # 'seamark:anchorage:status=temporary'
+          temporary: Temporary
+          # 'seamark:anchorage:status=unwatched'
+          unwatched: Un-watched
+          # 'seamark:anchorage:status=watched'
+          watched: Watched
       seamark/beacon_isolated_danger/shape:
         # 'seamark:beacon_isolated_danger:shape=*'
         label: Shape
@@ -2264,6 +2443,504 @@ en:
       seamark/mooring/category:
         # 'seamark:mooring:category=*'
         label: Category
+        options:
+          # 'seamark:mooring:category=automatic'
+          automatic: Automatic
+          # 'seamark:mooring:category=bollard'
+          bollard: Bollard
+          # 'seamark:mooring:category=buoy'
+          buoy: Mooring buoy
+          # 'seamark:mooring:category=chain'
+          chain: Chain/wire/cable
+          # 'seamark:mooring:category=deviation_dolphin'
+          deviation_dolphin: Deviation dolphin
+          # 'seamark:mooring:category=dolphin'
+          dolphin: Dolphin
+          # 'seamark:mooring:category=pile'
+          pile: Post or pile
+          # 'seamark:mooring:category=shore_ropes'
+          shore_ropes: Shore ropes
+          # 'seamark:mooring:category=trot'
+          trot: Trot
+          # 'seamark:mooring:category=wall'
+          wall: Tie-up wall
+      seamark/mooring/colour:
+        # 'seamark:mooring:colour=*'
+        label: Colour
+        options:
+          # 'seamark:mooring:colour=amber'
+          amber: Amber
+          # 'seamark:mooring:colour=black'
+          black: Black
+          # 'seamark:mooring:colour=blue'
+          blue: Blue
+          # 'seamark:mooring:colour=brown'
+          brown: Brown
+          # 'seamark:mooring:colour=green'
+          green: Green
+          # 'seamark:mooring:colour=grey'
+          grey: Grey
+          # 'seamark:mooring:colour=magenta'
+          magenta: Magenta
+          # 'seamark:mooring:colour=orange'
+          orange: Orange
+          # 'seamark:mooring:colour=pink'
+          pink: Pink
+          # 'seamark:mooring:colour=red'
+          red: Red
+          # 'seamark:mooring:colour=violet'
+          violet: Violet
+          # 'seamark:mooring:colour=white'
+          white: White
+          # 'seamark:mooring:colour=yellow'
+          yellow: Yellow
+        terms: '[translate with synonyms or related terms for ''Colour'', separated by commas]'
+      seamark/mooring/shape:
+        # 'seamark:mooring:shape=*'
+        label: Shape
+        options:
+          # 'seamark:mooring:shape=barrel'
+          barrel: Barrel (tun)
+          # 'seamark:mooring:shape=can'
+          can: Can (cylindrical)
+          # 'seamark:mooring:shape=conical'
+          conical: 'Conical (nun, ogival)'
+          # 'seamark:mooring:shape=ice_buoy'
+          ice_buoy: Ice buoy
+          # 'seamark:mooring:shape=pillar'
+          pillar: Pillar
+          # 'seamark:mooring:shape=spar'
+          spar: Spar (spindle)
+          # 'seamark:mooring:shape=spherical'
+          spherical: Spherical
+          # 'seamark:mooring:shape=super-buoy'
+          super-buoy: Super-buoy
+        terms: '[translate with synonyms or related terms for ''Shape'', separated by commas]'
+      seamark/obstruction/category:
+        # 'seamark:obstruction:category=*'
+        label: Category
+        options:
+          # 'seamark:obstruction:category=boom'
+          boom: Boom
+          # 'seamark:obstruction:category=crib'
+          crib: Crib
+          # 'seamark:obstruction:category=diffuser'
+          diffuser: Diffuser
+          # 'seamark:obstruction:category=fish_haven'
+          fish_haven: Fish haven
+          # 'seamark:obstruction:category=foul_area'
+          foul_area: Foul area
+          # 'seamark:obstruction:category=foul_ground'
+          foul_ground: Foul ground
+          # 'seamark:obstruction:category=ground_tackle'
+          ground_tackle: Ground tackle
+          # 'seamark:obstruction:category=ice_boom'
+          ice_boom: Ice boom
+          # 'seamark:obstruction:category=stump'
+          stump: Snag/stump
+          # 'seamark:obstruction:category=wellhead'
+          wellhead: Wellhead
+      seamark/obstruction/surface:
+        # 'seamark:obstruction:surface=*'
+        label: Obstruction Surface
+        options:
+          # 'seamark:obstruction:surface=bog'
+          bog: Bog/moor
+          # 'seamark:obstruction:surface=boulder'
+          boulder: Boulder
+          # 'seamark:obstruction:surface=clay'
+          clay: Clay
+          # 'seamark:obstruction:surface=cobbles'
+          cobbles: Cobbles
+          # 'seamark:obstruction:surface=coral'
+          coral: Coral
+          # 'seamark:obstruction:surface=gravel'
+          gravel: Gravel
+          # 'seamark:obstruction:surface=ice'
+          ice: Ice
+          # 'seamark:obstruction:surface=lava'
+          lava: Lava
+          # 'seamark:obstruction:surface=marsh'
+          marsh: Marsh
+          # 'seamark:obstruction:surface=mud'
+          mud: Mud
+          # 'seamark:obstruction:surface=pebbles'
+          pebbles: Pebbles
+          # 'seamark:obstruction:surface=rock'
+          rock: Rock
+          # 'seamark:obstruction:surface=sand'
+          sand: Sand
+          # 'seamark:obstruction:surface=shells'
+          shells: Shells
+          # 'seamark:obstruction:surface=silt'
+          silt: Silt
+          # 'seamark:obstruction:surface=snow'
+          snow: Snow
+          # 'seamark:obstruction:surface=stone'
+          stone: Stone
+          # 'seamark:obstruction:surface=swamp'
+          swamp: Swamp
+        terms: '[translate with synonyms or related terms for ''Obstruction Surface'', separated by commas]'
+      seamark/obstruction/water_level:
+        # 'seamark:obstruction:water_level=*'
+        label: Water Level
+        options:
+          # 'seamark:obstruction:water_level=above_mwl'
+          above_mwl: Above mean water level
+          # 'seamark:obstruction:water_level=awash'
+          awash: Awash
+          # 'seamark:obstruction:water_level=below_mwl'
+          below_mwl: Below mean water level
+          # 'seamark:obstruction:water_level=covers'
+          covers: Covers and uncovers
+          # 'seamark:obstruction:water_level=dry'
+          dry: Always dry
+          # 'seamark:obstruction:water_level=floating'
+          floating: Floating
+          # 'seamark:obstruction:water_level=floods'
+          floods: Subject to inundation or flooding
+          # 'seamark:obstruction:water_level=part-submerged'
+          part-submerged: Partly submerged at high water
+          # 'seamark:obstruction:water_level=submerged'
+          submerged: Always under water/submerged
+      seamark/pile/category:
+        # 'seamark:pile:category=*'
+        label: Category
+        options:
+          # 'seamark:pile:category=post'
+          post: Post
+          # 'seamark:pile:category=snag'
+          snag: Snag
+          # 'seamark:pile:category=stake'
+          stake: Stake
+          # 'seamark:pile:category=tripodal'
+          tripodal: Tripodal
+      seamark/platform/category:
+        # 'seamark:platform:category=*'
+        label: Category
+        options:
+          # 'seamark:platform:category=accommodation'
+          accommodation: Accommodation platform
+          # 'seamark:platform:category=alp'
+          alp: Articulated loading platform (alp)
+          # 'seamark:platform:category=artificial_island'
+          artificial_island: Artificial island
+          # 'seamark:platform:category=fpso'
+          fpso: 'FPSO: floating production, storage and off-loading vessel'
+          # 'seamark:platform:category=mooring'
+          mooring: Mooring tower
+          # 'seamark:platform:category=nccb'
+          nccb: 'NCCB: navigation, communication and control buoy'
+          # 'seamark:platform:category=observation'
+          observation: Observation/research platform
+          # 'seamark:platform:category=oil'
+          oil: Oil derrick/rig
+          # 'seamark:platform:category=production'
+          production: Production platform
+          # 'seamark:platform:category=salm'
+          salm: Single anchor leg mooring (salm)
+      seamark/platform/product:
+        # 'seamark:platform:product=*'
+        label: Product
+        options:
+          # 'seamark:platform:product=bauxite'
+          bauxite: Bauxite
+          # 'seamark:platform:product=cement'
+          cement: Cement
+          # 'seamark:platform:product=chemicals'
+          chemicals: Chemicals
+          # 'seamark:platform:product=coal'
+          coal: Coal
+          # 'seamark:platform:product=coke'
+          coke: Coke
+          # 'seamark:platform:product=drinking_water'
+          drinking_water: Drinking water
+          # 'seamark:platform:product=gas'
+          gas: Gas
+          # 'seamark:platform:product=grain'
+          grain: Grain
+          # 'seamark:platform:product=iron_ingots'
+          iron_ingots: Iron ingots
+          # 'seamark:platform:product=lng'
+          lng: Liquified natural gas (LNG)
+          # 'seamark:platform:product=lpg'
+          lpg: Liquified petroleum gas (LPG)
+          # 'seamark:platform:product=milk'
+          milk: Milk
+          # 'seamark:platform:product=oil'
+          oil: Oil
+          # 'seamark:platform:product=ore'
+          ore: Ore
+          # 'seamark:platform:product=salt'
+          salt: Salt
+          # 'seamark:platform:product=sand'
+          sand: Sand
+          # 'seamark:platform:product=sawdust'
+          sawdust: Sawdust/wood chips
+          scrap # 'seamark:platform:product=scrap metal'
+          scrap metal: Scrap metal
+          # 'seamark:platform:product=stone'
+          stone: Stone
+          # 'seamark:platform:product=timber'
+          timber: Timber
+          # 'seamark:platform:product=water'
+          water: Water
+          # 'seamark:platform:product=wine'
+          wine: Wine
+      seamark/rock/water_level:
+        # 'seamark:rock:water_level=*'
+        label: Water Level
+        options:
+          # 'seamark:rock:water_level=above_mwl'
+          above_mwl: Above mean water level
+          # 'seamark:rock:water_level=awash'
+          awash: Awash
+          # 'seamark:rock:water_level=below_mwl'
+          below_mwl: Below mean water level
+          # 'seamark:rock:water_level=covers'
+          covers: Covers and uncovers
+          # 'seamark:rock:water_level=dry'
+          dry: Always dry
+          # 'seamark:rock:water_level=floating'
+          floating: Floating
+          # 'seamark:rock:water_level=floods'
+          floods: Subject to inundation or flooding
+          # 'seamark:rock:water_level=part-submerged'
+          part-submerged: Partly submerged at high water
+          # 'seamark:rock:water_level=submerged'
+          submerged: Always under water/submerged
+      seamark/topmark/category:
+        # 'seamark:topmark:category=*'
+        label: Topmark
+        options:
+          # 'seamark:topmark:category=anchorage'
+          anchorage: Anchorage mark
+          # 'seamark:topmark:category=artificial_reef'
+          artificial_reef: Artificial reef mark
+          # 'seamark:topmark:category=barge'
+          barge: Barge mark
+          # 'seamark:topmark:category=berthing'
+          berthing: Berthing permitted mark
+          # 'seamark:topmark:category=cable'
+          cable: Cable mark
+          # 'seamark:topmark:category=causeway'
+          causeway: Causeway Mark
+          # 'seamark:topmark:category=channel_edge_gradient'
+          channel_edge_gradient: Channel edge gradient mark
+          # 'seamark:topmark:category=channel_separation'
+          channel_separation: Channel separation mark
+          # 'seamark:topmark:category=clearing'
+          clearing: Clearing mark
+          # 'seamark:topmark:category=control'
+          control: Control mark
+          # 'seamark:topmark:category=customs'
+          customs: Customs Mark
+          # 'seamark:topmark:category=degaussing_range'
+          degaussing_range: Degaussing range mark
+          # 'seamark:topmark:category=diving'
+          diving: Diving mark
+          # 'seamark:topmark:category=ferry_crossing'
+          ferry_crossing: Ferry crossing mark
+          # 'seamark:topmark:category=firing_danger_area'
+          firing_danger_area: Firing danger mark
+          # 'seamark:topmark:category=fish_aggregator'
+          fish_aggregator: Fish Aggregating Device
+          # 'seamark:topmark:category=foul_ground'
+          foul_ground: Foul ground mark
+          # 'seamark:topmark:category=gps'
+          gps: GPS mark
+          # 'seamark:topmark:category=heliport'
+          heliport: Heliport mark
+          # 'seamark:topmark:category=ice'
+          ice: Ice Mark
+          # 'seamark:topmark:category=lanby'
+          lanby: LANBY
+          # 'seamark:topmark:category=leading'
+          leading: Leading mark
+          # 'seamark:topmark:category=marine_farm'
+          marine_farm: Marine farm mark
+          # 'seamark:topmark:category=marine_traffic_lights'
+          marine_traffic_lights: Marine traffic lights
+          # 'seamark:topmark:category=marker_ship'
+          marker_ship: Marker ship mark
+          # 'seamark:topmark:category=maximum_vessel_draught'
+          maximum_vessel_draught: Maximum vessel's draught mark
+          # 'seamark:topmark:category=measured_distance'
+          measured_distance: Measured distance mark
+          # 'seamark:topmark:category=mooring'
+          mooring: Mooring mark
+          # 'seamark:topmark:category=nature_reserve'
+          nature_reserve: Nature Reserve Mark
+          # 'seamark:topmark:category=no_anchoring'
+          no_anchoring: Anchoring prohibited mark
+          # 'seamark:topmark:category=no_berthing'
+          no_berthing: Berthing prohibited mark
+          # 'seamark:topmark:category=no_entry'
+          no_entry: Entry prohibited mark
+          # 'seamark:topmark:category=no_jetski'
+          no_jetski: Jetski Prohibited
+          # 'seamark:topmark:category=no_overtaking'
+          no_overtaking: Overtaking prohibited mark
+          # 'seamark:topmark:category=no_two-way_traffic'
+          no_two-way_traffic: Two-way traffic prohibited mark
+          # 'seamark:topmark:category=notice'
+          notice: Notice mark
+          # 'seamark:topmark:category=odas'
+          odas: ODAS
+          # 'seamark:topmark:category=outfall'
+          outfall: Outfall mark
+          # 'seamark:topmark:category=overhead_power_cable'
+          overhead_power_cable: Overhead power cable mark
+          # 'seamark:topmark:category=pipeline'
+          pipeline: Pipeline mark
+          # 'seamark:topmark:category=private'
+          private: Private mark
+          # 'seamark:topmark:category=recording'
+          recording: Recording mark
+          # 'seamark:topmark:category=recreation_zone'
+          recreation_zone: Recreation zone mark
+          # 'seamark:topmark:category=reduced_wake'
+          reduced_wake: Reduced wake mark
+          # 'seamark:topmark:category=refuge_beacon'
+          refuge_beacon: Refuge beacon
+          # 'seamark:topmark:category=restricted_horizontal_clearance'
+          restricted_horizontal_clearance: Restricted horizontal clearance mark
+          # 'seamark:topmark:category=restricted_vertical_clearance'
+          restricted_vertical_clearance: Restricted vertical clearance mark
+          # 'seamark:topmark:category=seaplane_anchorage'
+          seaplane_anchorage: Seaplane anchorage mark
+          # 'seamark:topmark:category=seaplane_landing'
+          seaplane_landing: Seaplane landing mark
+          # 'seamark:topmark:category=sound_ship_siren'
+          sound_ship_siren: Sound ships siren mark
+          # 'seamark:topmark:category=speed_limit'
+          speed_limit: Speed limit mark
+          # 'seamark:topmark:category=spoil_ground'
+          spoil_ground: Spoil ground mark
+          # 'seamark:topmark:category=stop'
+          stop: Stop mark
+          # 'seamark:topmark:category=strong_current'
+          strong_current: Strong current warning mark
+          # 'seamark:topmark:category=target'
+          target: Target mark
+          # 'seamark:topmark:category=telephone'
+          telephone: Telephone mark
+          # 'seamark:topmark:category=tss'
+          tss: TSS mark
+          # 'seamark:topmark:category=unknown_purpose'
+          unknown_purpose: Mark with unknown purpose
+          # 'seamark:topmark:category=warning'
+          warning: General warning mark
+          # 'seamark:topmark:category=wave_recorder'
+          wave_recorder: Wave Recorder
+          # 'seamark:topmark:category=wellhead'
+          wellhead: Wellhead mark
+          # 'seamark:topmark:category=work_in_progress'
+          work_in_progress: Work in progress mark
+          # 'seamark:topmark:category=wreck'
+          wreck: Wreck mark
+          # 'seamark:topmark:category=yachting'
+          yachting: Yachting mark
+      seamark/topmark/colour:
+        # 'seamark:topmark:colour=*'
+        label: Topmark Colour
+        options:
+          # 'seamark:topmark:colour=amber'
+          amber: Amber
+          # 'seamark:topmark:colour=black'
+          black: Black
+          # 'seamark:topmark:colour=blue'
+          blue: Blue
+          # 'seamark:topmark:colour=brown'
+          brown: Brown
+          # 'seamark:topmark:colour=green'
+          green: Green
+          # 'seamark:topmark:colour=grey'
+          grey: Grey
+          # 'seamark:topmark:colour=magenta'
+          magenta: Magenta
+          # 'seamark:topmark:colour=orange'
+          orange: Orange
+          # 'seamark:topmark:colour=pink'
+          pink: Pink
+          # 'seamark:topmark:colour=red'
+          red: Red
+          # 'seamark:topmark:colour=violet'
+          violet: Violet
+          # 'seamark:topmark:colour=white'
+          white: White
+          # 'seamark:topmark:colour=yellow'
+          yellow: Yellow
+      seamark/topmark/shape:
+        # 'seamark:topmark:shape=*'
+        label: Topmark Shape
+        options:
+          2 cones base # 'seamark:topmark:shape=2 cones base together'
+          2 cones base together: '2 cones, base to base'
+          2 cones # 'seamark:topmark:shape=2 cones down'
+          2 cones down: 2 cones (points downward)
+          2 cones point # 'seamark:topmark:shape=2 cones point together'
+          2 cones point together: '2 cones, point to point'
+          2 cones # 'seamark:topmark:shape=2 cones up'
+          2 cones up: 2 cones (points upward)
+          2 # 'seamark:topmark:shape=2 spheres'
+          2 spheres: 2 spheres
+          2 upright # 'seamark:topmark:shape=2 upright crosses'
+          2 upright crosses: Two upright crosses (one over the other)
+          'besom, point # 'seamark:topmark:shape=besom, point down'
+          'besom, point down': 'Besom, point down (broom or perch)'
+          'besom, point # 'seamark:topmark:shape=besom, point up'
+          'besom, point up': 'Besom, point up (broom or perch)'
+          # 'seamark:topmark:shape=board'
+          board: Board
+          circle: Circle
+          "circle over triangle, point up\t#": "seamark:topmark:shape=circle over triangle, point up\t"
+          "circle over triangle, point up\t": Circle over a triangle pointing up
+          # 'seamark:topmark:shape=circle'
+          'cone, point # 'seamark:topmark:shape=cone, point down'
+          'cone, point down': 'Cone, point down'
+          'cone, point # 'seamark:topmark:shape=cone, point up'
+          'cone, point up': 'Cone, point up'
+          # 'seamark:topmark:shape=cross'
+          cross: Upright cross (St George's cross)
+          'cube, point # 'seamark:topmark:shape=cube, point up'
+          'cube, point up': 'Cube, point up'
+          # 'seamark:topmark:shape=cylinder'
+          cylinder: Cylinder (can)
+          # 'seamark:topmark:shape=flag'
+          flag: Flag
+          # 'seamark:topmark:shape=other'
+          other: Other shape (see INFORM)
+          'rectangle, # 'seamark:topmark:shape=rectangle, horizontal'
+          'rectangle, horizontal': 'Rectangle, horizontal'
+          'rectangle, # 'seamark:topmark:shape=rectangle, vertical'
+          'rectangle, vertical': 'Rectangle, vertical'
+          rhombus: Rhombus (diamond)
+          rhombus over # 'seamark:topmark:shape=rhombus over circle'
+          rhombus over circle: Rhombus over a circle
+          # 'seamark:topmark:shape=rhombus'
+          sphere: Sphere
+          sphere over # 'seamark:topmark:shape=sphere over rhombus'
+          sphere over rhombus: Sphere over rhombus
+          # 'seamark:topmark:shape=sphere'
+          # 'seamark:topmark:shape=square'
+          square: Square
+          # 'seamark:topmark:shape=t-shape'
+          t-shape: T-shape
+          'trapezium, # 'seamark:topmark:shape=trapezium, down'
+          'trapezium, down': 'Trapezium, down'
+          'trapezium, # 'seamark:topmark:shape=trapezium, up'
+          'trapezium, up': 'Trapezium, up'
+          'triangle, point # 'seamark:topmark:shape=triangle, point down'
+          'triangle, point down': 'Triangle, point down'
+          'triangle, point up': 'Triangle, point up'
+          'triangle, point up over # 'seamark:topmark:shape=triangle, point up over circle'
+          'triangle, point up over circle': Triangle pointing up over a circle
+          'triangle, point # 'seamark:topmark:shape=triangle, point up'
+          upright cross over # 'seamark:topmark:shape=upright cross over circle'
+          upright cross over circle: Upright cross over a circle
+          # 'seamark:topmark:shape=x-shape'
+          x-shape: X-shape (St. Andrew's cross)
       seamark/type:
         # 'seamark:type=*'
         label: Seamark
@@ -2272,6 +2949,17 @@ en:
       seamark/wreck/category:
         # 'seamark:wreck:category=*'
         label: Category
+        options:
+          # 'seamark:wreck:category=dangerous'
+          dangerous: Dangerous wreck
+          # 'seamark:wreck:category=distributed_remains'
+          distributed_remains: Distributed remains of wreck
+          # 'seamark:wreck:category=hull_showing'
+          hull_showing: Wreck showing any portion of hull or superstructure
+          # 'seamark:wreck:category=mast_showing'
+          mast_showing: Wreck showing mast/masts
+          # 'seamark:wreck:category=non-dangerous'
+          non-dangerous: Non-dangerous wreck
       seasonal:
         # seasonal=*
         label: Seasonal
@@ -6593,6 +7281,11 @@ en:
         name: Observatory
         # 'terms: astronomical,meteorological'
         terms: '<translate with synonyms or related terms for ''Observatory'', separated by commas>'
+      man_made/offshore_platform:
+        # 'seamark:type=platform'
+        name: Offshore Platform
+        # 'terms: oil rig,offshore platform,platform,drilling rig,bore,drilling rig,oil derrick,oil drill,oil horse,oil rig,oil pump,petroleum well,pumpjack'
+        terms: '<translate with synonyms or related terms for ''Offshore Platform'', separated by commas>'
       man_made/petroleum_well:
         # man_made=petroleum_well
         name: Oil Well
@@ -7899,6 +8592,11 @@ en:
       seamark:
         # 'seamark:type=*'
         name: Seamark
+      seamark/anchorage:
+        # 'seamark:type=anchorage'
+        name: Anchorage Area
+        # 'terms: dolphin,pile,bollard,buoy,post'
+        terms: '<translate with synonyms or related terms for ''Anchorage Area'', separated by commas>'
       seamark/beacon_isolated_danger:
         # 'seamark:type=beacon_isolated_danger'
         name: Danger Beacon
@@ -7929,6 +8627,31 @@ en:
         name: Mooring
         # 'terms: dolphin,pile,bollard,buoy,post'
         terms: '<translate with synonyms or related terms for ''Mooring'', separated by commas>'
+      seamark/mooring_dolphin:
+        # 'seamark:type=mooring, seamark:mooring:category=dolphin'
+        name: Mooring Dolphin
+        # 'terms: dolphin,pile,bollard,buoy,post'
+        terms: '<translate with synonyms or related terms for ''Mooring Dolphin'', separated by commas>'
+      seamark/obstruction:
+        # 'seamark:type=obstruction'
+        name: Marine Obstruction
+        # 'terms: obstruction,obstacle,hazard,block,barrier'
+        terms: '<translate with synonyms or related terms for ''Marine Obstruction'', separated by commas>'
+      seamark/pile:
+        # 'seamark:type=pile'
+        name: Pile
+        # 'terms: pile'
+        terms: '<translate with synonyms or related terms for ''Pile'', separated by commas>'
+      seamark/rock:
+        # 'seamark:type=rock'
+        name: Marine Rock
+        # 'terms: boulder,stone,rock'
+        terms: '<translate with synonyms or related terms for ''Marine Rock'', separated by commas>'
+      seamark/seaplane_landing_area:
+        # 'seamark:type=seaplane_landing_area'
+        name: Seaplane Landing Area
+        # 'terms: seaplane,seaplane landing,seaport,airport,water runway'
+        terms: '<translate with synonyms or related terms for ''Seaplane Landing Area'', separated by commas>'
       shop:
         # shop=*
         name: Shop

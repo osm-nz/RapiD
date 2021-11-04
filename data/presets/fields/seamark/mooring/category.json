@@ -1,5 +1,19 @@
 {
     "key": "seamark:mooring:category",
     "type": "combo",
-    "label": "Category"
+    "label": "Category",
+    "strings": {
+        "options": {
+            "dolphin": "Dolphin",
+            "deviation_dolphin": "Deviation dolphin",
+            "bollard": "Bollard",
+            "wall": "Tie-up wall",
+            "pile": "Post or pile",
+            "chain": "Chain/wire/cable",
+            "buoy": "Mooring buoy",
+            "shore_ropes": "Shore ropes",
+            "automatic": "Automatic",
+            "trot": "Trot"
+        }
+    }
 }

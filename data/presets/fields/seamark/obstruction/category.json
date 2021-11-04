@@ -1,0 +1,19 @@
+{
+    "key": "seamark:obstruction:category",
+    "type": "combo",
+    "label": "Category",
+    "strings": {
+        "options": {
+            "stump": "Snag/stump",
+            "wellhead": "Wellhead",
+            "diffuser": "Diffuser",
+            "crib": "Crib",
+            "fish_haven": "Fish haven",
+            "foul_area": "Foul area",
+            "foul_ground": "Foul ground",
+            "ice_boom": "Ice boom",
+            "ground_tackle": "Ground tackle",
+            "boom": "Boom"
+        }
+    }
+}

@@ -1,5 +1,14 @@
 {
     "key": "seamark:wreck:category",
     "type": "combo",
-    "label": "Category"
+    "label": "Category",
+    "strings": {
+        "options": {
+            "non-dangerous": "Non-dangerous wreck",
+            "dangerous": "Dangerous wreck",
+            "distributed_remains": "Distributed remains of wreck",
+            "mast_showing": "Wreck showing mast/masts",
+            "hull_showing": "Wreck showing any portion of hull or superstructure"
+        }
+    }
 }

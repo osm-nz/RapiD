@@ -1,0 +1,27 @@
+{
+    "key": "seamark:obstruction:surface",
+    "type": "combo",
+    "label": "Obstruction Surface",
+    "strings": {
+        "options": {
+            "mud": "Mud",
+            "clay": "Clay",
+            "silt": "Silt",
+            "sand": "Sand",
+            "stone": "Stone",
+            "gravel": "Gravel",
+            "pebbles": "Pebbles",
+            "cobbles": "Cobbles",
+            "rock": "Rock",
+            "marsh": "Marsh",
+            "lava": "Lava",
+            "snow": "Snow",
+            "ice": "Ice",
+            "coral": "Coral",
+            "swamp": "Swamp",
+            "bog": "Bog/moor",
+            "shells": "Shells",
+            "boulder": "Boulder"
+        }
+    }
+}

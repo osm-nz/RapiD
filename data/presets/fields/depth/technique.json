@@ -1,0 +1,22 @@
+{
+    "key": "depth:technique",
+    "type": "combo",
+    "label": "Depth Sounding Technique",
+    "strings": {
+        "options": {
+            "echo": "Found by echo- sounder",
+            "sonar": "Swept by side-scan sonar",
+            "multi-beam": "Found by multi-beam",
+            "diver": "Found by diver",
+            "lead-line": "Found by lead-line",
+            "wire-drag": "Swept by wire-drag",
+            "laser": "Found by laser",
+            "acoustic": "Swept by vertical acoustic system",
+            "electromagnetic": "Found by electromagnetic sensor",
+            "photogrammetry": "Photogrammetry",
+            "satellite_imagery": "Satellite imagery",
+            "levelling": "Found by levelling",
+            "computer_generated": "Computer generated"
+        }
+    }
+}

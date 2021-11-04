@@ -1,0 +1,29 @@
+{
+    "icon": "temaki-oil_well",
+    "fields": ["name", "seamark/platform/category", "seamark/platform/product"],
+    "moreFields": [],
+    "geometry": ["point", "area"],
+    "tags": {
+        "seamark:type": "platform"
+    },
+    "addTags": {
+        "seamark:type": "platform",
+        "man_made": "offshore_platform"
+    },
+    "terms": [
+        "oil rig",
+        "offshore platform",
+        "platform",
+        "drilling rig",
+        "bore",
+        "drilling rig",
+        "oil derrick",
+        "oil drill",
+        "oil horse",
+        "oil rig",
+        "oil pump",
+        "petroleum well",
+        "pumpjack"
+    ],
+    "name": "Offshore Platform"
+}

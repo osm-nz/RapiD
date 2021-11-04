@@ -1,0 +1,13 @@
+{
+    "key": "seamark:pile:category",
+    "type": "combo",
+    "label": "Category",
+    "strings": {
+        "options": {
+            "stake": "Stake",
+            "snag": "Snag",
+            "post": "Post",
+            "tripodal": "Tripodal"
+        }
+    }
+}

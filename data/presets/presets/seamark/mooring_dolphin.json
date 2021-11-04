@@ -5,7 +5,11 @@
     "geometry": ["point"],
     "terms": ["dolphin", "pile", "bollard", "buoy", "post"],
     "tags": {
-        "seamark:type": "mooring"
+        "seamark:type": "mooring",
+        "seamark:mooring:category": "dolphin"
     },
-    "name": "Mooring"
+    "addTags": {
+        "man_made": "dolphin"
+    },
+    "name": "Mooring Dolphin"
 }

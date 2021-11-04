@@ -7,12 +7,11 @@
         "seamark/buoy_lateral/category",
         "seamark/buoy_lateral/shape",
         "seamark/buoy_lateral/system",
-        "seamark/type"
+        "seamark/topmark/category",
+        "seamark/topmark/shape",
+        "seamark/topmark/colour"
     ],
-    "geometry": [
-        "point",
-        "vertex"
-    ],
+    "geometry": ["point", "vertex"],
     "terms": [
         "lateral buoy",
         "buoy lateral",

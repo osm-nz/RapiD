@@ -1,19 +1,15 @@
 {
+    "icon": "maki-communications-tower",
     "fields": [
         "ref",
         "operator",
         "seamark/beacon_isolated_danger/shape",
-        "seamark/type"
+        "seamark/topmark/category",
+        "seamark/topmark/shape",
+        "seamark/topmark/colour"
     ],
-    "geometry": [
-        "point",
-        "vertex"
-    ],
-    "terms": [
-        "beacon isolated danger",
-        "isolated danger beacon",
-        "iala"
-    ],
+    "geometry": ["point", "vertex"],
+    "terms": ["beacon isolated danger", "isolated danger beacon", "iala"],
     "tags": {
         "seamark:type": "beacon_isolated_danger"
     },

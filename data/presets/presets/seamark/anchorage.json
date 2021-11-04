@@ -1,0 +1,14 @@
+{
+    "icon": "maki-harbor",
+    "fields": ["seamark/anchorage/category", "seamark/anchorage/status"],
+    "moreFields": [
+        "seamark/anchorage/period_start",
+        "seamark/anchorage/period_end"
+    ],
+    "geometry": ["point", "area"],
+    "terms": ["dolphin", "pile", "bollard", "buoy", "post"],
+    "tags": {
+        "seamark:type": "anchorage"
+    },
+    "name": "Anchorage Area"
+}

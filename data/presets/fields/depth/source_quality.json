@@ -1,0 +1,20 @@
+{
+    "key": "depth:source_quality",
+    "type": "combo",
+    "label": "Depth Quality",
+    "strings": {
+        "options": {
+            "known": "Depth known",
+            "unknown": "Depth unknown",
+            "doubtful": "Doubtful sounding",
+            "unreliable": "Unreliable sounding",
+            "no_bottom": "No bottom found at value shown",
+            "least_depth_known": "Least depth known",
+            "least_depth_unknown": "Least depth unknown, safe clearance at value shown",
+            "not_surveyed": "Value reported (not surveyed)",
+            "not_confirmed": "Value reported (not confirmed)",
+            "maintained": "Maintained depth",
+            "not_maintained": "Not regularly maintained"
+        }
+    }
+}

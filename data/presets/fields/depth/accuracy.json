@@ -1,0 +1,5 @@
+{
+    "key": "depth:accuracy",
+    "type": "number",
+    "label": "Depth Accuracy (Meters)"
+}

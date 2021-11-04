@@ -1,0 +1,23 @@
+{
+    "key": "seamark:anchorage:category",
+    "type": "combo",
+    "label": "Category",
+    "strings": {
+        "options": {
+            "unrestricted": "Unrestricted anchorage",
+            "deep_water": "Deep water anchorage",
+            "tanker": "Tanker anchorage",
+            "explosives": "Explosives anchorage",
+            "quarantine": "Quarantine anchorage",
+            "seaplane": "Sea-plane anchorage",
+            "small_craft": "Small craft anchorage",
+            "small_craft_mooring": "Small craft mooring area",
+            "24_hour": "Anchorage for periods up to 24 hours",
+            "limited_period": "Anchorage for a limited period of time",
+            "pushing": "Anchorage for pushing-navigation vessels",
+            "non_pushing": "Anchorage for other vessels than pushing-navigation vessels",
+            "dry_cargo": "Anchorage for dry cargo vessels",
+            "raft": "Anchorage for rafts"
+        }
+    }
+}

@@ -47957,6 +47957,41 @@
     "icon": "https://koordinates.a.ssl.fastly.net/media/settings/branding/favicon-lds.ico"
   },
   {
+    "id": "LINZ_NZ_Topo50_Ant50_Antarctic_Gridless_Maps",
+    "name": "LINZ NZ Topo50 Antarctica",
+    "type": "tms",
+    "template": "https://tiles.maps.linz.io/antarctic_topo50_maps/ANT_ROSS_SEA_REGION/{z}/{x}/{y}.png?api=d01egend5f8dv4zcbfj6z2t7rs3",
+    "zoomExtent": [0, 21],
+    "polygon": [
+      [
+        [
+          128.671875,
+          -84.77052832075908
+        ],
+        [
+          208.4765625,
+          -84.77052832075908
+        ],
+        [
+          208.4765625,
+          -62.26792262941758
+        ],
+        [
+          128.671875,
+          -62.26792262941758
+        ],
+        [
+          128.671875,
+          -84.77052832075908
+        ]
+      ]
+    ],
+    "best": true,
+    "terms_url": "https://data.linz.govt.nz/layer/2343-nz-mainland-topo50-gridless-maps",
+    "terms_text": "CC BY 4.0 Land Information New Zealand",
+    "icon": "https://koordinates.a.ssl.fastly.net/media/settings/branding/favicon-lds.ico"
+  },
+  {
     "id": "ORT10LT",
     "name": "Lithuania - NŽT ORT10LT",
     "type": "tms",

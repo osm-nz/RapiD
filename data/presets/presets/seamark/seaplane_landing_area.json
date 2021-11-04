@@ -1,0 +1,16 @@
+{
+    "icon": "maki-airport",
+    "fields": ["ref", "operator"],
+    "geometry": ["point", "area"],
+    "terms": [
+        "seaplane",
+        "seaplane landing",
+        "seaport",
+        "airport",
+        "water runway"
+    ],
+    "tags": {
+        "seamark:type": "seaplane_landing_area"
+    },
+    "name": "Seaplane Landing Area"
+}

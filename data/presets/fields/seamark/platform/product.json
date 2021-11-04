@@ -1,0 +1,31 @@
+{
+    "key": "seamark:platform:product",
+    "type": "combo",
+    "label": "Product",
+    "strings": {
+        "options": {
+            "oil": "Oil",
+            "gas": "Gas",
+            "water": "Water",
+            "stone": "Stone",
+            "coal": "Coal",
+            "ore": "Ore",
+            "chemicals": "Chemicals",
+            "drinking_water": "Drinking water",
+            "milk": "Milk",
+            "bauxite": "Bauxite",
+            "coke": "Coke",
+            "iron_ingots": "Iron ingots",
+            "salt": "Salt",
+            "sand": "Sand",
+            "timber": "Timber",
+            "sawdust": "Sawdust/wood chips",
+            "scrap metal": "Scrap metal",
+            "lng": "Liquified natural gas (LNG)",
+            "lpg": "Liquified petroleum gas (LPG)",
+            "wine": "Wine",
+            "cement": "Cement",
+            "grain": "Grain"
+        }
+    }
+}
