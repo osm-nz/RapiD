@@ -43830,7 +43830,7 @@
           'building', 'highway', 'railway', 'waterway', 'aeroway', 'aerialway',
           'piste:type', 'boundary', 'power', 'amenity', 'natural', 'landuse',
           'leisure', 'military', 'place', 'man_made', 'route', 'attraction',
-          'building:part', 'indoor'
+          'building:part', 'indoor', 'seamark:type'
       ];
       var statuses = [
           // nonexistent, might be built
@@ -43903,8 +43903,8 @@
 
               if (k === 'piste:type') {  // avoid a ':' in the class name
                   k = 'piste';
-              } else if (k === 'building:part') {  // avoid a ':' in the class name
-                  k = 'building_part';
+              } else if (k.includes(':')) {  // avoid a ':' in the class name
+                  k = k.replace(':', '_');
               }
 
               primary = k;
