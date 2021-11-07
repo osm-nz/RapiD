@@ -1,0 +1,17 @@
+{
+    "icon": "maki-communications-tower",
+    "fields": [
+        "seamark/beacon_special_purpose/category",
+        "seamark/beacon_special_purpose/colour",
+        "seamark/beacon_special_purpose/colour_pattern",
+        "seamark/beacon_special_purpose/shape",
+        "seamark/topmark/shape",
+        "seamark/topmark/colour"
+    ],
+    "geometry": ["point", "vertex"],
+    "terms": ["beacon", "special beacon", "danger beacon", "channel marker"],
+    "tags": {
+        "seamark:type": "beacon_special_purpose"
+    },
+    "name": "Special Purpose Beacon"
+}

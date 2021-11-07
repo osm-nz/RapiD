@@ -1,0 +1,10 @@
+{
+    "icon": "maki-lighthouse",
+    "fields": ["seamark/navigation_line/category"],
+    "geometry": ["line"],
+    "terms": ["navigation line", "line", "marine", "route", "boat"],
+    "tags": {
+        "seamark:type": "navigation_line"
+    },
+    "name": "Maritime Navigation Line"
+}

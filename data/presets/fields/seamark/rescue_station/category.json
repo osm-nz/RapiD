@@ -1,0 +1,19 @@
+{
+    "key": "seamark:rescue_station:category",
+    "type": "combo",
+    "label": "Category",
+    "strings": {
+        "options": {
+            "lifeboat": "Rescue station with lifeboat",
+            "rocket": "Rescue station with rocket",
+            "refuge_shipwrecked": "Refuge for shipwrecked mariners",
+            "refuge_intertidal": "Refuge for intertidal area walkers",
+            "lifeboat_on_mooring": "Lifeboat lying at a mooring",
+            "radio": "Aid radio station",
+            "first_aid": "First aid equipment",
+            "seaplane": "Rescue seaplane",
+            "aircraft": "Rescue aircraft",
+            "tug": "Salvage tug"
+        }
+    }
+}

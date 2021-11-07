@@ -1,0 +1,26 @@
+{
+    "icon": "temaki-boat_tour",
+    "fields": [
+        "name",
+        "operator",
+        "seamark/rescue_station/category",
+        "address",
+        "building_area",
+        "phone",
+        "website"
+    ],
+    "moreFields": ["email", "fax", "gnis/feature_id", "wheelchair"],
+    "geometry": ["point", "area"],
+    "terms": [
+        "boat rescue",
+        "lifeboat",
+        "rescue",
+        "search and rescue",
+        "life saving"
+    ],
+    "tags": {
+        "emergency": "lifeboat_station",
+        "seamark:type": "rescue_station"
+    },
+    "name": "Lifeboat Station"
+}

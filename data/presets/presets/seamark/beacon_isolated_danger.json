@@ -4,7 +4,6 @@
         "ref",
         "operator",
         "seamark/beacon_isolated_danger/shape",
-        "seamark/topmark/category",
         "seamark/topmark/shape",
         "seamark/topmark/colour"
     ],

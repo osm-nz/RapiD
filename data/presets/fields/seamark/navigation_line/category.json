@@ -1,0 +1,12 @@
+{
+    "key": "seamark:navigation_line:category",
+    "type": "combo",
+    "label": "Category",
+    "strings": {
+        "options": {
+            "clearing": "Clearing line",
+            "transit": "Transit line",
+            "leading": "Leading line bearing a recommended track"
+        }
+    }
+}

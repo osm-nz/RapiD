@@ -1,6 +1,6 @@
 {
     "key": "seamark:platform:product",
-    "type": "combo",
+    "type": "semiCombo",
     "label": "Product",
     "strings": {
         "options": {

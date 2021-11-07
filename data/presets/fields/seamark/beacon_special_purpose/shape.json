@@ -1,0 +1,16 @@
+{
+    "key": "seamark:beacon_special_purpose:shape",
+    "type": "combo",
+    "label": "Beacon Shape",
+    "strings": {
+        "options": {
+            "pole": "Pole",
+            "withy": "Withy",
+            "tower": "Beacon tower",
+            "lattice": "Lattice beacon",
+            "pile": "Pile beacon",
+            "cairn": "Cairn",
+            "buoyant": "Buoyant beacon"
+        }
+    }
+}

@@ -1,0 +1,11 @@
+{
+    "key": "seamark:recommended_track:category",
+    "type": "combo",
+    "label": "Category",
+    "strings": {
+        "options": {
+            "fixed_marks": "Based on a system of fixed marks",
+            "no_fixed_marks": "Not based on a system of fixed marks"
+        }
+    }
+}

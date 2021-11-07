@@ -7,7 +7,6 @@
         "seamark/beacon_lateral/category",
         "seamark/beacon_lateral/shape",
         "seamark/beacon_lateral/system",
-        "seamark/topmark/category",
         "seamark/topmark/shape",
         "seamark/topmark/colour"
     ],

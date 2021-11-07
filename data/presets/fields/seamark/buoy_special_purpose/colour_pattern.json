@@ -1,0 +1,17 @@
+{
+    "key": "seamark:buoy_special_purpose:colour_pattern",
+    "type": "combo",
+    "label": "Buoy Colour Pattern",
+    "strings": {
+        "options": {
+            "horizontal": "Horizontal stripes",
+            "vertical": "Vertical stripes",
+            "diagonal": "Diagonal stripes",
+            "squared": "Squared",
+            "stripes": "Stripes (direction unknown)",
+            "border": "Border stripe",
+            "cross": "Vertical cross",
+            "saltire": "Diagonal cross"
+        }
+    }
+}

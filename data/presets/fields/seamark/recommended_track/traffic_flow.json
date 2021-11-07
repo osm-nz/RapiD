@@ -1,0 +1,13 @@
+{
+    "key": "seamark:recommended_track:traffic_flow",
+    "type": "combo",
+    "label": "Traffic Flow",
+    "strings": {
+        "options": {
+            "inbound": "Inbound",
+            "outbound": "Outbound",
+            "one-way": "One-way",
+            "two-way": "Two-way"
+        }
+    }
+}

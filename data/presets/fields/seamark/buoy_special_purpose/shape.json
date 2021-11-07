@@ -1,5 +1,5 @@
 {
-    "key": "seamark:buoy_lateral:shape",
+    "key": "seamark:buoy_special_purpose:shape",
     "type": "combo",
     "label": "Buoy Shape",
     "strings": {

@@ -1,0 +1,13 @@
+{
+    "icon": "temaki-ferry",
+    "fields": [
+        "seamark/recommended_track/category",
+        "seamark/recommended_track/traffic_flow"
+    ],
+    "geometry": ["line"],
+    "terms": ["navigation line", "line", "marine", "route", "boat"],
+    "tags": {
+        "seamark:type": "recommended_track"
+    },
+    "name": "Recommended Maritime Track"
+}

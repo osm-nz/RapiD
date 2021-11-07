@@ -1,0 +1,17 @@
+{
+    "icon": "temaki-buoy",
+    "fields": [
+        "seamark/buoy_special_purpose/category",
+        "seamark/buoy_special_purpose/colour",
+        "seamark/buoy_special_purpose/colour_pattern",
+        "seamark/buoy_special_purpose/shape",
+        "seamark/topmark/shape",
+        "seamark/topmark/colour"
+    ],
+    "geometry": ["point", "vertex"],
+    "terms": ["buoy", "special buoy", "danger buoy"],
+    "tags": {
+        "seamark:type": "buoy_special_purpose"
+    },
+    "name": "Special Purpose Buoy"
+}

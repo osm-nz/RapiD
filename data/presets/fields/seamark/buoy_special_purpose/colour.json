@@ -1,0 +1,22 @@
+{
+    "key": "seamark:buoy_special_purpose:colour",
+    "type": "semiCombo",
+    "label": "Buoy Colour",
+    "strings": {
+        "options": {
+            "white": "White",
+            "black": "Black",
+            "red": "Red",
+            "green": "Green",
+            "blue": "Blue",
+            "yellow": "Yellow",
+            "grey": "Grey",
+            "brown": "Brown",
+            "amber": "Amber",
+            "violet": "Violet",
+            "orange": "Orange",
+            "magenta": "Magenta",
+            "pink": "Pink"
+        }
+    }
+}

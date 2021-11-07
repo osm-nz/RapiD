@@ -2381,6 +2381,206 @@ en:
           iala-b: IALA B
           # 'seamark:beacon_lateral:system=other'
           other: Other
+      seamark/beacon_special_purpose/category:
+        # 'seamark:beacon_special_purpose:category=*'
+        label: Beacon Category
+        options:
+          # 'seamark:beacon_special_purpose:category=anchorage'
+          anchorage: Anchorage mark
+          # 'seamark:beacon_special_purpose:category=artificial_reef'
+          artificial_reef: Artificial reef mark
+          # 'seamark:beacon_special_purpose:category=barge'
+          barge: Barge mark
+          # 'seamark:beacon_special_purpose:category=berthing'
+          berthing: Berthing permitted mark
+          # 'seamark:beacon_special_purpose:category=cable'
+          cable: Cable mark
+          # 'seamark:beacon_special_purpose:category=causeway'
+          causeway: Causeway Mark
+          # 'seamark:beacon_special_purpose:category=channel_edge_gradient'
+          channel_edge_gradient: Channel edge gradient mark
+          # 'seamark:beacon_special_purpose:category=channel_separation'
+          channel_separation: Channel separation mark
+          # 'seamark:beacon_special_purpose:category=clearing'
+          clearing: Clearing mark
+          # 'seamark:beacon_special_purpose:category=control'
+          control: Control mark
+          # 'seamark:beacon_special_purpose:category=customs'
+          customs: Customs Mark
+          # 'seamark:beacon_special_purpose:category=degaussing_range'
+          degaussing_range: Degaussing range mark
+          # 'seamark:beacon_special_purpose:category=diving'
+          diving: Diving mark
+          # 'seamark:beacon_special_purpose:category=ferry_crossing'
+          ferry_crossing: Ferry crossing mark
+          # 'seamark:beacon_special_purpose:category=firing_danger_area'
+          firing_danger_area: Firing danger mark
+          # 'seamark:beacon_special_purpose:category=fish_aggregator'
+          fish_aggregator: Fish Aggregating Device
+          # 'seamark:beacon_special_purpose:category=foul_ground'
+          foul_ground: Foul ground mark
+          # 'seamark:beacon_special_purpose:category=gps'
+          gps: GPS mark
+          # 'seamark:beacon_special_purpose:category=heliport'
+          heliport: Heliport mark
+          # 'seamark:beacon_special_purpose:category=ice'
+          ice: Ice Mark
+          # 'seamark:beacon_special_purpose:category=lanby'
+          lanby: LANBY
+          # 'seamark:beacon_special_purpose:category=leading'
+          leading: Leading mark
+          # 'seamark:beacon_special_purpose:category=marine_farm'
+          marine_farm: Marine farm mark
+          # 'seamark:beacon_special_purpose:category=marine_traffic_lights'
+          marine_traffic_lights: Marine traffic lights
+          # 'seamark:beacon_special_purpose:category=marker_ship'
+          marker_ship: Marker ship mark
+          # 'seamark:beacon_special_purpose:category=maximum_vessel_draught'
+          maximum_vessel_draught: Maximum vessel's draught mark
+          # 'seamark:beacon_special_purpose:category=measured_distance'
+          measured_distance: Measured distance mark
+          # 'seamark:beacon_special_purpose:category=mooring'
+          mooring: Mooring mark
+          # 'seamark:beacon_special_purpose:category=nature_reserve'
+          nature_reserve: Nature Reserve Mark
+          # 'seamark:beacon_special_purpose:category=no_anchoring'
+          no_anchoring: Anchoring prohibited mark
+          # 'seamark:beacon_special_purpose:category=no_berthing'
+          no_berthing: Berthing prohibited mark
+          # 'seamark:beacon_special_purpose:category=no_entry'
+          no_entry: Entry prohibited mark
+          # 'seamark:beacon_special_purpose:category=no_jetski'
+          no_jetski: Jetski Prohibited
+          # 'seamark:beacon_special_purpose:category=no_overtaking'
+          no_overtaking: Overtaking prohibited mark
+          # 'seamark:beacon_special_purpose:category=no_two-way_traffic'
+          no_two-way_traffic: Two-way traffic prohibited mark
+          # 'seamark:beacon_special_purpose:category=notice'
+          notice: Notice mark
+          # 'seamark:beacon_special_purpose:category=odas'
+          odas: ODAS
+          # 'seamark:beacon_special_purpose:category=outfall'
+          outfall: Outfall mark
+          # 'seamark:beacon_special_purpose:category=overhead_power_cable'
+          overhead_power_cable: Overhead power cable mark
+          # 'seamark:beacon_special_purpose:category=pipeline'
+          pipeline: Pipeline mark
+          # 'seamark:beacon_special_purpose:category=private'
+          private: Private mark
+          # 'seamark:beacon_special_purpose:category=recording'
+          recording: Recording mark
+          # 'seamark:beacon_special_purpose:category=recreation_zone'
+          recreation_zone: Recreation zone mark
+          # 'seamark:beacon_special_purpose:category=reduced_wake'
+          reduced_wake: Reduced wake mark
+          # 'seamark:beacon_special_purpose:category=refuge_beacon'
+          refuge_beacon: Refuge beacon
+          # 'seamark:beacon_special_purpose:category=restricted_horizontal_clearance'
+          restricted_horizontal_clearance: Restricted horizontal clearance mark
+          # 'seamark:beacon_special_purpose:category=restricted_vertical_clearance'
+          restricted_vertical_clearance: Restricted vertical clearance mark
+          # 'seamark:beacon_special_purpose:category=seaplane_anchorage'
+          seaplane_anchorage: Seaplane anchorage mark
+          # 'seamark:beacon_special_purpose:category=seaplane_landing'
+          seaplane_landing: Seaplane landing mark
+          # 'seamark:beacon_special_purpose:category=sound_ship_siren'
+          sound_ship_siren: Sound ships siren mark
+          # 'seamark:beacon_special_purpose:category=speed_limit'
+          speed_limit: Speed limit mark
+          # 'seamark:beacon_special_purpose:category=spoil_ground'
+          spoil_ground: Spoil ground mark
+          # 'seamark:beacon_special_purpose:category=stop'
+          stop: Stop mark
+          # 'seamark:beacon_special_purpose:category=strong_current'
+          strong_current: Strong current warning mark
+          # 'seamark:beacon_special_purpose:category=target'
+          target: Target mark
+          # 'seamark:beacon_special_purpose:category=telephone'
+          telephone: Telephone mark
+          # 'seamark:beacon_special_purpose:category=tss'
+          tss: TSS mark
+          # 'seamark:beacon_special_purpose:category=unknown_purpose'
+          unknown_purpose: Mark with unknown purpose
+          # 'seamark:beacon_special_purpose:category=warning'
+          warning: General warning mark
+          # 'seamark:beacon_special_purpose:category=wave_recorder'
+          wave_recorder: Wave Recorder
+          # 'seamark:beacon_special_purpose:category=wellhead'
+          wellhead: Wellhead mark
+          # 'seamark:beacon_special_purpose:category=work_in_progress'
+          work_in_progress: Work in progress mark
+          # 'seamark:beacon_special_purpose:category=wreck'
+          wreck: Wreck mark
+          # 'seamark:beacon_special_purpose:category=yachting'
+          yachting: Yachting mark
+      seamark/beacon_special_purpose/colour:
+        # 'seamark:beacon_special_purpose:colour=*'
+        label: Beacon Colour
+        options:
+          # 'seamark:beacon_special_purpose:colour=amber'
+          amber: Amber
+          # 'seamark:beacon_special_purpose:colour=black'
+          black: Black
+          # 'seamark:beacon_special_purpose:colour=blue'
+          blue: Blue
+          # 'seamark:beacon_special_purpose:colour=brown'
+          brown: Brown
+          # 'seamark:beacon_special_purpose:colour=green'
+          green: Green
+          # 'seamark:beacon_special_purpose:colour=grey'
+          grey: Grey
+          # 'seamark:beacon_special_purpose:colour=magenta'
+          magenta: Magenta
+          # 'seamark:beacon_special_purpose:colour=orange'
+          orange: Orange
+          # 'seamark:beacon_special_purpose:colour=pink'
+          pink: Pink
+          # 'seamark:beacon_special_purpose:colour=red'
+          red: Red
+          # 'seamark:beacon_special_purpose:colour=violet'
+          violet: Violet
+          # 'seamark:beacon_special_purpose:colour=white'
+          white: White
+          # 'seamark:beacon_special_purpose:colour=yellow'
+          yellow: Yellow
+      seamark/beacon_special_purpose/colour_pattern:
+        # 'seamark:beacon_special_purpose:colour_pattern=*'
+        label: Beacon Colour Pattern
+        options:
+          # 'seamark:beacon_special_purpose:colour_pattern=border'
+          border: Border stripe
+          # 'seamark:beacon_special_purpose:colour_pattern=cross'
+          cross: Vertical cross
+          # 'seamark:beacon_special_purpose:colour_pattern=diagonal'
+          diagonal: Diagonal stripes
+          # 'seamark:beacon_special_purpose:colour_pattern=horizontal'
+          horizontal: Horizontal stripes
+          # 'seamark:beacon_special_purpose:colour_pattern=saltire'
+          saltire: Diagonal cross
+          # 'seamark:beacon_special_purpose:colour_pattern=squared'
+          squared: Squared
+          # 'seamark:beacon_special_purpose:colour_pattern=stripes'
+          stripes: Stripes (direction unknown)
+          # 'seamark:beacon_special_purpose:colour_pattern=vertical'
+          vertical: Vertical stripes
+      seamark/beacon_special_purpose/shape:
+        # 'seamark:beacon_special_purpose:shape=*'
+        label: Beacon Shape
+        options:
+          # 'seamark:beacon_special_purpose:shape=buoyant'
+          buoyant: Buoyant beacon
+          # 'seamark:beacon_special_purpose:shape=cairn'
+          cairn: Cairn
+          # 'seamark:beacon_special_purpose:shape=lattice'
+          lattice: Lattice beacon
+          # 'seamark:beacon_special_purpose:shape=pile'
+          pile: Pile beacon
+          # 'seamark:beacon_special_purpose:shape=pole'
+          pole: Pole
+          # 'seamark:beacon_special_purpose:shape=tower'
+          tower: Beacon tower
+          # 'seamark:beacon_special_purpose:shape=withy'
+          withy: Withy
       seamark/buoy_lateral/category:
         # 'seamark:buoy_lateral:category=*'
         label: Category
@@ -2427,7 +2627,24 @@ en:
           yellow: Yellow
       seamark/buoy_lateral/shape:
         # 'seamark:buoy_lateral:shape=*'
-        label: Shape
+        label: Buoy Shape
+        options:
+          # 'seamark:buoy_lateral:shape=barrel'
+          barrel: Barrel (tun)
+          # 'seamark:buoy_lateral:shape=can'
+          can: Can (cylindrical)
+          # 'seamark:buoy_lateral:shape=conical'
+          conical: 'Conical (nun, ogival)'
+          # 'seamark:buoy_lateral:shape=ice_buoy'
+          ice_buoy: Ice buoy
+          # 'seamark:buoy_lateral:shape=pillar'
+          pillar: Pillar
+          # 'seamark:buoy_lateral:shape=spar'
+          spar: Spar (spindle)
+          # 'seamark:buoy_lateral:shape=spherical'
+          spherical: Spherical
+          # 'seamark:buoy_lateral:shape=super-buoy'
+          super-buoy: Super-buoy
       seamark/buoy_lateral/system:
         # 'seamark:buoy_lateral:system=*'
         label: System
@@ -2440,6 +2657,208 @@ en:
           iala-b: IALA B
           # 'seamark:buoy_lateral:system=other'
           other: Other
+      seamark/buoy_special_purpose/category:
+        # 'seamark:buoy_special_purpose:category=*'
+        label: Buoy Category
+        options:
+          # 'seamark:buoy_special_purpose:category=anchorage'
+          anchorage: Anchorage mark
+          # 'seamark:buoy_special_purpose:category=artificial_reef'
+          artificial_reef: Artificial reef mark
+          # 'seamark:buoy_special_purpose:category=barge'
+          barge: Barge mark
+          # 'seamark:buoy_special_purpose:category=berthing'
+          berthing: Berthing permitted mark
+          # 'seamark:buoy_special_purpose:category=cable'
+          cable: Cable mark
+          # 'seamark:buoy_special_purpose:category=causeway'
+          causeway: Causeway Mark
+          # 'seamark:buoy_special_purpose:category=channel_edge_gradient'
+          channel_edge_gradient: Channel edge gradient mark
+          # 'seamark:buoy_special_purpose:category=channel_separation'
+          channel_separation: Channel separation mark
+          # 'seamark:buoy_special_purpose:category=clearing'
+          clearing: Clearing mark
+          # 'seamark:buoy_special_purpose:category=control'
+          control: Control mark
+          # 'seamark:buoy_special_purpose:category=customs'
+          customs: Customs Mark
+          # 'seamark:buoy_special_purpose:category=degaussing_range'
+          degaussing_range: Degaussing range mark
+          # 'seamark:buoy_special_purpose:category=diving'
+          diving: Diving mark
+          # 'seamark:buoy_special_purpose:category=ferry_crossing'
+          ferry_crossing: Ferry crossing mark
+          # 'seamark:buoy_special_purpose:category=firing_danger_area'
+          firing_danger_area: Firing danger mark
+          # 'seamark:buoy_special_purpose:category=fish_aggregator'
+          fish_aggregator: Fish Aggregating Device
+          # 'seamark:buoy_special_purpose:category=foul_ground'
+          foul_ground: Foul ground mark
+          # 'seamark:buoy_special_purpose:category=gps'
+          gps: GPS mark
+          # 'seamark:buoy_special_purpose:category=heliport'
+          heliport: Heliport mark
+          # 'seamark:buoy_special_purpose:category=ice'
+          ice: Ice Mark
+          # 'seamark:buoy_special_purpose:category=lanby'
+          lanby: LANBY
+          # 'seamark:buoy_special_purpose:category=leading'
+          leading: Leading mark
+          # 'seamark:buoy_special_purpose:category=marine_farm'
+          marine_farm: Marine farm mark
+          # 'seamark:buoy_special_purpose:category=marine_traffic_lights'
+          marine_traffic_lights: Marine traffic lights
+          # 'seamark:buoy_special_purpose:category=marker_ship'
+          marker_ship: Marker ship mark
+          # 'seamark:buoy_special_purpose:category=maximum_vessel_draught'
+          maximum_vessel_draught: Maximum vessel's draught mark
+          # 'seamark:buoy_special_purpose:category=measured_distance'
+          measured_distance: Measured distance mark
+          # 'seamark:buoy_special_purpose:category=mooring'
+          mooring: Mooring mark
+          # 'seamark:buoy_special_purpose:category=nature_reserve'
+          nature_reserve: Nature Reserve Mark
+          # 'seamark:buoy_special_purpose:category=no_anchoring'
+          no_anchoring: Anchoring prohibited mark
+          # 'seamark:buoy_special_purpose:category=no_berthing'
+          no_berthing: Berthing prohibited mark
+          # 'seamark:buoy_special_purpose:category=no_entry'
+          no_entry: Entry prohibited mark
+          # 'seamark:buoy_special_purpose:category=no_jetski'
+          no_jetski: Jetski Prohibited
+          # 'seamark:buoy_special_purpose:category=no_overtaking'
+          no_overtaking: Overtaking prohibited mark
+          # 'seamark:buoy_special_purpose:category=no_two-way_traffic'
+          no_two-way_traffic: Two-way traffic prohibited mark
+          # 'seamark:buoy_special_purpose:category=notice'
+          notice: Notice mark
+          # 'seamark:buoy_special_purpose:category=odas'
+          odas: ODAS
+          # 'seamark:buoy_special_purpose:category=outfall'
+          outfall: Outfall mark
+          # 'seamark:buoy_special_purpose:category=overhead_power_cable'
+          overhead_power_cable: Overhead power cable mark
+          # 'seamark:buoy_special_purpose:category=pipeline'
+          pipeline: Pipeline mark
+          # 'seamark:buoy_special_purpose:category=private'
+          private: Private mark
+          # 'seamark:buoy_special_purpose:category=recording'
+          recording: Recording mark
+          # 'seamark:buoy_special_purpose:category=recreation_zone'
+          recreation_zone: Recreation zone mark
+          # 'seamark:buoy_special_purpose:category=reduced_wake'
+          reduced_wake: Reduced wake mark
+          # 'seamark:buoy_special_purpose:category=refuge_beacon'
+          refuge_beacon: Refuge beacon
+          # 'seamark:buoy_special_purpose:category=restricted_horizontal_clearance'
+          restricted_horizontal_clearance: Restricted horizontal clearance mark
+          # 'seamark:buoy_special_purpose:category=restricted_vertical_clearance'
+          restricted_vertical_clearance: Restricted vertical clearance mark
+          # 'seamark:buoy_special_purpose:category=seaplane_anchorage'
+          seaplane_anchorage: Seaplane anchorage mark
+          # 'seamark:buoy_special_purpose:category=seaplane_landing'
+          seaplane_landing: Seaplane landing mark
+          # 'seamark:buoy_special_purpose:category=sound_ship_siren'
+          sound_ship_siren: Sound ships siren mark
+          # 'seamark:buoy_special_purpose:category=speed_limit'
+          speed_limit: Speed limit mark
+          # 'seamark:buoy_special_purpose:category=spoil_ground'
+          spoil_ground: Spoil ground mark
+          # 'seamark:buoy_special_purpose:category=stop'
+          stop: Stop mark
+          # 'seamark:buoy_special_purpose:category=strong_current'
+          strong_current: Strong current warning mark
+          # 'seamark:buoy_special_purpose:category=target'
+          target: Target mark
+          # 'seamark:buoy_special_purpose:category=telephone'
+          telephone: Telephone mark
+          # 'seamark:buoy_special_purpose:category=tss'
+          tss: TSS mark
+          # 'seamark:buoy_special_purpose:category=unknown_purpose'
+          unknown_purpose: Mark with unknown purpose
+          # 'seamark:buoy_special_purpose:category=warning'
+          warning: General warning mark
+          # 'seamark:buoy_special_purpose:category=wave_recorder'
+          wave_recorder: Wave Recorder
+          # 'seamark:buoy_special_purpose:category=wellhead'
+          wellhead: Wellhead mark
+          # 'seamark:buoy_special_purpose:category=work_in_progress'
+          work_in_progress: Work in progress mark
+          # 'seamark:buoy_special_purpose:category=wreck'
+          wreck: Wreck mark
+          # 'seamark:buoy_special_purpose:category=yachting'
+          yachting: Yachting mark
+      seamark/buoy_special_purpose/colour:
+        # 'seamark:buoy_special_purpose:colour=*'
+        label: Buoy Colour
+        options:
+          # 'seamark:buoy_special_purpose:colour=amber'
+          amber: Amber
+          # 'seamark:buoy_special_purpose:colour=black'
+          black: Black
+          # 'seamark:buoy_special_purpose:colour=blue'
+          blue: Blue
+          # 'seamark:buoy_special_purpose:colour=brown'
+          brown: Brown
+          # 'seamark:buoy_special_purpose:colour=green'
+          green: Green
+          # 'seamark:buoy_special_purpose:colour=grey'
+          grey: Grey
+          # 'seamark:buoy_special_purpose:colour=magenta'
+          magenta: Magenta
+          # 'seamark:buoy_special_purpose:colour=orange'
+          orange: Orange
+          # 'seamark:buoy_special_purpose:colour=pink'
+          pink: Pink
+          # 'seamark:buoy_special_purpose:colour=red'
+          red: Red
+          # 'seamark:buoy_special_purpose:colour=violet'
+          violet: Violet
+          # 'seamark:buoy_special_purpose:colour=white'
+          white: White
+          # 'seamark:buoy_special_purpose:colour=yellow'
+          yellow: Yellow
+      seamark/buoy_special_purpose/colour_pattern:
+        # 'seamark:buoy_special_purpose:colour_pattern=*'
+        label: Buoy Colour Pattern
+        options:
+          # 'seamark:buoy_special_purpose:colour_pattern=border'
+          border: Border stripe
+          # 'seamark:buoy_special_purpose:colour_pattern=cross'
+          cross: Vertical cross
+          # 'seamark:buoy_special_purpose:colour_pattern=diagonal'
+          diagonal: Diagonal stripes
+          # 'seamark:buoy_special_purpose:colour_pattern=horizontal'
+          horizontal: Horizontal stripes
+          # 'seamark:buoy_special_purpose:colour_pattern=saltire'
+          saltire: Diagonal cross
+          # 'seamark:buoy_special_purpose:colour_pattern=squared'
+          squared: Squared
+          # 'seamark:buoy_special_purpose:colour_pattern=stripes'
+          stripes: Stripes (direction unknown)
+          # 'seamark:buoy_special_purpose:colour_pattern=vertical'
+          vertical: Vertical stripes
+      seamark/buoy_special_purpose/shape:
+        # 'seamark:buoy_special_purpose:shape=*'
+        label: Buoy Shape
+        options:
+          # 'seamark:buoy_special_purpose:shape=barrel'
+          barrel: Barrel (tun)
+          # 'seamark:buoy_special_purpose:shape=can'
+          can: Can (cylindrical)
+          # 'seamark:buoy_special_purpose:shape=conical'
+          conical: 'Conical (nun, ogival)'
+          # 'seamark:buoy_special_purpose:shape=ice_buoy'
+          ice_buoy: Ice buoy
+          # 'seamark:buoy_special_purpose:shape=pillar'
+          pillar: Pillar
+          # 'seamark:buoy_special_purpose:shape=spar'
+          spar: Spar (spindle)
+          # 'seamark:buoy_special_purpose:shape=spherical'
+          spherical: Spherical
+          # 'seamark:buoy_special_purpose:shape=super-buoy'
+          super-buoy: Super-buoy
       seamark/mooring/category:
         # 'seamark:mooring:category=*'
         label: Category
@@ -2516,6 +2935,16 @@ en:
           # 'seamark:mooring:shape=super-buoy'
           super-buoy: Super-buoy
         terms: '[translate with synonyms or related terms for ''Shape'', separated by commas]'
+      seamark/navigation_line/category:
+        # 'seamark:navigation_line:category=*'
+        label: Category
+        options:
+          # 'seamark:navigation_line:category=clearing'
+          clearing: Clearing line
+          # 'seamark:navigation_line:category=leading'
+          leading: Leading line bearing a recommended track
+          # 'seamark:navigation_line:category=transit'
+          transit: Transit line
       seamark/obstruction/category:
         # 'seamark:obstruction:category=*'
         label: Category
@@ -2687,6 +3116,50 @@ en:
           water: Water
           # 'seamark:platform:product=wine'
           wine: Wine
+      seamark/recommended_track/category:
+        # 'seamark:recommended_track:category=*'
+        label: Category
+        options:
+          # 'seamark:recommended_track:category=fixed_marks'
+          fixed_marks: Based on a system of fixed marks
+          # 'seamark:recommended_track:category=no_fixed_marks'
+          no_fixed_marks: Not based on a system of fixed marks
+      seamark/recommended_track/traffic_flow:
+        # 'seamark:recommended_track:traffic_flow=*'
+        label: Traffic Flow
+        options:
+          # 'seamark:recommended_track:traffic_flow=inbound'
+          inbound: Inbound
+          # 'seamark:recommended_track:traffic_flow=one-way'
+          one-way: One-way
+          # 'seamark:recommended_track:traffic_flow=outbound'
+          outbound: Outbound
+          # 'seamark:recommended_track:traffic_flow=two-way'
+          two-way: Two-way
+      seamark/rescue_station/category:
+        # 'seamark:rescue_station:category=*'
+        label: Category
+        options:
+          # 'seamark:rescue_station:category=aircraft'
+          aircraft: Rescue aircraft
+          # 'seamark:rescue_station:category=first_aid'
+          first_aid: First aid equipment
+          # 'seamark:rescue_station:category=lifeboat'
+          lifeboat: Rescue station with lifeboat
+          # 'seamark:rescue_station:category=lifeboat_on_mooring'
+          lifeboat_on_mooring: Lifeboat lying at a mooring
+          # 'seamark:rescue_station:category=radio'
+          radio: Aid radio station
+          # 'seamark:rescue_station:category=refuge_intertidal'
+          refuge_intertidal: Refuge for intertidal area walkers
+          # 'seamark:rescue_station:category=refuge_shipwrecked'
+          refuge_shipwrecked: Refuge for shipwrecked mariners
+          # 'seamark:rescue_station:category=rocket'
+          rocket: Rescue station with rocket
+          # 'seamark:rescue_station:category=seaplane'
+          seaplane: Rescue seaplane
+          # 'seamark:rescue_station:category=tug'
+          tug: Salvage tug
       seamark/rock/water_level:
         # 'seamark:rock:water_level=*'
         label: Water Level
@@ -2709,138 +3182,6 @@ en:
           part-submerged: Partly submerged at high water
           # 'seamark:rock:water_level=submerged'
           submerged: Always under water/submerged
-      seamark/topmark/category:
-        # 'seamark:topmark:category=*'
-        label: Topmark
-        options:
-          # 'seamark:topmark:category=anchorage'
-          anchorage: Anchorage mark
-          # 'seamark:topmark:category=artificial_reef'
-          artificial_reef: Artificial reef mark
-          # 'seamark:topmark:category=barge'
-          barge: Barge mark
-          # 'seamark:topmark:category=berthing'
-          berthing: Berthing permitted mark
-          # 'seamark:topmark:category=cable'
-          cable: Cable mark
-          # 'seamark:topmark:category=causeway'
-          causeway: Causeway Mark
-          # 'seamark:topmark:category=channel_edge_gradient'
-          channel_edge_gradient: Channel edge gradient mark
-          # 'seamark:topmark:category=channel_separation'
-          channel_separation: Channel separation mark
-          # 'seamark:topmark:category=clearing'
-          clearing: Clearing mark
-          # 'seamark:topmark:category=control'
-          control: Control mark
-          # 'seamark:topmark:category=customs'
-          customs: Customs Mark
-          # 'seamark:topmark:category=degaussing_range'
-          degaussing_range: Degaussing range mark
-          # 'seamark:topmark:category=diving'
-          diving: Diving mark
-          # 'seamark:topmark:category=ferry_crossing'
-          ferry_crossing: Ferry crossing mark
-          # 'seamark:topmark:category=firing_danger_area'
-          firing_danger_area: Firing danger mark
-          # 'seamark:topmark:category=fish_aggregator'
-          fish_aggregator: Fish Aggregating Device
-          # 'seamark:topmark:category=foul_ground'
-          foul_ground: Foul ground mark
-          # 'seamark:topmark:category=gps'
-          gps: GPS mark
-          # 'seamark:topmark:category=heliport'
-          heliport: Heliport mark
-          # 'seamark:topmark:category=ice'
-          ice: Ice Mark
-          # 'seamark:topmark:category=lanby'
-          lanby: LANBY
-          # 'seamark:topmark:category=leading'
-          leading: Leading mark
-          # 'seamark:topmark:category=marine_farm'
-          marine_farm: Marine farm mark
-          # 'seamark:topmark:category=marine_traffic_lights'
-          marine_traffic_lights: Marine traffic lights
-          # 'seamark:topmark:category=marker_ship'
-          marker_ship: Marker ship mark
-          # 'seamark:topmark:category=maximum_vessel_draught'
-          maximum_vessel_draught: Maximum vessel's draught mark
-          # 'seamark:topmark:category=measured_distance'
-          measured_distance: Measured distance mark
-          # 'seamark:topmark:category=mooring'
-          mooring: Mooring mark
-          # 'seamark:topmark:category=nature_reserve'
-          nature_reserve: Nature Reserve Mark
-          # 'seamark:topmark:category=no_anchoring'
-          no_anchoring: Anchoring prohibited mark
-          # 'seamark:topmark:category=no_berthing'
-          no_berthing: Berthing prohibited mark
-          # 'seamark:topmark:category=no_entry'
-          no_entry: Entry prohibited mark
-          # 'seamark:topmark:category=no_jetski'
-          no_jetski: Jetski Prohibited
-          # 'seamark:topmark:category=no_overtaking'
-          no_overtaking: Overtaking prohibited mark
-          # 'seamark:topmark:category=no_two-way_traffic'
-          no_two-way_traffic: Two-way traffic prohibited mark
-          # 'seamark:topmark:category=notice'
-          notice: Notice mark
-          # 'seamark:topmark:category=odas'
-          odas: ODAS
-          # 'seamark:topmark:category=outfall'
-          outfall: Outfall mark
-          # 'seamark:topmark:category=overhead_power_cable'
-          overhead_power_cable: Overhead power cable mark
-          # 'seamark:topmark:category=pipeline'
-          pipeline: Pipeline mark
-          # 'seamark:topmark:category=private'
-          private: Private mark
-          # 'seamark:topmark:category=recording'
-          recording: Recording mark
-          # 'seamark:topmark:category=recreation_zone'
-          recreation_zone: Recreation zone mark
-          # 'seamark:topmark:category=reduced_wake'
-          reduced_wake: Reduced wake mark
-          # 'seamark:topmark:category=refuge_beacon'
-          refuge_beacon: Refuge beacon
-          # 'seamark:topmark:category=restricted_horizontal_clearance'
-          restricted_horizontal_clearance: Restricted horizontal clearance mark
-          # 'seamark:topmark:category=restricted_vertical_clearance'
-          restricted_vertical_clearance: Restricted vertical clearance mark
-          # 'seamark:topmark:category=seaplane_anchorage'
-          seaplane_anchorage: Seaplane anchorage mark
-          # 'seamark:topmark:category=seaplane_landing'
-          seaplane_landing: Seaplane landing mark
-          # 'seamark:topmark:category=sound_ship_siren'
-          sound_ship_siren: Sound ships siren mark
-          # 'seamark:topmark:category=speed_limit'
-          speed_limit: Speed limit mark
-          # 'seamark:topmark:category=spoil_ground'
-          spoil_ground: Spoil ground mark
-          # 'seamark:topmark:category=stop'
-          stop: Stop mark
-          # 'seamark:topmark:category=strong_current'
-          strong_current: Strong current warning mark
-          # 'seamark:topmark:category=target'
-          target: Target mark
-          # 'seamark:topmark:category=telephone'
-          telephone: Telephone mark
-          # 'seamark:topmark:category=tss'
-          tss: TSS mark
-          # 'seamark:topmark:category=unknown_purpose'
-          unknown_purpose: Mark with unknown purpose
-          # 'seamark:topmark:category=warning'
-          warning: General warning mark
-          # 'seamark:topmark:category=wave_recorder'
-          wave_recorder: Wave Recorder
-          # 'seamark:topmark:category=wellhead'
-          wellhead: Wellhead mark
-          # 'seamark:topmark:category=work_in_progress'
-          work_in_progress: Work in progress mark
-          # 'seamark:topmark:category=wreck'
-          wreck: Wreck mark
-          # 'seamark:topmark:category=yachting'
-          yachting: Yachting mark
       seamark/topmark/colour:
         # 'seamark:topmark:colour=*'
         label: Topmark Colour
@@ -5770,6 +6111,11 @@ en:
         name: Life Ring
         # 'terms: life buoy,kisby ring,kisbie ring,perry buoy'
         terms: '<translate with synonyms or related terms for ''Life Ring'', separated by commas>'
+      emergency/lifeboat_station:
+        # 'emergency=lifeboat_station, seamark:type=rescue_station'
+        name: Lifeboat Station
+        # 'terms: boat rescue,lifeboat,rescue,search and rescue,life saving'
+        terms: '<translate with synonyms or related terms for ''Lifeboat Station'', separated by commas>'
       emergency/lifeguard:
         # emergency=lifeguard
         name: Lifeguard
@@ -7113,10 +7459,6 @@ en:
         name: Antenna
         # 'terms: broadcast,cell phone,cell,communication,mobile phone,radio,television,transmission,tv'
         terms: '<translate with synonyms or related terms for ''Antenna'', separated by commas>'
-      man_made/beacon:
-        # man_made=beacon
-        name: Beacon
-        terms: '<translate with synonyms or related terms for ''Beacon'', separated by commas>'
       man_made/beehive:
         # man_made=beehive
         name: Beehive
@@ -8607,6 +8949,11 @@ en:
         name: Channel Beacon
         # 'terms: lateral beacon,beacon lateral,cevni,channel marker,iala,lateral mark'
         terms: '<translate with synonyms or related terms for ''Channel Beacon'', separated by commas>'
+      seamark/beacon_special_purpose:
+        # 'seamark:type=beacon_special_purpose'
+        name: Special Purpose Beacon
+        # 'terms: beacon,special beacon,danger beacon,channel marker'
+        terms: '<translate with synonyms or related terms for ''Special Purpose Beacon'', separated by commas>'
       seamark/buoy_lateral:
         # 'seamark:type=buoy_lateral'
         name: Channel Buoy
@@ -8622,6 +8969,11 @@ en:
         name: Red Buoy
         # 'terms: lateral buoy,buoy lateral,cevni,channel marker,iala,lateral mark'
         terms: '<translate with synonyms or related terms for ''Red Buoy'', separated by commas>'
+      seamark/buoy_special_purpose:
+        # 'seamark:type=buoy_special_purpose'
+        name: Special Purpose Buoy
+        # 'terms: buoy,special buoy,danger buoy'
+        terms: '<translate with synonyms or related terms for ''Special Purpose Buoy'', separated by commas>'
       seamark/mooring:
         # 'seamark:type=mooring'
         name: Mooring
@@ -8632,6 +8984,11 @@ en:
         name: Mooring Dolphin
         # 'terms: dolphin,pile,bollard,buoy,post'
         terms: '<translate with synonyms or related terms for ''Mooring Dolphin'', separated by commas>'
+      seamark/navigation_line:
+        # 'seamark:type=navigation_line'
+        name: Maritime Navigation Line
+        # 'terms: navigation line,line,marine,route,boat'
+        terms: '<translate with synonyms or related terms for ''Maritime Navigation Line'', separated by commas>'
       seamark/obstruction:
         # 'seamark:type=obstruction'
         name: Marine Obstruction
@@ -8642,6 +8999,11 @@ en:
         name: Pile
         # 'terms: pile'
         terms: '<translate with synonyms or related terms for ''Pile'', separated by commas>'
+      seamark/recommended_track:
+        # 'seamark:type=recommended_track'
+        name: Recommended Maritime Track
+        # 'terms: navigation line,line,marine,route,boat'
+        terms: '<translate with synonyms or related terms for ''Recommended Maritime Track'', separated by commas>'
       seamark/rock:
         # 'seamark:type=rock'
         name: Marine Rock
