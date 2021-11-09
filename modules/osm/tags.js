@@ -115,7 +115,10 @@ export var osmOneWayTags = {
         'river': true,
         'stream': true,
         'tidal_channel': true
-    }
+    },
+    'seamark:type': {
+        'separation_lane': true,
+    },
 };
 
 // solid and smooth surfaces akin to the assumed default road surface in OSM

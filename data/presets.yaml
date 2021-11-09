@@ -2383,7 +2383,7 @@ en:
           other: Other
       seamark/beacon_special_purpose/category:
         # 'seamark:beacon_special_purpose:category=*'
-        label: Beacon Category
+        label: Mark Category
         options:
           # 'seamark:beacon_special_purpose:category=anchorage'
           anchorage: Anchorage mark
@@ -2515,7 +2515,7 @@ en:
           yachting: Yachting mark
       seamark/beacon_special_purpose/colour:
         # 'seamark:beacon_special_purpose:colour=*'
-        label: Beacon Colour
+        label: Marker Colour
         options:
           # 'seamark:beacon_special_purpose:colour=amber'
           amber: Amber
@@ -2545,7 +2545,7 @@ en:
           yellow: Yellow
       seamark/beacon_special_purpose/colour_pattern:
         # 'seamark:beacon_special_purpose:colour_pattern=*'
-        label: Beacon Colour Pattern
+        label: Marker Colour Pattern
         options:
           # 'seamark:beacon_special_purpose:colour_pattern=border'
           border: Border stripe
@@ -2565,7 +2565,7 @@ en:
           vertical: Vertical stripes
       seamark/beacon_special_purpose/shape:
         # 'seamark:beacon_special_purpose:shape=*'
-        label: Beacon Shape
+        label: Structure
         options:
           # 'seamark:beacon_special_purpose:shape=buoyant'
           buoyant: Buoyant beacon
@@ -2581,6 +2581,76 @@ en:
           tower: Beacon tower
           # 'seamark:beacon_special_purpose:shape=withy'
           withy: Withy
+      seamark/buoy_isolated_danger/colour:
+        # 'seamark:buoy_isolated_danger:colour=*'
+        label: Buoy Colour
+        options:
+          # 'seamark:buoy_isolated_danger:colour=amber'
+          amber: Amber
+          # 'seamark:buoy_isolated_danger:colour=black'
+          black: Black
+          # 'seamark:buoy_isolated_danger:colour=blue'
+          blue: Blue
+          # 'seamark:buoy_isolated_danger:colour=brown'
+          brown: Brown
+          # 'seamark:buoy_isolated_danger:colour=green'
+          green: Green
+          # 'seamark:buoy_isolated_danger:colour=grey'
+          grey: Grey
+          # 'seamark:buoy_isolated_danger:colour=magenta'
+          magenta: Magenta
+          # 'seamark:buoy_isolated_danger:colour=orange'
+          orange: Orange
+          # 'seamark:buoy_isolated_danger:colour=pink'
+          pink: Pink
+          # 'seamark:buoy_isolated_danger:colour=red'
+          red: Red
+          # 'seamark:buoy_isolated_danger:colour=violet'
+          violet: Violet
+          # 'seamark:buoy_isolated_danger:colour=white'
+          white: White
+          # 'seamark:buoy_isolated_danger:colour=yellow'
+          yellow: Yellow
+      seamark/buoy_isolated_danger/colour_pattern:
+        # 'seamark:buoy_isolated_danger:colour_pattern=*'
+        label: Buoy Colour Pattern
+        options:
+          # 'seamark:buoy_isolated_danger:colour_pattern=border'
+          border: Border stripe
+          # 'seamark:buoy_isolated_danger:colour_pattern=cross'
+          cross: Vertical cross
+          # 'seamark:buoy_isolated_danger:colour_pattern=diagonal'
+          diagonal: Diagonal stripes
+          # 'seamark:buoy_isolated_danger:colour_pattern=horizontal'
+          horizontal: Horizontal stripes
+          # 'seamark:buoy_isolated_danger:colour_pattern=saltire'
+          saltire: Diagonal cross
+          # 'seamark:buoy_isolated_danger:colour_pattern=squared'
+          squared: Squared
+          # 'seamark:buoy_isolated_danger:colour_pattern=stripes'
+          stripes: Stripes (direction unknown)
+          # 'seamark:buoy_isolated_danger:colour_pattern=vertical'
+          vertical: Vertical stripes
+      seamark/buoy_isolated_danger/shape:
+        # 'seamark:buoy_isolated_danger:shape=*'
+        label: Buoy Shape
+        options:
+          # 'seamark:buoy_isolated_danger:shape=barrel'
+          barrel: Barrel (tun)
+          # 'seamark:buoy_isolated_danger:shape=can'
+          can: Can (cylindrical)
+          # 'seamark:buoy_isolated_danger:shape=conical'
+          conical: 'Conical (nun, ogival)'
+          # 'seamark:buoy_isolated_danger:shape=ice_buoy'
+          ice_buoy: Ice buoy
+          # 'seamark:buoy_isolated_danger:shape=pillar'
+          pillar: Pillar
+          # 'seamark:buoy_isolated_danger:shape=spar'
+          spar: Spar (spindle)
+          # 'seamark:buoy_isolated_danger:shape=spherical'
+          spherical: Spherical
+          # 'seamark:buoy_isolated_danger:shape=super-buoy'
+          super-buoy: Super-buoy
       seamark/buoy_lateral/category:
         # 'seamark:buoy_lateral:category=*'
         label: Category
@@ -8951,9 +9021,14 @@ en:
         terms: '<translate with synonyms or related terms for ''Channel Beacon'', separated by commas>'
       seamark/beacon_special_purpose:
         # 'seamark:type=beacon_special_purpose'
-        name: Special Purpose Beacon
+        name: Generic Nautical Marker
         # 'terms: beacon,special beacon,danger beacon,channel marker'
-        terms: '<translate with synonyms or related terms for ''Special Purpose Beacon'', separated by commas>'
+        terms: '<translate with synonyms or related terms for ''Generic Nautical Marker'', separated by commas>'
+      seamark/buoy_isolated_danger:
+        # 'seamark:type=buoy_isolated_danger'
+        name: Danger Buoy
+        # 'terms: buoy,danger buoy'
+        terms: '<translate with synonyms or related terms for ''Danger Buoy'', separated by commas>'
       seamark/buoy_lateral:
         # 'seamark:type=buoy_lateral'
         name: Channel Buoy

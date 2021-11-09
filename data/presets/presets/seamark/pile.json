@@ -1,7 +1,7 @@
 {
     "icon": "temaki-silo",
     "fields": ["seamark/pile/category"],
-    "geometry": ["point"],
+    "geometry": ["point", "vertex"],
     "terms": ["pile"],
     "tags": {
         "seamark:type": "pile"

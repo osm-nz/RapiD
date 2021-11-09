@@ -1,7 +1,7 @@
 {
-    "key": "seamark:beacon_special_purpose:colour_pattern",
+    "key": "seamark:buoy_isolated_danger:colour_pattern",
     "type": "combo",
-    "label": "Marker Colour Pattern",
+    "label": "Buoy Colour Pattern",
     "strings": {
         "options": {
             "horizontal": "Horizontal stripes",

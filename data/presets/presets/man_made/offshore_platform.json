@@ -2,7 +2,7 @@
     "icon": "temaki-oil_well",
     "fields": ["name", "seamark/platform/category", "seamark/platform/product"],
     "moreFields": [],
-    "geometry": ["point", "area"],
+    "geometry": ["point", "vertex", "area"],
     "tags": {
         "seamark:type": "platform"
     },

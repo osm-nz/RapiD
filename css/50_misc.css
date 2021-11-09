@@ -58,11 +58,11 @@ path.line.stroke.tag-piste {
 
 
 /* ferry routes  */
+.preset-icon .icon.tag-seamark_type-recommended_track,
 .preset-icon .icon.tag-seamark_type-navigation_line {
     color: rgb(170, 170, 170);
     fill: #fff;
 }
-.preset-icon .icon.tag-seamark_type-recommended_track,
 .preset-icon .icon.tag-route-ferry {
     color: #58a9ed;
     fill: #fff;
@@ -73,7 +73,7 @@ path.line.shadow.tag-route-ferry {
     stroke-width: 16;
 }
 path.line.stroke.tag-seamark_type-navigation_line,
-path.line.stroke.tag-seamark_type-recommended_track,
+/* path.line.stroke.tag-seamark_type-recommended_track, */
 path.line.stroke.tag-route-ferry {
     stroke-width: 3;
     stroke-linecap: butt;
@@ -86,17 +86,17 @@ path.line.stroke.tag-route-ferry {
 }
 .low-zoom path.line.stroke.tag-seamark_type-navigation_line,
 .preset-icon-container path.line.stroke.tag-seamark_type-navigation_line,
-.low-zoom path.line.stroke.tag-seamark_type-recommended_track,
-.preset-icon-container path.line.stroke.tag-seamark_type-recommended_track,
+/* .low-zoom path.line.stroke.tag-seamark_type-recommended_track,
+.preset-icon-container path.line.stroke.tag-seamark_type-recommended_track, */
 .low-zoom path.line.stroke.tag-route-ferry,
 .preset-icon-container path.line.stroke.tag-route-ferry {
     stroke-width: 2;
     stroke-dasharray: 6,4;
 }
+path.line.stroke.tag-seamark_type-recommended_track,
 path.line.stroke.tag-seamark_type-navigation_line {
     stroke: rgb(170, 170, 170);
 }
-path.line.stroke.tag-seamark_type-recommended_track,
 path.line.stroke.tag-route-ferry {
     stroke: #58a9ed;
 }

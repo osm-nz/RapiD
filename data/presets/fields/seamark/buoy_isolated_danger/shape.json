@@ -1,0 +1,17 @@
+{
+    "key": "seamark:buoy_isolated_danger:shape",
+    "type": "combo",
+    "label": "Buoy Shape",
+    "strings": {
+        "options": {
+            "conical": "Conical (nun, ogival)",
+            "can": "Can (cylindrical)",
+            "spherical": "Spherical",
+            "pillar": "Pillar",
+            "spar": "Spar (spindle)",
+            "barrel": "Barrel (tun)",
+            "super-buoy": "Super-buoy",
+            "ice_buoy": "Ice buoy"
+        }
+    }
+}

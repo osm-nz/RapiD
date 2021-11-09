@@ -1,7 +1,7 @@
 {
-    "key": "seamark:beacon_special_purpose:colour",
+    "key": "seamark:buoy_isolated_danger:colour",
     "type": "semiCombo",
-    "label": "Marker Colour",
+    "label": "Buoy Colour",
     "strings": {
         "options": {
             "white": "White",

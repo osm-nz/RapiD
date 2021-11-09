@@ -1,7 +1,7 @@
 {
     "key": "seamark:beacon_special_purpose:category",
     "type": "combo",
-    "label": "Beacon Category",
+    "label": "Mark Category",
     "strings": {
         "options": {
             "firing_danger_area": "Firing danger mark",

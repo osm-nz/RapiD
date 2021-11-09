@@ -1037,7 +1037,7 @@ export default {
                 // this is probably very inefficient
                 if (feature.loc) {
                     // if it's a node
-                    const coordId = feature.loc[0].toFixed(4)+','+feature.loc[1].toFixed(4);
+                    const coordId = feature.loc[0].toFixed(5)+','+feature.loc[1].toFixed(5);
                     window._seenNodes[coordId] = feature.id;
                 }
 

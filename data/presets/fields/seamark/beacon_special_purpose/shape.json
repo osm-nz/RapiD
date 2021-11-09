@@ -1,7 +1,7 @@
 {
     "key": "seamark:beacon_special_purpose:shape",
     "type": "combo",
-    "label": "Beacon Shape",
+    "label": "Structure",
     "strings": {
         "options": {
             "pole": "Pole",

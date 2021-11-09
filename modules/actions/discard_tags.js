@@ -27,6 +27,7 @@ const json = {
   'linz:garmin_road_class': true,
   'linz:sufi': true,
   'linz:RoadID': true,
+  'seamark': true, // just while we're doing the maritime import
 };
 
 export function actionDiscardTags(difference, discardTags) {

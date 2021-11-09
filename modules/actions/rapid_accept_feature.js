@@ -91,6 +91,23 @@ export function actionRapidAcceptFeature(entityID, extGraph) {
             // copy node before modifying
             var node = osmNode(extNode);
             node.tags = Object.assign({}, node.tags);
+
+            // if we're importing a node in the same location as an existing one, re-use
+            // the existing node instead. Merge the tags. BUT don't do this for addresses.
+            const coordId = node.loc[0].toFixed(5)+','+node.loc[1].toFixed(5);
+            if (coordId in window._seenNodes && !node.tags['ref:linz:address_id']) {
+                const nId = window._seenNodes[coordId];
+                // even tho we have seen this node, it may have been deleted (e.g. via CTRL-Z) so
+                // check if it still exists
+                if (graph.hasEntity(nId)) {
+                    node = graph.entity(nId);
+                    node = node.mergeTags(extNode.tags);
+                }
+            } else {
+                // we add this to _seenNodes in case another imported feature abuts this feature
+                window._seenNodes[coordId] = node.id;
+            }
+
             removeMetadata(node);
 
             graph = graph.replace(node);
@@ -115,7 +132,7 @@ export function actionRapidAcceptFeature(entityID, extGraph) {
                 removeMetadata(node);
 
                 // if there is a node in exactly the same location, re-use that instead.
-                const coordId = node.loc[0].toFixed(4)+','+node.loc[1].toFixed(4);
+                const coordId = node.loc[0].toFixed(5)+','+node.loc[1].toFixed(5);
                 if (coordId in window._seenNodes) {
                     const nId = window._seenNodes[coordId];
                     // even tho we have seen this node, it may have been deleted (e.g. via CTRL-Z) so
