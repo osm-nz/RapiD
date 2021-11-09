@@ -1445,7 +1445,10 @@
           'river': true,
           'stream': true,
           'tidal_channel': true
-      }
+      },
+      'seamark:type': {
+          'separation_lane': true,
+      },
   };
 
   // solid and smooth surfaces akin to the assumed default road surface in OSM
@@ -18021,6 +18024,7 @@
     'linz:garmin_road_class': true,
     'linz:sufi': true,
     'linz:RoadID': true,
+    'seamark': true, // just while we're doing the maritime import
   };
 
   function actionDiscardTags(difference, discardTags) {
@@ -22526,6 +22530,23 @@
               // copy node before modifying
               var node = osmNode(extNode);
               node.tags = Object.assign({}, node.tags);
+
+              // if we're importing a node in the same location as an existing one, re-use
+              // the existing node instead. Merge the tags. BUT don't do this for addresses.
+              const coordId = node.loc[0].toFixed(5)+','+node.loc[1].toFixed(5);
+              if (coordId in window._seenNodes && !node.tags['ref:linz:address_id']) {
+                  const nId = window._seenNodes[coordId];
+                  // even tho we have seen this node, it may have been deleted (e.g. via CTRL-Z) so
+                  // check if it still exists
+                  if (graph.hasEntity(nId)) {
+                      node = graph.entity(nId);
+                      node = node.mergeTags(extNode.tags);
+                  }
+              } else {
+                  // we add this to _seenNodes in case another imported feature abuts this feature
+                  window._seenNodes[coordId] = node.id;
+              }
+
               removeMetadata(node);
 
               graph = graph.replace(node);
@@ -22550,7 +22571,7 @@
                   removeMetadata(node);
 
                   // if there is a node in exactly the same location, re-use that instead.
-                  const coordId = node.loc[0].toFixed(4)+','+node.loc[1].toFixed(4);
+                  const coordId = node.loc[0].toFixed(5)+','+node.loc[1].toFixed(5);
                   if (coordId in window._seenNodes) {
                       const nId = window._seenNodes[coordId];
                       // even tho we have seen this node, it may have been deleted (e.g. via CTRL-Z) so
@@ -98738,7 +98759,7 @@
                   // this is probably very inefficient
                   if (feature.loc) {
                       // if it's a node
-                      const coordId = feature.loc[0].toFixed(4)+','+feature.loc[1].toFixed(4);
+                      const coordId = feature.loc[0].toFixed(5)+','+feature.loc[1].toFixed(5);
                       window._seenNodes[coordId] = feature.id;
                   }
 

@@ -1989,11 +1989,11 @@
 
 
 /* ferry routes  */
+.ideditor .preset-icon .icon.tag-seamark_type-recommended_track,
 .ideditor .preset-icon .icon.tag-seamark_type-navigation_line {
     color: rgb(170, 170, 170);
     fill: #fff;
 }
-.ideditor .preset-icon .icon.tag-seamark_type-recommended_track,
 .ideditor .preset-icon .icon.tag-route-ferry {
     color: #58a9ed;
     fill: #fff;
@@ -2004,7 +2004,7 @@
     stroke-width: 16;
 }
 .ideditor path.line.stroke.tag-seamark_type-navigation_line,
-.ideditor path.line.stroke.tag-seamark_type-recommended_track,
+
 .ideditor path.line.stroke.tag-route-ferry {
     stroke-width: 3;
     stroke-linecap: butt;
@@ -2017,17 +2017,15 @@
 }
 .ideditor .low-zoom path.line.stroke.tag-seamark_type-navigation_line,
 .ideditor .preset-icon-container path.line.stroke.tag-seamark_type-navigation_line,
-.ideditor .low-zoom path.line.stroke.tag-seamark_type-recommended_track,
-.ideditor .preset-icon-container path.line.stroke.tag-seamark_type-recommended_track,
 .ideditor .low-zoom path.line.stroke.tag-route-ferry,
 .ideditor .preset-icon-container path.line.stroke.tag-route-ferry {
     stroke-width: 2;
     stroke-dasharray: 6,4;
 }
+.ideditor path.line.stroke.tag-seamark_type-recommended_track,
 .ideditor path.line.stroke.tag-seamark_type-navigation_line {
     stroke: rgb(170, 170, 170);
 }
-.ideditor path.line.stroke.tag-seamark_type-recommended_track,
 .ideditor path.line.stroke.tag-route-ferry {
     stroke: #58a9ed;
 }

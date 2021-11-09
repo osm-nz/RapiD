@@ -5074,7 +5074,7 @@
                     }
                 },
                 "seamark/beacon_special_purpose/category": {
-                    "label": "Beacon Category",
+                    "label": "Mark Category",
                     "options": {
                         "firing_danger_area": "Firing danger mark",
                         "target": "Target mark",
@@ -5143,7 +5143,7 @@
                     }
                 },
                 "seamark/beacon_special_purpose/colour_pattern": {
-                    "label": "Beacon Colour Pattern",
+                    "label": "Marker Colour Pattern",
                     "options": {
                         "horizontal": "Horizontal stripes",
                         "vertical": "Vertical stripes",
@@ -5156,7 +5156,7 @@
                     }
                 },
                 "seamark/beacon_special_purpose/colour": {
-                    "label": "Beacon Colour",
+                    "label": "Marker Colour",
                     "options": {
                         "white": "White",
                         "black": "Black",
@@ -5174,7 +5174,7 @@
                     }
                 },
                 "seamark/beacon_special_purpose/shape": {
-                    "label": "Beacon Shape",
+                    "label": "Structure",
                     "options": {
                         "pole": "Pole",
                         "withy": "Withy",
@@ -5183,6 +5183,50 @@
                         "pile": "Pile beacon",
                         "cairn": "Cairn",
                         "buoyant": "Buoyant beacon"
+                    }
+                },
+                "seamark/buoy_isolated_danger/colour_pattern": {
+                    "label": "Buoy Colour Pattern",
+                    "options": {
+                        "horizontal": "Horizontal stripes",
+                        "vertical": "Vertical stripes",
+                        "diagonal": "Diagonal stripes",
+                        "squared": "Squared",
+                        "stripes": "Stripes (direction unknown)",
+                        "border": "Border stripe",
+                        "cross": "Vertical cross",
+                        "saltire": "Diagonal cross"
+                    }
+                },
+                "seamark/buoy_isolated_danger/colour": {
+                    "label": "Buoy Colour",
+                    "options": {
+                        "white": "White",
+                        "black": "Black",
+                        "red": "Red",
+                        "green": "Green",
+                        "blue": "Blue",
+                        "yellow": "Yellow",
+                        "grey": "Grey",
+                        "brown": "Brown",
+                        "amber": "Amber",
+                        "violet": "Violet",
+                        "orange": "Orange",
+                        "magenta": "Magenta",
+                        "pink": "Pink"
+                    }
+                },
+                "seamark/buoy_isolated_danger/shape": {
+                    "label": "Buoy Shape",
+                    "options": {
+                        "conical": "Conical (nun, ogival)",
+                        "can": "Can (cylindrical)",
+                        "spherical": "Spherical",
+                        "pillar": "Pillar",
+                        "spar": "Spar (spindle)",
+                        "barrel": "Barrel (tun)",
+                        "super-buoy": "Super-buoy",
+                        "ice_buoy": "Ice buoy"
                     }
                 },
                 "seamark/buoy_lateral/category": {
@@ -10422,8 +10466,12 @@
                     "terms": "lateral beacon,beacon lateral,cevni,channel marker,iala,lateral mark"
                 },
                 "seamark/beacon_special_purpose": {
-                    "name": "Special Purpose Beacon",
+                    "name": "Generic Nautical Marker",
                     "terms": "beacon,special beacon,danger beacon,channel marker"
+                },
+                "seamark/buoy_isolated_danger": {
+                    "name": "Danger Buoy",
+                    "terms": "buoy,danger buoy"
                 },
                 "seamark/buoy_lateral": {
                     "name": "Channel Buoy",
