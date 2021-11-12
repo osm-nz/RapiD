@@ -40884,6 +40884,7 @@
 	}
 
 	function behaviorDrawWay(context, wayID, mode, startGraph) {
+	  var keybinding = utilKeybinding('drawWay');
 	  var dispatch$1 = dispatch('rejectedSelfIntersection');
 	  var behavior = behaviorDraw(context); // Must be set by `drawWay.nodeIndex` before each install of this behavior.
 
@@ -41176,10 +41177,106 @@
 	        return graph.replace(graph.entity(wayID).addNode(node.id, _nodeIndex));
 	      }, _annotation);
 	    });
-	  }; // Finish the draw operation, removing the temporary edit.
+	  };
+	  /**
+	   * @param {(typeof osmWay)[]} ways
+	   * @returns {"line" | "area" | "generic"}
+	   */
+
+
+	  function getFeatureType(ways) {
+	    if (ways.every(function (way) {
+	      return way.isClosed();
+	    })) return 'area';
+	    if (ways.every(function (way) {
+	      return !way.isClosed();
+	    })) return 'line';
+	    return 'generic';
+	  }
+	  /** see PR #8671 */
+
+
+	  function followMode() {
+	    if (_didResolveTempEdit) return;
+
+	    try {
+	      // get the last 2 added nodes.
+	      // check if they are both part of only oneway (the same one)
+	      // check if the ways that they're part of are the same way
+	      // find index of the last two nodes, to determine the direction to travel around the existing way
+	      // add the next node to the way we are drawing
+	      // if we're drawing an area, the first node = last node.
+	      var isDrawingArea = _origWay.nodes[0] === _origWay.nodes.slice(-1)[0];
+
+	      var _origWay$nodes$slice = _origWay.nodes.slice(isDrawingArea ? -3 : -2),
+	          _origWay$nodes$slice2 = _slicedToArray(_origWay$nodes$slice, 2),
+	          secondLastNodeId = _origWay$nodes$slice2[0],
+	          lastNodeId = _origWay$nodes$slice2[1]; // Unlike startGraph, the full history graph may contain unsaved vertices to follow.
+	      // https://github.com/openstreetmap/iD/issues/8749
+
+
+	      var historyGraph = context.history().graph();
+
+	      if (!lastNodeId || !secondLastNodeId || !historyGraph.hasEntity(lastNodeId) || !historyGraph.hasEntity(secondLastNodeId)) {
+	        context.ui().flash.duration(4000).iconName('#iD-icon-no').label(_t('operations.follow.error.needs_more_initial_nodes'))();
+	        return;
+	      } // If the way has looped over itself, follow some other way.
+
+
+	      var lastNodesParents = historyGraph.parentWays(historyGraph.entity(lastNodeId)).filter(function (w) {
+	        return w.id !== wayID;
+	      });
+	      var secondLastNodesParents = historyGraph.parentWays(historyGraph.entity(secondLastNodeId)).filter(function (w) {
+	        return w.id !== wayID;
+	      });
+	      var featureType = getFeatureType(lastNodesParents);
+
+	      if (lastNodesParents.length !== 1 || secondLastNodesParents.length === 0) {
+	        context.ui().flash.duration(4000).iconName('#iD-icon-no').label(_t("operations.follow.error.intersection_of_multiple_ways.".concat(featureType)))();
+	        return;
+	      } // Check if the last node's parent is also the parent of the second last node.
+	      // The last node must only have one parent, but the second last node can have
+	      // multiple parents.
+
+
+	      if (!secondLastNodesParents.some(function (n) {
+	        return n.id === lastNodesParents[0].id;
+	      })) {
+	        context.ui().flash.duration(4000).iconName('#iD-icon-no').label(_t("operations.follow.error.intersection_of_different_ways.".concat(featureType)))();
+	        return;
+	      }
+
+	      var way = lastNodesParents[0];
+	      var indexOfLast = way.nodes.indexOf(lastNodeId);
+	      var indexOfSecondLast = way.nodes.indexOf(secondLastNodeId); // for a closed way, the first/last node is the same so it appears twice in the array,
+	      // but indexOf always finds the first occurance. This is only an issue when following a way
+	      // in descending order
+
+	      var isDescendingPastZero = indexOfLast === way.nodes.length - 2 && indexOfSecondLast === 0;
+	      var nextNodeIndex = indexOfLast + (indexOfLast > indexOfSecondLast && !isDescendingPastZero ? 1 : -1); // if we're following a closed way and we pass the first/last node, the  next index will be -1
+
+	      if (nextNodeIndex === -1) nextNodeIndex = indexOfSecondLast === 1 ? way.nodes.length - 2 : 1;
+	      var nextNode = historyGraph.entity(way.nodes[nextNodeIndex]);
+	      drawWay.addNode(nextNode, {
+	        geometry: {
+	          type: 'Point',
+	          coordinates: nextNode.loc
+	        },
+	        id: nextNode.id,
+	        properties: {
+	          target: true,
+	          entity: nextNode
+	        }
+	      });
+	    } catch (ex) {
+	      context.ui().flash.duration(4000).iconName('#iD-icon-no').label(_t('operations.follow.error.unknown'))();
+	    }
+	  }
+
+	  keybinding.on(_t('operations.follow.key'), followMode);
+	  select(document).call(keybinding); // Finish the draw operation, removing the temporary edit.
 	  // If the way has enough nodes to be valid, it's selected.
 	  // Otherwise, delete everything and return to browse mode.
-
 
 	  drawWay.finish = function () {
 	    checkGeometry(false
