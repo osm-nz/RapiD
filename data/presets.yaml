@@ -3208,26 +3208,22 @@ en:
           two-way: Two-way
       seamark/rescue_station/category:
         # 'seamark:rescue_station:category=*'
-        label: Category
+        label: Amenities
         options:
           # 'seamark:rescue_station:category=aircraft'
-          aircraft: Rescue aircraft
+          aircraft: Aircraft
           # 'seamark:rescue_station:category=first_aid'
-          first_aid: First aid equipment
+          first_aid: First aid
           # 'seamark:rescue_station:category=lifeboat'
-          lifeboat: Rescue station with lifeboat
-          # 'seamark:rescue_station:category=lifeboat_on_mooring'
-          lifeboat_on_mooring: Lifeboat lying at a mooring
+          lifeboat: Lifeboat
           # 'seamark:rescue_station:category=radio'
-          radio: Aid radio station
+          radio: Radio
           # 'seamark:rescue_station:category=refuge_intertidal'
-          refuge_intertidal: Refuge for intertidal area walkers
+          refuge_intertidal: ' Intertidal Refuge'
           # 'seamark:rescue_station:category=refuge_shipwrecked'
-          refuge_shipwrecked: Refuge for shipwrecked mariners
-          # 'seamark:rescue_station:category=rocket'
-          rocket: Rescue station with rocket
+          refuge_shipwrecked: Shipwreck Refuge
           # 'seamark:rescue_station:category=seaplane'
-          seaplane: Rescue seaplane
+          seaplane: Seaplane
           # 'seamark:rescue_station:category=tug'
           tug: Salvage tug
       seamark/rock/water_level:
