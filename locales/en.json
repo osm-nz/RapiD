@@ -5587,17 +5587,15 @@
                     }
                 },
                 "seamark/rescue_station/category": {
-                    "label": "Category",
+                    "label": "Amenities",
                     "options": {
-                        "lifeboat": "Rescue station with lifeboat",
-                        "rocket": "Rescue station with rocket",
-                        "refuge_shipwrecked": "Refuge for shipwrecked mariners",
-                        "refuge_intertidal": "Refuge for intertidal area walkers",
-                        "lifeboat_on_mooring": "Lifeboat lying at a mooring",
-                        "radio": "Aid radio station",
-                        "first_aid": "First aid equipment",
-                        "seaplane": "Rescue seaplane",
-                        "aircraft": "Rescue aircraft",
+                        "lifeboat": "Lifeboat",
+                        "radio": "Radio",
+                        "first_aid": "First aid",
+                        "seaplane": "Seaplane",
+                        "aircraft": "Aircraft",
+                        "refuge_shipwrecked": "Shipwreck Refuge",
+                        "refuge_intertidal": " Intertidal Refuge",
                         "tug": "Salvage tug"
                     }
                 },
@@ -11842,7 +11840,14 @@
                     "text": "Główny Urząd Geodezji i Kartografii"
                 },
                 "description": "Usługa przeglądania (Web Map Service,WMS) umożliwiająca przeglądanie ortofotomap dla obszaru Polski. Dane udostępniane za pomocą tej usługi stanowią ortofotomapę wykonaną ze zdjęć lotniczych. Usługa oferuje wsparcie dla interfejsu WMS 1.3.0.",
-                "name": "Geoportal 2: Orthophotomap (latest aerial imagery)"
+                "name": "Geoportal 2: Orthophotomap (latest aerial imagery) (WMS)"
+            },
+            "Geoportal2-PL-aerial_image_WMTS": {
+                "attribution": {
+                    "text": "Główny Urząd Geodezji i Kartografii"
+                },
+                "description": "Usługa przeglądania (Web Map Tile Service,WMTS) umożliwiająca przeglądanie ortofotomap dla obszaru Polski. Dane udostępniane za pomocą tej usługi stanowią ortofotomapę wykonaną ze zdjęć lotniczych.",
+                "name": "Geoportal 2: Orthophotomap (latest aerial imagery) (WMTS)"
             },
             "Geoportal2-PL-buildings_WMS": {
                 "attribution": {
