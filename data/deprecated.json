@@ -403,6 +403,10 @@
     "replace": {"emergency": "lifeboat_station", "seamark:type": "rescue_station"}
   },
   {
+    "old": {"landuse": "aquaculture"},
+    "replace": {"landuse": "aquaculture", "seamark:type": "marine_farm"}
+  },
+  {
     "old": {"direction": "all"},
     "replace": {"direction": "both"}
   },

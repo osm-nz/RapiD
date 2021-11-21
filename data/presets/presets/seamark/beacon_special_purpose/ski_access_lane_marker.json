@@ -1,0 +1,21 @@
+{
+    "icon": "temaki-silo",
+    "geometry": ["point", "vertex"],
+    "terms": ["ski lane", "Ski Access Lane", "access lane", "speed", "jetski"],
+    "fields": [
+        "seamark/beacon_special_purpose/category",
+        "seamark/beacon_special_purpose/colour",
+        "seamark/beacon_special_purpose/colour_pattern",
+        "seamark/beacon_special_purpose/shape",
+        "seamark/topmark/shape",
+        "seamark/topmark/colour"
+    ],
+    "tags": {
+        "seamark:type": "beacon_special_purpose",
+        "seamark:beacon_special_purpose:category": "recreation_zone",
+        "seamark:beacon_special_purpose:colour": "black;orange;black;orange",
+        "seamark:beacon_special_purpose:colour_pattern": "horizontal",
+        "seamark:beacon_special_purpose:shape": "pile"
+    },
+    "name": "Ski Access Lane Marker"
+}

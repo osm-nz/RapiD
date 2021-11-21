@@ -1,0 +1,10 @@
+{
+    "icon": "temaki-boat",
+    "geometry": ["area"],
+    "terms": ["ski lane", "Ski Access Lane", "access lane", "speed", "jetski"],
+    "tags": {
+        "seamark:restricted_area:category": "water_skiing",
+        "seamark:type": "restricted_area"
+    },
+    "name": "Ski Access Lane"
+}

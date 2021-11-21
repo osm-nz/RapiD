@@ -6901,7 +6901,7 @@ en:
         # 'terms: allotment,community garden,garden'
         terms: '<translate with synonyms or related terms for ''Garden Allotments'', separated by commas>'
       landuse/aquaculture:
-        # landuse=aquaculture
+        # 'seamark:type=marine_farm, landuse=aquaculture'
         name: Aquaculture
         # 'terms: fish farm,crustacean,algae,aquafarming,shrimp farm,oyster farm,mariculture,algaculture'
         terms: '<translate with synonyms or related terms for ''Aquaculture'', separated by commas>'
@@ -9020,6 +9020,11 @@ en:
         name: Generic Nautical Marker
         # 'terms: beacon,special beacon,danger beacon,channel marker'
         terms: '<translate with synonyms or related terms for ''Generic Nautical Marker'', separated by commas>'
+      seamark/beacon_special_purpose/ski_access_lane_marker:
+        # 'seamark:type=beacon_special_purpose, seamark:beacon_special_purpose:category=recreation_zone, seamark:beacon_special_purpose:colour=black;orange;black;orange, seamark:beacon_special_purpose:colour_pattern=horizontal, seamark:beacon_special_purpose:shape=pile'
+        name: Ski Access Lane Marker
+        # 'terms: ski lane,Ski Access Lane,access lane,speed,jetski'
+        terms: '<translate with synonyms or related terms for ''Ski Access Lane Marker'', separated by commas>'
       seamark/buoy_isolated_danger:
         # 'seamark:type=buoy_isolated_danger'
         name: Danger Buoy
@@ -9085,6 +9090,11 @@ en:
         name: Seaplane Landing Area
         # 'terms: seaplane,seaplane landing,seaport,airport,water runway'
         terms: '<translate with synonyms or related terms for ''Seaplane Landing Area'', separated by commas>'
+      seamark/ski_access_lane:
+        # 'seamark:restricted_area:category=water_skiing, seamark:type=restricted_area'
+        name: Ski Access Lane
+        # 'terms: ski lane,Ski Access Lane,access lane,speed,jetski'
+        terms: '<translate with synonyms or related terms for ''Ski Access Lane'', separated by commas>'
       shop:
         # shop=*
         name: Shop
