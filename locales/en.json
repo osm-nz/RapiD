@@ -10485,6 +10485,10 @@
                     "name": "Generic Nautical Marker",
                     "terms": "beacon,special beacon,danger beacon,channel marker"
                 },
+                "seamark/beacon_special_purpose/ski_access_lane_marker": {
+                    "name": "Ski Access Lane Marker",
+                    "terms": "ski lane,Ski Access Lane,access lane,speed,jetski"
+                },
                 "seamark/buoy_isolated_danger": {
                     "name": "Danger Buoy",
                     "terms": "buoy,danger buoy"
@@ -10536,6 +10540,10 @@
                 "seamark/seaplane_landing_area": {
                     "name": "Seaplane Landing Area",
                     "terms": "seaplane,seaplane landing,seaport,airport,water runway"
+                },
+                "seamark/ski_access_lane": {
+                    "name": "Ski Access Lane",
+                    "terms": "ski lane,Ski Access Lane,access lane,speed,jetski"
                 },
                 "shop": {
                     "name": "Shop",
@@ -12042,7 +12050,10 @@
                 "name": "TIGER Roads 2020"
             },
             "USDA-NAIP": {
-                "description": "The most recent year of DOQQs from the National Agriculture Imagery Program (NAIP) for each state in the contiguous United States.",
+                "attribution": {
+                    "text": "U.S. Department of Agriculture"
+                },
+                "description": "The most recent year of 60cm 4-band DOQQs from the National Agriculture Imagery Program (NAIP) for each state in the contiguous United States.",
                 "name": "National Agriculture Imagery Program"
             },
             "US_Forest_Service_roads_overlay": {
