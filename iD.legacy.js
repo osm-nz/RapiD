@@ -263,7 +263,7 @@
 	(module.exports = function (key, value) {
 	  return sharedStore[key] || (sharedStore[key] = value !== undefined ? value : {});
 	})('versions', []).push({
-	  version: '3.19.1',
+	  version: '3.20.0',
 	  mode:  'global',
 	  copyright: '© 2021 Denis Pushkarev (zloirock.ru)'
 	});
@@ -672,13 +672,15 @@
 	  return getOwnPropertySymbols ? concat(keys, getOwnPropertySymbols(it)) : keys;
 	};
 
-	var copyConstructorProperties = function (target, source) {
+	var copyConstructorProperties = function (target, source, exceptions) {
 	  var keys = ownKeys(source);
 	  var defineProperty = objectDefineProperty.f;
 	  var getOwnPropertyDescriptor = objectGetOwnPropertyDescriptor.f;
 	  for (var i = 0; i < keys.length; i++) {
 	    var key = keys[i];
-	    if (!hasOwnProperty_1(target, key)) defineProperty(target, key, getOwnPropertyDescriptor(source, key));
+	    if (!hasOwnProperty_1(target, key) && !(exceptions && hasOwnProperty_1(exceptions, key))) {
+	      defineProperty(target, key, getOwnPropertyDescriptor(source, key));
+	    }
 	  }
 	};
 
@@ -787,17 +789,11 @@
 	function _typeof(obj) {
 	  "@babel/helpers - typeof";
 
-	  if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") {
-	    _typeof = function (obj) {
-	      return typeof obj;
-	    };
-	  } else {
-	    _typeof = function (obj) {
-	      return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
-	    };
-	  }
-
-	  return _typeof(obj);
+	  return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) {
+	    return typeof obj;
+	  } : function (obj) {
+	    return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
+	  }, _typeof(obj);
 	}
 
 	function _classCallCheck(instance, Constructor) {
@@ -819,6 +815,9 @@
 	function _createClass(Constructor, protoProps, staticProps) {
 	  if (protoProps) _defineProperties(Constructor.prototype, protoProps);
 	  if (staticProps) _defineProperties(Constructor, staticProps);
+	  Object.defineProperty(Constructor, "prototype", {
+	    writable: false
+	  });
 	  return Constructor;
 	}
 
@@ -1188,9 +1187,10 @@
 
 	var TO_STRING_TAG = wellKnownSymbol('toStringTag');
 
-	var setToStringTag = function (it, TAG, STATIC) {
-	  if (it && !hasOwnProperty_1(it = STATIC ? it : it.prototype, TO_STRING_TAG)) {
-	    defineProperty$2(it, TO_STRING_TAG, { configurable: true, value: TAG });
+	var setToStringTag = function (target, TAG, STATIC) {
+	  if (target && !STATIC) target = target.prototype;
+	  if (target && !hasOwnProperty_1(target, TO_STRING_TAG)) {
+	    defineProperty$2(target, TO_STRING_TAG, { configurable: true, value: TAG });
 	  }
 	};
 
@@ -1202,9 +1202,9 @@
 
 	var returnThis = function () { return this; };
 
-	var createIteratorConstructor = function (IteratorConstructor, NAME, next) {
+	var createIteratorConstructor = function (IteratorConstructor, NAME, next, ENUMERABLE_NEXT) {
 	  var TO_STRING_TAG = NAME + ' Iterator';
-	  IteratorConstructor.prototype = objectCreate(IteratorPrototype$1, { next: createPropertyDescriptor(1, next) });
+	  IteratorConstructor.prototype = objectCreate(IteratorPrototype$1, { next: createPropertyDescriptor(+!ENUMERABLE_NEXT, next) });
 	  setToStringTag(IteratorConstructor, TO_STRING_TAG, false);
 	  iterators[TO_STRING_TAG] = returnThis;
 	  return IteratorConstructor;
@@ -1329,6 +1329,11 @@
 	  return methods;
 	};
 
+	var defineProperty$3 = objectDefineProperty.f;
+
+
+
+
 	var ARRAY_ITERATOR = 'Array Iterator';
 	var setInternalState = internalState.set;
 	var getInternalState = internalState.getterFor(ARRAY_ITERATOR);
@@ -1369,12 +1374,17 @@
 	// argumentsList[@@iterator] is %ArrayProto_values%
 	// https://tc39.es/ecma262/#sec-createunmappedargumentsobject
 	// https://tc39.es/ecma262/#sec-createmappedargumentsobject
-	iterators.Arguments = iterators.Array;
+	var values = iterators.Arguments = iterators.Array;
 
 	// https://tc39.es/ecma262/#sec-array.prototype-@@unscopables
 	addToUnscopables('keys');
 	addToUnscopables('values');
 	addToUnscopables('entries');
+
+	// V8 ~ Chrome 45- bug
+	if ( descriptors && values.name !== 'values') try {
+	  defineProperty$3(values, 'name', { value: 'values' });
+	} catch (error) { /* empty */ }
 
 	var TO_STRING_TAG$1 = wellKnownSymbol('toStringTag');
 	var test = {};
@@ -1582,7 +1592,24 @@
 	  return classofRaw(argument) == 'Array';
 	};
 
-	var arraySlice = functionUncurryThis([].slice);
+	var createProperty = function (object, key, value) {
+	  var propertyKey = toPropertyKey(key);
+	  if (propertyKey in object) objectDefineProperty.f(object, propertyKey, createPropertyDescriptor(0, value));
+	  else object[propertyKey] = value;
+	};
+
+	var Array$1 = global_1.Array;
+	var max$1 = Math.max;
+
+	var arraySliceSimple = function (O, start, end) {
+	  var length = lengthOfArrayLike(O);
+	  var k = toAbsoluteIndex(start, length);
+	  var fin = toAbsoluteIndex(end === undefined ? length : end, length);
+	  var result = Array$1(max$1(fin - k, 0));
+	  for (var n = 0; k < fin; k++, n++) createProperty(result, n, O[k]);
+	  result.length = n;
+	  return result;
+	};
 
 	/* eslint-disable es/no-object-getownpropertynames -- safe */
 
@@ -1597,7 +1624,7 @@
 	  try {
 	    return $getOwnPropertyNames(it);
 	  } catch (error) {
-	    return arraySlice(windowNames);
+	    return arraySliceSimple(windowNames);
 	  }
 	};
 
@@ -1611,6 +1638,8 @@
 	var objectGetOwnPropertyNamesExternal = {
 		f: f$6
 	};
+
+	var arraySlice = functionUncurryThis([].slice);
 
 	var bind$2 = functionUncurryThis(functionUncurryThis.bind);
 
@@ -1629,7 +1658,7 @@
 	var exec = functionUncurryThis(constructorRegExp.exec);
 	var INCORRECT_TO_STRING = !constructorRegExp.exec(noop);
 
-	var isConstructorModern = function (argument) {
+	var isConstructorModern = function isConstructor(argument) {
 	  if (!isCallable(argument)) return false;
 	  try {
 	    construct(noop, empty, argument);
@@ -1639,15 +1668,24 @@
 	  }
 	};
 
-	var isConstructorLegacy = function (argument) {
+	var isConstructorLegacy = function isConstructor(argument) {
 	  if (!isCallable(argument)) return false;
 	  switch (classof(argument)) {
 	    case 'AsyncFunction':
 	    case 'GeneratorFunction':
 	    case 'AsyncGeneratorFunction': return false;
+	  }
+	  try {
 	    // we can't check .prototype since constructors produced by .bind haven't it
-	  } return INCORRECT_TO_STRING || !!exec(constructorRegExp, inspectSource(argument));
+	    // `Function#toString` throws on some built-it function in some legacy engines
+	    // (for example, `DOMQuad` and similar in FF41-)
+	    return INCORRECT_TO_STRING || !!exec(constructorRegExp, inspectSource(argument));
+	  } catch (error) {
+	    return true;
+	  }
 	};
+
+	isConstructorLegacy.sham = true;
 
 	// `IsConstructor` abstract operation
 	// https://tc39.es/ecma262/#sec-isconstructor
@@ -1660,7 +1698,7 @@
 	}) ? isConstructorLegacy : isConstructorModern;
 
 	var SPECIES = wellKnownSymbol('species');
-	var Array$1 = global_1.Array;
+	var Array$2 = global_1.Array;
 
 	// a part of `ArraySpeciesCreate` abstract operation
 	// https://tc39.es/ecma262/#sec-arrayspeciescreate
@@ -1669,12 +1707,12 @@
 	  if (isArray(originalArray)) {
 	    C = originalArray.constructor;
 	    // cross-realm fallback
-	    if (isConstructor(C) && (C === Array$1 || isArray(C.prototype))) C = undefined;
+	    if (isConstructor(C) && (C === Array$2 || isArray(C.prototype))) C = undefined;
 	    else if (isObject(C)) {
 	      C = C[SPECIES];
 	      if (C === null) C = undefined;
 	    }
-	  } return C === undefined ? Array$1 : C;
+	  } return C === undefined ? Array$2 : C;
 	};
 
 	// `ArraySpeciesCreate` abstract operation
@@ -2032,7 +2070,7 @@
 
 	hiddenKeys[HIDDEN] = true;
 
-	var defineProperty$3 = objectDefineProperty.f;
+	var defineProperty$4 = objectDefineProperty.f;
 
 
 	var NativeSymbol = global_1.Symbol;
@@ -2065,7 +2103,7 @@
 	  var replace = functionUncurryThis(''.replace);
 	  var stringSlice$2 = functionUncurryThis(''.slice);
 
-	  defineProperty$3(SymbolPrototype$1, 'description', {
+	  defineProperty$4(SymbolPrototype$1, 'description', {
 	    configurable: true,
 	    get: function description() {
 	      var symbol = symbolValueOf(this);
@@ -2111,7 +2149,7 @@
 	// IEEE754 conversions based on https://github.com/feross/ieee754
 
 
-	var Array$2 = global_1.Array;
+	var Array$3 = global_1.Array;
 	var abs = Math.abs;
 	var pow = Math.pow;
 	var floor$1 = Math.floor;
@@ -2119,7 +2157,7 @@
 	var LN2 = Math.LN2;
 
 	var pack = function (number, mantissaLength, bytes) {
-	  var buffer = Array$2(bytes);
+	  var buffer = Array$3(bytes);
 	  var exponentLength = bytes * 8 - mantissaLength - 1;
 	  var eMax = (1 << exponentLength) - 1;
 	  var eBias = eMax >> 1;
@@ -2135,7 +2173,8 @@
 	    exponent = eMax;
 	  } else {
 	    exponent = floor$1(log(number) / LN2);
-	    if (number * (c = pow(2, -exponent)) < 1) {
+	    c = pow(2, -exponent);
+	    if (number * c < 1) {
 	      exponent--;
 	      c *= 2;
 	    }
@@ -2159,10 +2198,18 @@
 	      exponent = 0;
 	    }
 	  }
-	  for (; mantissaLength >= 8; buffer[index++] = mantissa & 255, mantissa /= 256, mantissaLength -= 8);
+	  while (mantissaLength >= 8) {
+	    buffer[index++] = mantissa & 255;
+	    mantissa /= 256;
+	    mantissaLength -= 8;
+	  }
 	  exponent = exponent << mantissaLength | mantissa;
 	  exponentLength += mantissaLength;
-	  for (; exponentLength > 0; buffer[index++] = exponent & 255, exponent /= 256, exponentLength -= 8);
+	  while (exponentLength > 0) {
+	    buffer[index++] = exponent & 255;
+	    exponent /= 256;
+	    exponentLength -= 8;
+	  }
 	  buffer[--index] |= sign * 128;
 	  return buffer;
 	};
@@ -2178,11 +2225,17 @@
 	  var exponent = sign & 127;
 	  var mantissa;
 	  sign >>= 7;
-	  for (; nBits > 0; exponent = exponent * 256 + buffer[index], index--, nBits -= 8);
+	  while (nBits > 0) {
+	    exponent = exponent * 256 + buffer[index--];
+	    nBits -= 8;
+	  }
 	  mantissa = exponent & (1 << -nBits) - 1;
 	  exponent >>= -nBits;
 	  nBits += mantissaLength;
-	  for (; nBits > 0; mantissa = mantissa * 256 + buffer[index], index--, nBits -= 8);
+	  while (nBits > 0) {
+	    mantissa = mantissa * 256 + buffer[index--];
+	    nBits -= 8;
+	  }
 	  if (exponent === 0) {
 	    exponent = 1 - eBias;
 	  } else if (exponent === eMax) {
@@ -2212,7 +2265,7 @@
 	};
 
 	var getOwnPropertyNames = objectGetOwnPropertyNames.f;
-	var defineProperty$4 = objectDefineProperty.f;
+	var defineProperty$5 = objectDefineProperty.f;
 
 
 
@@ -2233,7 +2286,7 @@
 	var $DataView = global_1[DATA_VIEW];
 	var DataViewPrototype = $DataView && $DataView[PROTOTYPE$2];
 	var ObjectPrototype$2 = Object.prototype;
-	var Array$3 = global_1.Array;
+	var Array$4 = global_1.Array;
 	var RangeError$2 = global_1.RangeError;
 	var fill = functionUncurryThis(arrayFill);
 	var reverse = functionUncurryThis([].reverse);
@@ -2266,7 +2319,7 @@
 	};
 
 	var addGetter = function (Constructor, key) {
-	  defineProperty$4(Constructor[PROTOTYPE$2], key, { get: function () { return getInternalState$3(this)[key]; } });
+	  defineProperty$5(Constructor[PROTOTYPE$2], key, { get: function () { return getInternalState$3(this)[key]; } });
 	};
 
 	var get$1 = function (view, count, index, isLittleEndian) {
@@ -2275,7 +2328,7 @@
 	  if (intIndex + count > store.byteLength) throw RangeError$2(WRONG_INDEX);
 	  var bytes = getInternalState$3(store.buffer).bytes;
 	  var start = intIndex + store.byteOffset;
-	  var pack = arraySlice(bytes, start, start + count);
+	  var pack = arraySliceSimple(bytes, start, start + count);
 	  return isLittleEndian ? pack : reverse(pack);
 	};
 
@@ -2294,7 +2347,7 @@
 	    anInstance(this, ArrayBufferPrototype);
 	    var byteLength = toIndex(length);
 	    setInternalState$3(this, {
-	      bytes: fill(Array$3(byteLength), 0),
+	      bytes: fill(Array$4(byteLength), 0),
 	      byteLength: byteLength
 	    });
 	    if (!descriptors) this.byteLength = byteLength;
@@ -2498,7 +2551,7 @@
 	  DataView: arrayBuffer.DataView
 	});
 
-	var defineProperty$5 = objectDefineProperty.f;
+	var defineProperty$6 = objectDefineProperty.f;
 
 
 
@@ -2564,7 +2617,7 @@
 	  throw TypeError$c(tryToString(C) + ' is not a typed array constructor');
 	};
 
-	var exportTypedArrayMethod = function (KEY, property, forced) {
+	var exportTypedArrayMethod = function (KEY, property, forced, options) {
 	  if (!descriptors) return;
 	  if (forced) for (var ARRAY in TypedArrayConstructorsList) {
 	    var TypedArrayConstructor = global_1[ARRAY];
@@ -2574,7 +2627,7 @@
 	  }
 	  if (!TypedArrayPrototype[KEY] || forced) {
 	    redefine(TypedArrayPrototype, KEY, forced ? property
-	      : NATIVE_ARRAY_BUFFER_VIEWS && Int8ArrayPrototype[KEY] || property);
+	      : NATIVE_ARRAY_BUFFER_VIEWS && Int8ArrayPrototype[KEY] || property, options);
 	  }
 	};
 
@@ -2641,7 +2694,7 @@
 
 	if (descriptors && !hasOwnProperty_1(TypedArrayPrototype, TO_STRING_TAG$4)) {
 	  TYPED_ARRAY_TAG_REQIRED = true;
-	  defineProperty$5(TypedArrayPrototype, TO_STRING_TAG$4, { get: function () {
+	  defineProperty$6(TypedArrayPrototype, TO_STRING_TAG$4, { get: function () {
 	    return isObject(this) ? this[TYPED_ARRAY_TAG] : undefined;
 	  } });
 	  for (NAME in TypedArrayConstructorsList) if (global_1[NAME]) {
@@ -2751,7 +2804,13 @@
 	  return re.exec('abcd') != null;
 	});
 
-	var BROKEN_CARET = fails(function () {
+	// UC Browser bug
+	// https://github.com/zloirock/core-js/issues/1008
+	var MISSED_STICKY = UNSUPPORTED_Y || fails(function () {
+	  return !$RegExp('a', 'y').sticky;
+	});
+
+	var BROKEN_CARET = UNSUPPORTED_Y || fails(function () {
 	  // https://bugzilla.mozilla.org/show_bug.cgi?id=773687
 	  var re = $RegExp('^r', 'gy');
 	  re.lastIndex = 2;
@@ -2759,8 +2818,9 @@
 	});
 
 	var regexpStickyHelpers = {
-		UNSUPPORTED_Y: UNSUPPORTED_Y,
-		BROKEN_CARET: BROKEN_CARET
+	  BROKEN_CARET: BROKEN_CARET,
+	  MISSED_STICKY: MISSED_STICKY,
+	  UNSUPPORTED_Y: UNSUPPORTED_Y
 	};
 
 	// babel-minify and Closure Compiler transpiles RegExp('.', 's') -> /./s and it causes SyntaxError
@@ -2809,7 +2869,7 @@
 	  return re1.lastIndex !== 0 || re2.lastIndex !== 0;
 	})();
 
-	var UNSUPPORTED_Y$1 = regexpStickyHelpers.UNSUPPORTED_Y || regexpStickyHelpers.BROKEN_CARET;
+	var UNSUPPORTED_Y$1 = regexpStickyHelpers.BROKEN_CARET;
 
 	// nonparticipating capturing group, copied from es5-shim's String#split patch.
 	var NPCG_INCLUDED = /()??/.exec('')[1] !== undefined;
@@ -2817,7 +2877,6 @@
 	var PATCH = UPDATES_LAST_INDEX_WRONG || NPCG_INCLUDED || UNSUPPORTED_Y$1 || regexpUnsupportedDotAll || regexpUnsupportedNcg;
 
 	if (PATCH) {
-	  // eslint-disable-next-line max-statements -- TODO
 	  patchedExec = function exec(string) {
 	    var re = this;
 	    var state = getInternalState$4(re);
@@ -3382,7 +3441,7 @@
 	var SPECIES$4 = wellKnownSymbol('species');
 	var PROMISE = 'Promise';
 
-	var getInternalState$5 = internalState.get;
+	var getInternalState$5 = internalState.getterFor(PROMISE);
 	var setInternalState$4 = internalState.set;
 	var getInternalPromiseState = internalState.getterFor(PROMISE);
 	var NativePromisePrototype = nativePromiseConstructor && nativePromiseConstructor.prototype;
@@ -4152,7 +4211,7 @@
 
 	var arrayFromConstructorAndList = function (Constructor, list) {
 	  var index = 0;
-	  var length = list.length;
+	  var length = lengthOfArrayLike(list);
 	  var result = new Constructor(length);
 	  while (length > index) result[index] = list[index++];
 	  return result;
@@ -4239,11 +4298,6 @@
 	  return $indexOf(aTypedArray$9(this), searchElement, arguments.length > 1 ? arguments[1] : undefined);
 	});
 
-	var PROPER_FUNCTION_NAME$2 = functionName.PROPER;
-
-
-
-
 	var ITERATOR$6 = wellKnownSymbol('iterator');
 	var Uint8Array$1 = global_1.Uint8Array;
 	var arrayValues = functionUncurryThis(es_array_iterator.values);
@@ -4251,9 +4305,16 @@
 	var arrayEntries = functionUncurryThis(es_array_iterator.entries);
 	var aTypedArray$a = arrayBufferViewCore.aTypedArray;
 	var exportTypedArrayMethod$a = arrayBufferViewCore.exportTypedArrayMethod;
-	var nativeTypedArrayIterator = Uint8Array$1 && Uint8Array$1.prototype[ITERATOR$6];
+	var TypedArrayPrototype$1 = Uint8Array$1 && Uint8Array$1.prototype;
 
-	var PROPER_ARRAY_VALUES_NAME = !!nativeTypedArrayIterator && nativeTypedArrayIterator.name === 'values';
+	var GENERIC = !fails(function () {
+	  TypedArrayPrototype$1[ITERATOR$6].call([1]);
+	});
+
+	var ITERATOR_IS_VALUES = !!TypedArrayPrototype$1
+	  && TypedArrayPrototype$1.values
+	  && TypedArrayPrototype$1[ITERATOR$6] === TypedArrayPrototype$1.values
+	  && TypedArrayPrototype$1.values.name === 'values';
 
 	var typedArrayValues = function values() {
 	  return arrayValues(aTypedArray$a(this));
@@ -4263,18 +4324,18 @@
 	// https://tc39.es/ecma262/#sec-%typedarray%.prototype.entries
 	exportTypedArrayMethod$a('entries', function entries() {
 	  return arrayEntries(aTypedArray$a(this));
-	});
+	}, GENERIC);
 	// `%TypedArray%.prototype.keys` method
 	// https://tc39.es/ecma262/#sec-%typedarray%.prototype.keys
 	exportTypedArrayMethod$a('keys', function keys() {
 	  return arrayKeys(aTypedArray$a(this));
-	});
+	}, GENERIC);
 	// `%TypedArray%.prototype.values` method
 	// https://tc39.es/ecma262/#sec-%typedarray%.prototype.values
-	exportTypedArrayMethod$a('values', typedArrayValues, PROPER_FUNCTION_NAME$2 && !PROPER_ARRAY_VALUES_NAME);
+	exportTypedArrayMethod$a('values', typedArrayValues, GENERIC || !ITERATOR_IS_VALUES, { name: 'values' });
 	// `%TypedArray%.prototype[@@iterator]` method
 	// https://tc39.es/ecma262/#sec-%typedarray%.prototype-@@iterator
-	exportTypedArrayMethod$a(ITERATOR$6, typedArrayValues, PROPER_FUNCTION_NAME$2 && !PROPER_ARRAY_VALUES_NAME);
+	exportTypedArrayMethod$a(ITERATOR$6, typedArrayValues, GENERIC || !ITERATOR_IS_VALUES, { name: 'values' });
 
 	var aTypedArray$b = arrayBufferViewCore.aTypedArray;
 	var exportTypedArrayMethod$b = arrayBufferViewCore.exportTypedArrayMethod;
@@ -4478,8 +4539,8 @@
 	  var middle = floor$4(length / 2);
 	  return length < 8 ? insertionSort(array, comparefn) : merge(
 	    array,
-	    mergeSort(arraySlice(array, 0, middle), comparefn),
-	    mergeSort(arraySlice(array, middle), comparefn),
+	    mergeSort(arraySliceSimple(array, 0, middle), comparefn),
+	    mergeSort(arraySliceSimple(array, middle), comparefn),
 	    comparefn
 	  );
 	};
@@ -4524,7 +4585,7 @@
 
 	var engineWebkitVersion = !!webkit && +webkit[1];
 
-	var Array$4 = global_1.Array;
+	var Array$5 = global_1.Array;
 	var aTypedArray$k = arrayBufferViewCore.aTypedArray;
 	var exportTypedArrayMethod$k = arrayBufferViewCore.exportTypedArrayMethod;
 	var Uint16Array = global_1.Uint16Array;
@@ -4545,7 +4606,7 @@
 	  if (engineWebkitVersion) return engineWebkitVersion < 602;
 
 	  var array = new Uint16Array(516);
-	  var expected = Array$4(516);
+	  var expected = Array$5(516);
 	  var index, mod;
 
 	  for (index = 0; index < 516; index++) {
@@ -4662,17 +4723,11 @@
 	  }
 	});
 
-	var createProperty = function (object, key, value) {
-	  var propertyKey = toPropertyKey(key);
-	  if (propertyKey in object) objectDefineProperty.f(object, propertyKey, createPropertyDescriptor(0, value));
-	  else object[propertyKey] = value;
-	};
-
 	var HAS_SPECIES_SUPPORT$1 = arrayMethodHasSpeciesSupport('slice');
 
 	var SPECIES$5 = wellKnownSymbol('species');
-	var Array$5 = global_1.Array;
-	var max$1 = Math.max;
+	var Array$6 = global_1.Array;
+	var max$2 = Math.max;
 
 	// `Array.prototype.slice` method
 	// https://tc39.es/ecma262/#sec-array.prototype.slice
@@ -4688,17 +4743,17 @@
 	    if (isArray(O)) {
 	      Constructor = O.constructor;
 	      // cross-realm fallback
-	      if (isConstructor(Constructor) && (Constructor === Array$5 || isArray(Constructor.prototype))) {
+	      if (isConstructor(Constructor) && (Constructor === Array$6 || isArray(Constructor.prototype))) {
 	        Constructor = undefined;
 	      } else if (isObject(Constructor)) {
 	        Constructor = Constructor[SPECIES$5];
 	        if (Constructor === null) Constructor = undefined;
 	      }
-	      if (Constructor === Array$5 || Constructor === undefined) {
+	      if (Constructor === Array$6 || Constructor === undefined) {
 	        return arraySlice(O, k, fin);
 	      }
 	    }
-	    result = new (Constructor === undefined ? Array$5 : Constructor)(max$1(fin - k, 0));
+	    result = new (Constructor === undefined ? Array$6 : Constructor)(max$2(fin - k, 0));
 	    for (n = 0; k < fin; k++, n++) if (k in O) createProperty(result, n, O[k]);
 	    result.length = n;
 	    return result;
@@ -4835,29 +4890,6 @@
 	  return replace$2(encodeURIComponent$1(it), find, replacer);
 	};
 
-	var parseSearchParams = function (result, query) {
-	  if (query) {
-	    var attributes = split$1(query, '&');
-	    var index = 0;
-	    var attribute, entry;
-	    while (index < attributes.length) {
-	      attribute = attributes[index++];
-	      if (attribute.length) {
-	        entry = split$1(attribute, '=');
-	        push$3(result, {
-	          key: deserialize(shift(entry)),
-	          value: deserialize(join$1(entry, '='))
-	        });
-	      }
-	    }
-	  }
-	};
-
-	var updateSearchParams = function (query) {
-	  this.entries.length = 0;
-	  parseSearchParams(this.entries, query);
-	};
-
 	var validateArgumentsLength = function (passed, required) {
 	  if (passed < required) throw TypeError$h('Not enough arguments');
 	};
@@ -4876,48 +4908,87 @@
 	  if (!step.done) {
 	    step.value = kind === 'keys' ? entry.key : kind === 'values' ? entry.value : [entry.key, entry.value];
 	  } return step;
-	});
+	}, true);
+
+	var URLSearchParamsState = function (init) {
+	  this.entries = [];
+	  this.url = null;
+
+	  if (init !== undefined) {
+	    if (isObject(init)) this.parseObject(init);
+	    else this.parseQuery(typeof init == 'string' ? charAt$3(init, 0) === '?' ? stringSlice$4(init, 1) : init : toString_1(init));
+	  }
+	};
+
+	URLSearchParamsState.prototype = {
+	  type: URL_SEARCH_PARAMS,
+	  bindURL: function (url) {
+	    this.url = url;
+	    this.update();
+	  },
+	  parseObject: function (object) {
+	    var iteratorMethod = getIteratorMethod(object);
+	    var iterator, next, step, entryIterator, entryNext, first, second;
+
+	    if (iteratorMethod) {
+	      iterator = getIterator(object, iteratorMethod);
+	      next = iterator.next;
+	      while (!(step = functionCall(next, iterator)).done) {
+	        entryIterator = getIterator(anObject(step.value));
+	        entryNext = entryIterator.next;
+	        if (
+	          (first = functionCall(entryNext, entryIterator)).done ||
+	          (second = functionCall(entryNext, entryIterator)).done ||
+	          !functionCall(entryNext, entryIterator).done
+	        ) throw TypeError$h('Expected sequence with length 2');
+	        push$3(this.entries, { key: toString_1(first.value), value: toString_1(second.value) });
+	      }
+	    } else for (var key in object) if (hasOwnProperty_1(object, key)) {
+	      push$3(this.entries, { key: key, value: toString_1(object[key]) });
+	    }
+	  },
+	  parseQuery: function (query) {
+	    if (query) {
+	      var attributes = split$1(query, '&');
+	      var index = 0;
+	      var attribute, entry;
+	      while (index < attributes.length) {
+	        attribute = attributes[index++];
+	        if (attribute.length) {
+	          entry = split$1(attribute, '=');
+	          push$3(this.entries, {
+	            key: deserialize(shift(entry)),
+	            value: deserialize(join$1(entry, '='))
+	          });
+	        }
+	      }
+	    }
+	  },
+	  serialize: function () {
+	    var entries = this.entries;
+	    var result = [];
+	    var index = 0;
+	    var entry;
+	    while (index < entries.length) {
+	      entry = entries[index++];
+	      push$3(result, serialize(entry.key) + '=' + serialize(entry.value));
+	    } return join$1(result, '&');
+	  },
+	  update: function () {
+	    this.entries.length = 0;
+	    this.parseQuery(this.url.query);
+	  },
+	  updateURL: function () {
+	    if (this.url) this.url.update();
+	  }
+	};
 
 	// `URLSearchParams` constructor
 	// https://url.spec.whatwg.org/#interface-urlsearchparams
 	var URLSearchParamsConstructor = function URLSearchParams(/* init */) {
 	  anInstance(this, URLSearchParamsPrototype);
 	  var init = arguments.length > 0 ? arguments[0] : undefined;
-	  var that = this;
-	  var entries = [];
-	  var iteratorMethod, iterator, next, step, entryIterator, entryNext, first, second, key;
-
-	  setInternalState$5(that, {
-	    type: URL_SEARCH_PARAMS,
-	    entries: entries,
-	    updateURL: function () { /* empty */ },
-	    updateSearchParams: updateSearchParams
-	  });
-
-	  if (init !== undefined) {
-	    if (isObject(init)) {
-	      iteratorMethod = getIteratorMethod(init);
-	      if (iteratorMethod) {
-	        iterator = getIterator(init, iteratorMethod);
-	        next = iterator.next;
-	        while (!(step = functionCall(next, iterator)).done) {
-	          entryIterator = getIterator(anObject(step.value));
-	          entryNext = entryIterator.next;
-	          if (
-	            (first = functionCall(entryNext, entryIterator)).done ||
-	            (second = functionCall(entryNext, entryIterator)).done ||
-	            !functionCall(entryNext, entryIterator).done
-	          ) throw TypeError$h('Expected sequence with length 2');
-	          push$3(entries, { key: toString_1(first.value), value: toString_1(second.value) });
-	        }
-	      } else for (key in init) if (hasOwnProperty_1(init, key)) push$3(entries, { key: key, value: toString_1(init[key]) });
-	    } else {
-	      parseSearchParams(
-	        entries,
-	        typeof init == 'string' ? charAt$3(init, 0) === '?' ? stringSlice$4(init, 1) : init : toString_1(init)
-	      );
-	    }
-	  }
+	  setInternalState$5(this, new URLSearchParamsState(init));
 	};
 
 	var URLSearchParamsPrototype = URLSearchParamsConstructor.prototype;
@@ -5046,14 +5117,7 @@
 	// `URLSearchParams.prototype.toString` method
 	// https://url.spec.whatwg.org/#urlsearchparams-stringification-behavior
 	redefine(URLSearchParamsPrototype, 'toString', function toString() {
-	  var entries = getInternalParamsState(this).entries;
-	  var result = [];
-	  var index = 0;
-	  var entry;
-	  while (index < entries.length) {
-	    entry = entries[index++];
-	    push$3(result, serialize(entry.key) + '=' + serialize(entry.value));
-	  } return join$1(result, '&');
+	  return getInternalParamsState(this).serialize();
 	}, { enumerable: true });
 
 	setToStringTag(URLSearchParamsConstructor, URL_SEARCH_PARAMS);
@@ -5112,7 +5176,7 @@
 	  getState: getInternalParamsState
 	};
 
-	var PROPER_FUNCTION_NAME$3 = functionName.PROPER;
+	var PROPER_FUNCTION_NAME$2 = functionName.PROPER;
 
 
 
@@ -5127,7 +5191,7 @@
 
 	var NOT_GENERIC = fails(function () { return n$ToString.call({ source: 'a', flags: 'b' }) != '/a/b'; });
 	// FF44- RegExp#toString has a wrong name
-	var INCORRECT_NAME = PROPER_FUNCTION_NAME$3 && n$ToString.name != TO_STRING$1;
+	var INCORRECT_NAME = PROPER_FUNCTION_NAME$2 && n$ToString.name != TO_STRING$1;
 
 	// `RegExp.prototype.toString` method
 	// https://tc39.es/ecma262/#sec-regexp.prototype.tostring
@@ -5281,7 +5345,7 @@
 	};
 
 	var REPLACE = wellKnownSymbol('replace');
-	var max$2 = Math.max;
+	var max$3 = Math.max;
 	var min$4 = Math.min;
 	var concat$1 = functionUncurryThis([].concat);
 	var push$4 = functionUncurryThis([].push);
@@ -5373,7 +5437,7 @@
 	        result = results[i];
 
 	        var matched = toString_1(result[0]);
-	        var position = max$2(min$4(toIntegerOrInfinity(result.index), S.length), 0);
+	        var position = max$3(min$4(toIntegerOrInfinity(result.index), S.length), 0);
 	        var captures = [];
 	        // NOTE: This is equivalent to
 	        //   captures = result.slice(1).map(maybeToString)
@@ -5463,7 +5527,7 @@
 	        lastIndex = separatorCopy.lastIndex;
 	        if (lastIndex > lastLastIndex) {
 	          push$5(output, stringSlice$7(string, lastLastIndex, match.index));
-	          if (match.length > 1 && match.index < string.length) functionApply($push, output, arraySlice(match, 1));
+	          if (match.length > 1 && match.index < string.length) functionApply($push, output, arraySliceSimple(match, 1));
 	          lastLength = match[0].length;
 	          lastLastIndex = lastIndex;
 	          if (output.length >= lim) break;
@@ -5473,7 +5537,7 @@
 	      if (lastLastIndex === string.length) {
 	        if (lastLength || !exec$1(separatorCopy, '')) push$5(output, '');
 	      } else push$5(output, stringSlice$7(string, lastLastIndex));
-	      return output.length > lim ? arraySlice(output, 0, lim) : output;
+	      return output.length > lim ? arraySliceSimple(output, 0, lim) : output;
 	    };
 	  // Chakra, V8
 	  } else if ('0'.split(undefined, 0).length) {
@@ -5577,7 +5641,7 @@
 	  trim: createMethod$4(3)
 	};
 
-	var PROPER_FUNCTION_NAME$4 = functionName.PROPER;
+	var PROPER_FUNCTION_NAME$3 = functionName.PROPER;
 
 
 
@@ -5589,7 +5653,7 @@
 	  return fails(function () {
 	    return !!whitespaces[METHOD_NAME]()
 	      || non[METHOD_NAME]() !== non
-	      || (PROPER_FUNCTION_NAME$4 && whitespaces[METHOD_NAME].name !== METHOD_NAME);
+	      || (PROPER_FUNCTION_NAME$3 && whitespaces[METHOD_NAME].name !== METHOD_NAME);
 	  });
 	};
 
@@ -5606,18 +5670,18 @@
 
 	var FUNCTION_NAME_EXISTS = functionName.EXISTS;
 
-	var defineProperty$6 = objectDefineProperty.f;
+	var defineProperty$7 = objectDefineProperty.f;
 
 	var FunctionPrototype$3 = Function.prototype;
 	var functionToString$1 = functionUncurryThis(FunctionPrototype$3.toString);
-	var nameRE = /^\s*function ([^ (]*)/;
+	var nameRE = /function\b(?:\s|\/\*[\S\s]*?\*\/|\/\/[^\n\r]*[\n\r]+)*([^\s(/]*)/;
 	var regExpExec = functionUncurryThis(nameRE.exec);
 	var NAME$1 = 'name';
 
 	// Function instances `.name` property
 	// https://tc39.es/ecma262/#sec-function-instances-name
 	if (descriptors && !FUNCTION_NAME_EXISTS) {
-	  defineProperty$6(FunctionPrototype$3, NAME$1, {
+	  defineProperty$7(FunctionPrototype$3, NAME$1, {
 	    configurable: true,
 	    get: function () {
 	      try {
@@ -6398,7 +6462,7 @@
 	var HAS_SPECIES_SUPPORT$2 = arrayMethodHasSpeciesSupport('splice');
 
 	var TypeError$j = global_1.TypeError;
-	var max$3 = Math.max;
+	var max$4 = Math.max;
 	var min$6 = Math.min;
 	var MAX_SAFE_INTEGER = 0x1FFFFFFFFFFFFF;
 	var MAXIMUM_ALLOWED_LENGTH_EXCEEDED = 'Maximum allowed length exceeded';
@@ -6420,7 +6484,7 @@
 	      actualDeleteCount = len - actualStart;
 	    } else {
 	      insertCount = argumentsLength - 2;
-	      actualDeleteCount = min$6(max$3(toIntegerOrInfinity(deleteCount), 0), len - actualStart);
+	      actualDeleteCount = min$6(max$4(toIntegerOrInfinity(deleteCount), 0), len - actualStart);
 	    }
 	    if (len + insertCount - actualDeleteCount > MAX_SAFE_INTEGER) {
 	      throw TypeError$j(MAXIMUM_ALLOWED_LENGTH_EXCEEDED);
@@ -7038,17 +7102,17 @@
 	// eslint-disable-next-line es/no-object-assign -- safe
 	var $assign = Object.assign;
 	// eslint-disable-next-line es/no-object-defineproperty -- required for testing
-	var defineProperty$7 = Object.defineProperty;
+	var defineProperty$8 = Object.defineProperty;
 	var concat$3 = functionUncurryThis([].concat);
 
 	// `Object.assign` method
 	// https://tc39.es/ecma262/#sec-object.assign
 	var objectAssign = !$assign || fails(function () {
 	  // should have correct order of operations (Edge bug)
-	  if (descriptors && $assign({ b: 1 }, $assign(defineProperty$7({}, 'a', {
+	  if (descriptors && $assign({ b: 1 }, $assign(defineProperty$8({}, 'a', {
 	    enumerable: true,
 	    get: function () {
-	      defineProperty$7(this, 'b', {
+	      defineProperty$8(this, 'b', {
 	        value: 3,
 	        enumerable: false
 	      });
@@ -7846,7 +7910,7 @@
 	  return Constructor;
 	};
 
-	var defineProperty$8 = objectDefineProperty.f;
+	var defineProperty$9 = objectDefineProperty.f;
 
 
 
@@ -7997,7 +8061,7 @@
 	        return define(this, value = value === 0 ? 0 : value, value);
 	      }
 	    });
-	    if (descriptors) defineProperty$8(Prototype, 'size', {
+	    if (descriptors) defineProperty$9(Prototype, 'size', {
 	      get: function () {
 	        return getInternalState(this).size;
 	      }
@@ -8973,7 +9037,7 @@
 	  }
 	};
 
-	var Array$6 = global_1.Array;
+	var Array$7 = global_1.Array;
 
 	// `Array.from` method implementation
 	// https://tc39.es/ecma262/#sec-array.from
@@ -8988,7 +9052,7 @@
 	  var index = 0;
 	  var length, result, step, iterator, next, value;
 	  // if the target is not iterable or it's an array with the default iterator - use a simple case
-	  if (iteratorMethod && !(this == Array$6 && isArrayIteratorMethod(iteratorMethod))) {
+	  if (iteratorMethod && !(this == Array$7 && isArrayIteratorMethod(iteratorMethod))) {
 	    iterator = getIterator(O, iteratorMethod);
 	    next = iterator.next;
 	    result = IS_CONSTRUCTOR ? new this() : [];
@@ -8998,7 +9062,7 @@
 	    }
 	  } else {
 	    length = lengthOfArrayLike(O);
-	    result = IS_CONSTRUCTOR ? new this(length) : Array$6(length);
+	    result = IS_CONSTRUCTOR ? new this(length) : Array$7(length);
 	    for (;length > index; index++) {
 	      value = mapping ? mapfn(O[index], index) : O[index];
 	      createProperty(result, index, value);
@@ -9281,7 +9345,7 @@
 	  return stop < start ? -step1 : step1;
 	}
 
-	function max$4(values, valueof) {
+	function max$5(values, valueof) {
 	  var max;
 
 	  if (valueof === undefined) {
@@ -9424,11 +9488,11 @@
 	  values = Float64Array.from(numbers(values, valueof));
 	  if (!(n = values.length)) return;
 	  if ((p = +p) <= 0 || n < 2) return min$8(values);
-	  if (p >= 1) return max$4(values);
+	  if (p >= 1) return max$5(values);
 	  var n,
 	      i = (n - 1) * p,
 	      i0 = Math.floor(i),
-	      value0 = max$4(quickselect(values, i0).subarray(0, i0 + 1)),
+	      value0 = max$5(quickselect(values, i0).subarray(0, i0 + 1)),
 	      value1 = min$8(values.subarray(i0 + 1));
 	  return value0 + (value1 - value0) * (i - i0);
 	}
@@ -14162,7 +14226,7 @@
 	  return drag;
 	}
 
-	var defineProperty$9 = objectDefineProperty.f;
+	var defineProperty$a = objectDefineProperty.f;
 	var getOwnPropertyNames$2 = objectGetOwnPropertyNames.f;
 
 
@@ -14196,10 +14260,11 @@
 	// "new" should create a new object, old webkit bug
 	var CORRECT_NEW = new NativeRegExp(re1) !== re1;
 
+	var MISSED_STICKY$1 = regexpStickyHelpers.MISSED_STICKY;
 	var UNSUPPORTED_Y$3 = regexpStickyHelpers.UNSUPPORTED_Y;
 
 	var BASE_FORCED = descriptors &&
-	  (!CORRECT_NEW || UNSUPPORTED_Y$3 || regexpUnsupportedDotAll || regexpUnsupportedNcg || fails(function () {
+	  (!CORRECT_NEW || MISSED_STICKY$1 || regexpUnsupportedDotAll || regexpUnsupportedNcg || fails(function () {
 	    re2[MATCH$2] = false;
 	    // RegExp constructor can alter flags and IsRegExp works correct with @@match
 	    return NativeRegExp(re1) != re1 || NativeRegExp(re2) == re2 || NativeRegExp(re1, 'i') != '/a/i';
@@ -14304,9 +14369,9 @@
 
 	    rawFlags = flags;
 
-	    if (UNSUPPORTED_Y$3 && 'sticky' in re1) {
+	    if (MISSED_STICKY$1 && 'sticky' in re1) {
 	      sticky = !!flags && stringIndexOf$1(flags, 'y') > -1;
-	      if (sticky) flags = replace$5(flags, /y/g, '');
+	      if (sticky && UNSUPPORTED_Y$3) flags = replace$5(flags, /y/g, '');
 	    }
 
 	    if (regexpUnsupportedNcg) {
@@ -14336,7 +14401,7 @@
 	  };
 
 	  var proxy = function (key) {
-	    key in RegExpWrapper || defineProperty$9(RegExpWrapper, key, {
+	    key in RegExpWrapper || defineProperty$a(RegExpWrapper, key, {
 	      configurable: true,
 	      get: function () { return NativeRegExp[key]; },
 	      set: function (it) { NativeRegExp[key] = it; }
@@ -19933,7 +19998,7 @@
 
 	var getOwnPropertyNames$3 = objectGetOwnPropertyNames.f;
 	var getOwnPropertyDescriptor$4 = objectGetOwnPropertyDescriptor.f;
-	var defineProperty$a = objectDefineProperty.f;
+	var defineProperty$b = objectDefineProperty.f;
 
 	var trim$2 = stringTrim.trim;
 
@@ -20000,7 +20065,7 @@
 	    'fromString,range'
 	  ).split(','), j$2 = 0, key$1; keys$3.length > j$2; j$2++) {
 	    if (hasOwnProperty_1(NativeNumber, key$1 = keys$3[j$2]) && !hasOwnProperty_1(NumberWrapper, key$1)) {
-	      defineProperty$a(NumberWrapper, key$1, getOwnPropertyDescriptor$4(NativeNumber, key$1));
+	      defineProperty$b(NumberWrapper, key$1, getOwnPropertyDescriptor$4(NativeNumber, key$1));
 	    }
 	  }
 	  NumberWrapper.prototype = NumberPrototype;
@@ -30674,6 +30739,7 @@
 	    var result = '0';
 	    var e, z, j, k;
 
+	    // TODO: ES2018 increased the maximum number of fraction digits to 100, need to improve the implementation
 	    if (fractDigits < 0 || fractDigits > 20) throw RangeError$7('Incorrect fraction digits');
 	    // eslint-disable-next-line no-self-compare -- NaN check
 	    if (number != number) return 'NaN';
@@ -44983,8 +45049,9 @@
 	  var k = 0;
 	  delta = firstTime ? floor$7(delta / damp) : delta >> 1;
 	  delta += floor$7(delta / numPoints);
-	  for (; delta > baseMinusTMin * tMax >> 1; k += base) {
+	  while (delta > baseMinusTMin * tMax >> 1) {
 	    delta = floor$7(delta / baseMinusTMin);
+	    k += base;
 	  }
 	  return floor$7(k + (baseMinusTMin + 1) * delta / (delta + skew));
 	};
@@ -44993,7 +45060,6 @@
 	 * Converts a string of Unicode symbols (e.g. a domain name label) to a
 	 * Punycode string of ASCII-only symbols.
 	 */
-	// eslint-disable-next-line max-statements -- TODO
 	var encode = function (input) {
 	  var output = [];
 
@@ -45053,24 +45119,26 @@
 	      if (currentValue == n) {
 	        // Represent delta as a generalized variable-length integer.
 	        var q = delta;
-	        for (var k = base; /* no condition */; k += base) {
+	        var k = base;
+	        while (true) {
 	          var t = k <= bias ? tMin : (k >= bias + tMax ? tMax : k - bias);
 	          if (q < t) break;
 	          var qMinusT = q - t;
 	          var baseMinusT = base - t;
 	          push$9(output, fromCharCode$1(digitToBasic(t + qMinusT % baseMinusT)));
 	          q = floor$7(qMinusT / baseMinusT);
+	          k += base;
 	        }
 
 	        push$9(output, fromCharCode$1(digitToBasic(q)));
 	        bias = adapt(delta, handledCPCountPlusOne, handledCPCount == basicLength);
 	        delta = 0;
-	        ++handledCPCount;
+	        handledCPCount++;
 	      }
 	    }
 
-	    ++delta;
-	    ++n;
+	    delta++;
+	    n++;
 	  }
 	  return join$4(output, '');
 	};
@@ -45087,7 +45155,6 @@
 	};
 
 	// TODO: in core-js@4, move /modules/ dependencies to public entries for better optimization by tools like `preset-env`
-
 
 
 
@@ -45153,31 +45220,7 @@
 	/* eslint-enable regexp/no-control-character -- safe */
 	var EOF;
 
-	var parseHost = function (url, input) {
-	  var result, codePoints, index;
-	  if (charAt$8(input, 0) == '[') {
-	    if (charAt$8(input, input.length - 1) != ']') return INVALID_HOST;
-	    result = parseIPv6(stringSlice$c(input, 1, -1));
-	    if (!result) return INVALID_HOST;
-	    url.host = result;
-	  // opaque host
-	  } else if (!isSpecial(url)) {
-	    if (exec$5(FORBIDDEN_HOST_CODE_POINT_EXCLUDING_PERCENT, input)) return INVALID_HOST;
-	    result = '';
-	    codePoints = arrayFrom(input);
-	    for (index = 0; index < codePoints.length; index++) {
-	      result += percentEncode(codePoints[index], C0ControlPercentEncodeSet);
-	    }
-	    url.host = result;
-	  } else {
-	    input = stringPunycodeToAscii(input);
-	    if (exec$5(FORBIDDEN_HOST_CODE_POINT, input)) return INVALID_HOST;
-	    result = parseIPv4(input);
-	    if (result === null) return INVALID_HOST;
-	    url.host = result;
-	  }
-	};
-
+	// https://url.spec.whatwg.org/#ipv4-number-parser
 	var parseIPv4 = function (input) {
 	  var parts = split$4(input, '.');
 	  var partsLength, numbers, index, part, radix, number, ipv4;
@@ -45216,6 +45259,7 @@
 	  return ipv4;
 	};
 
+	// https://url.spec.whatwg.org/#concept-ipv6-parser
 	// eslint-disable-next-line max-statements -- TODO
 	var parseIPv6 = function (input) {
 	  var address = [0, 0, 0, 0, 0, 0, 0, 0];
@@ -45319,6 +45363,7 @@
 	  return maxIndex;
 	};
 
+	// https://url.spec.whatwg.org/#host-serializing
 	var serializeHost = function (host) {
 	  var result, index, compress, ignore0;
 	  // ipv4
@@ -45363,6 +45408,7 @@
 	  return code > 0x20 && code < 0x7F && !hasOwnProperty_1(set, chr) ? chr : encodeURIComponent(chr);
 	};
 
+	// https://url.spec.whatwg.org/#special-scheme
 	var specialSchemes = {
 	  ftp: 21,
 	  file: null,
@@ -45372,24 +45418,14 @@
 	  wss: 443
 	};
 
-	var isSpecial = function (url) {
-	  return hasOwnProperty_1(specialSchemes, url.scheme);
-	};
-
-	var includesCredentials = function (url) {
-	  return url.username != '' || url.password != '';
-	};
-
-	var cannotHaveUsernamePasswordPort = function (url) {
-	  return !url.host || url.cannotBeABaseURL || url.scheme == 'file';
-	};
-
+	// https://url.spec.whatwg.org/#windows-drive-letter
 	var isWindowsDriveLetter = function (string, normalized) {
 	  var second;
 	  return string.length == 2 && exec$5(ALPHA, charAt$8(string, 0))
 	    && ((second = charAt$8(string, 1)) == ':' || (!normalized && second == '|'));
 	};
 
+	// https://url.spec.whatwg.org/#start-with-a-windows-drive-letter
 	var startsWithWindowsDriveLetter = function (string) {
 	  var third;
 	  return string.length > 1 && isWindowsDriveLetter(stringSlice$c(string, 0, 2)) && (
@@ -45398,18 +45434,12 @@
 	  );
 	};
 
-	var shortenURLsPath = function (url) {
-	  var path = url.path;
-	  var pathSize = path.length;
-	  if (pathSize && (url.scheme != 'file' || pathSize != 1 || !isWindowsDriveLetter(path[0], true))) {
-	    path.length--;
-	  }
-	};
-
+	// https://url.spec.whatwg.org/#single-dot-path-segment
 	var isSingleDot = function (segment) {
 	  return segment === '.' || toLowerCase$1(segment) === '%2e';
 	};
 
+	// https://url.spec.whatwg.org/#double-dot-path-segment
 	var isDoubleDot = function (segment) {
 	  segment = toLowerCase$1(segment);
 	  return segment === '..' || segment === '%2e.' || segment === '.%2e' || segment === '%2e%2e';
@@ -45438,402 +45468,625 @@
 	var QUERY = {};
 	var FRAGMENT = {};
 
-	// eslint-disable-next-line max-statements -- TODO
-	var parseURL = function (url, input, stateOverride, base) {
-	  var state = stateOverride || SCHEME_START;
-	  var pointer = 0;
-	  var buffer = '';
-	  var seenAt = false;
-	  var seenBracket = false;
-	  var seenPasswordToken = false;
-	  var codePoints, chr, bufferCodePoints, failure;
-
-	  if (!stateOverride) {
-	    url.scheme = '';
-	    url.username = '';
-	    url.password = '';
-	    url.host = null;
-	    url.port = null;
-	    url.path = [];
-	    url.query = null;
-	    url.fragment = null;
-	    url.cannotBeABaseURL = false;
-	    input = replace$7(input, LEADING_AND_TRAILING_C0_CONTROL_OR_SPACE, '');
+	var URLState = function (url, isBase, base) {
+	  var urlString = toString_1(url);
+	  var baseState, failure, searchParams;
+	  if (isBase) {
+	    failure = this.parse(urlString);
+	    if (failure) throw TypeError$o(failure);
+	    this.searchParams = null;
+	  } else {
+	    if (base !== undefined) baseState = new URLState(base, true);
+	    failure = this.parse(urlString, null, baseState);
+	    if (failure) throw TypeError$o(failure);
+	    searchParams = getInternalSearchParamsState(new URLSearchParams$1());
+	    searchParams.bindURL(this);
+	    this.searchParams = searchParams;
 	  }
+	};
 
-	  input = replace$7(input, TAB_AND_NEW_LINE, '');
+	URLState.prototype = {
+	  type: 'URL',
+	  // https://url.spec.whatwg.org/#url-parsing
+	  // eslint-disable-next-line max-statements -- TODO
+	  parse: function (input, stateOverride, base) {
+	    var url = this;
+	    var state = stateOverride || SCHEME_START;
+	    var pointer = 0;
+	    var buffer = '';
+	    var seenAt = false;
+	    var seenBracket = false;
+	    var seenPasswordToken = false;
+	    var codePoints, chr, bufferCodePoints, failure;
 
-	  codePoints = arrayFrom(input);
+	    input = toString_1(input);
 
-	  while (pointer <= codePoints.length) {
-	    chr = codePoints[pointer];
-	    switch (state) {
-	      case SCHEME_START:
-	        if (chr && exec$5(ALPHA, chr)) {
-	          buffer += toLowerCase$1(chr);
-	          state = SCHEME;
-	        } else if (!stateOverride) {
-	          state = NO_SCHEME;
-	          continue;
-	        } else return INVALID_SCHEME;
-	        break;
+	    if (!stateOverride) {
+	      url.scheme = '';
+	      url.username = '';
+	      url.password = '';
+	      url.host = null;
+	      url.port = null;
+	      url.path = [];
+	      url.query = null;
+	      url.fragment = null;
+	      url.cannotBeABaseURL = false;
+	      input = replace$7(input, LEADING_AND_TRAILING_C0_CONTROL_OR_SPACE, '');
+	    }
 
-	      case SCHEME:
-	        if (chr && (exec$5(ALPHANUMERIC, chr) || chr == '+' || chr == '-' || chr == '.')) {
-	          buffer += toLowerCase$1(chr);
-	        } else if (chr == ':') {
-	          if (stateOverride && (
-	            (isSpecial(url) != hasOwnProperty_1(specialSchemes, buffer)) ||
-	            (buffer == 'file' && (includesCredentials(url) || url.port !== null)) ||
-	            (url.scheme == 'file' && !url.host)
-	          )) return;
-	          url.scheme = buffer;
-	          if (stateOverride) {
-	            if (isSpecial(url) && specialSchemes[url.scheme] == url.port) url.port = null;
-	            return;
+	    input = replace$7(input, TAB_AND_NEW_LINE, '');
+
+	    codePoints = arrayFrom(input);
+
+	    while (pointer <= codePoints.length) {
+	      chr = codePoints[pointer];
+	      switch (state) {
+	        case SCHEME_START:
+	          if (chr && exec$5(ALPHA, chr)) {
+	            buffer += toLowerCase$1(chr);
+	            state = SCHEME;
+	          } else if (!stateOverride) {
+	            state = NO_SCHEME;
+	            continue;
+	          } else return INVALID_SCHEME;
+	          break;
+
+	        case SCHEME:
+	          if (chr && (exec$5(ALPHANUMERIC, chr) || chr == '+' || chr == '-' || chr == '.')) {
+	            buffer += toLowerCase$1(chr);
+	          } else if (chr == ':') {
+	            if (stateOverride && (
+	              (url.isSpecial() != hasOwnProperty_1(specialSchemes, buffer)) ||
+	              (buffer == 'file' && (url.includesCredentials() || url.port !== null)) ||
+	              (url.scheme == 'file' && !url.host)
+	            )) return;
+	            url.scheme = buffer;
+	            if (stateOverride) {
+	              if (url.isSpecial() && specialSchemes[url.scheme] == url.port) url.port = null;
+	              return;
+	            }
+	            buffer = '';
+	            if (url.scheme == 'file') {
+	              state = FILE;
+	            } else if (url.isSpecial() && base && base.scheme == url.scheme) {
+	              state = SPECIAL_RELATIVE_OR_AUTHORITY;
+	            } else if (url.isSpecial()) {
+	              state = SPECIAL_AUTHORITY_SLASHES;
+	            } else if (codePoints[pointer + 1] == '/') {
+	              state = PATH_OR_AUTHORITY;
+	              pointer++;
+	            } else {
+	              url.cannotBeABaseURL = true;
+	              push$a(url.path, '');
+	              state = CANNOT_BE_A_BASE_URL_PATH;
+	            }
+	          } else if (!stateOverride) {
+	            buffer = '';
+	            state = NO_SCHEME;
+	            pointer = 0;
+	            continue;
+	          } else return INVALID_SCHEME;
+	          break;
+
+	        case NO_SCHEME:
+	          if (!base || (base.cannotBeABaseURL && chr != '#')) return INVALID_SCHEME;
+	          if (base.cannotBeABaseURL && chr == '#') {
+	            url.scheme = base.scheme;
+	            url.path = arraySliceSimple(base.path);
+	            url.query = base.query;
+	            url.fragment = '';
+	            url.cannotBeABaseURL = true;
+	            state = FRAGMENT;
+	            break;
 	          }
-	          buffer = '';
-	          if (url.scheme == 'file') {
-	            state = FILE;
-	          } else if (isSpecial(url) && base && base.scheme == url.scheme) {
-	            state = SPECIAL_RELATIVE_OR_AUTHORITY;
-	          } else if (isSpecial(url)) {
-	            state = SPECIAL_AUTHORITY_SLASHES;
-	          } else if (codePoints[pointer + 1] == '/') {
-	            state = PATH_OR_AUTHORITY;
+	          state = base.scheme == 'file' ? FILE : RELATIVE;
+	          continue;
+
+	        case SPECIAL_RELATIVE_OR_AUTHORITY:
+	          if (chr == '/' && codePoints[pointer + 1] == '/') {
+	            state = SPECIAL_AUTHORITY_IGNORE_SLASHES;
 	            pointer++;
 	          } else {
-	            url.cannotBeABaseURL = true;
-	            push$a(url.path, '');
-	            state = CANNOT_BE_A_BASE_URL_PATH;
-	          }
-	        } else if (!stateOverride) {
-	          buffer = '';
-	          state = NO_SCHEME;
-	          pointer = 0;
-	          continue;
-	        } else return INVALID_SCHEME;
-	        break;
+	            state = RELATIVE;
+	            continue;
+	          } break;
 
-	      case NO_SCHEME:
-	        if (!base || (base.cannotBeABaseURL && chr != '#')) return INVALID_SCHEME;
-	        if (base.cannotBeABaseURL && chr == '#') {
+	        case PATH_OR_AUTHORITY:
+	          if (chr == '/') {
+	            state = AUTHORITY;
+	            break;
+	          } else {
+	            state = PATH;
+	            continue;
+	          }
+
+	        case RELATIVE:
 	          url.scheme = base.scheme;
-	          url.path = arraySlice(base.path);
-	          url.query = base.query;
-	          url.fragment = '';
-	          url.cannotBeABaseURL = true;
-	          state = FRAGMENT;
-	          break;
-	        }
-	        state = base.scheme == 'file' ? FILE : RELATIVE;
-	        continue;
-
-	      case SPECIAL_RELATIVE_OR_AUTHORITY:
-	        if (chr == '/' && codePoints[pointer + 1] == '/') {
-	          state = SPECIAL_AUTHORITY_IGNORE_SLASHES;
-	          pointer++;
-	        } else {
-	          state = RELATIVE;
-	          continue;
-	        } break;
-
-	      case PATH_OR_AUTHORITY:
-	        if (chr == '/') {
-	          state = AUTHORITY;
-	          break;
-	        } else {
-	          state = PATH;
-	          continue;
-	        }
-
-	      case RELATIVE:
-	        url.scheme = base.scheme;
-	        if (chr == EOF) {
-	          url.username = base.username;
-	          url.password = base.password;
-	          url.host = base.host;
-	          url.port = base.port;
-	          url.path = arraySlice(base.path);
-	          url.query = base.query;
-	        } else if (chr == '/' || (chr == '\\' && isSpecial(url))) {
-	          state = RELATIVE_SLASH;
-	        } else if (chr == '?') {
-	          url.username = base.username;
-	          url.password = base.password;
-	          url.host = base.host;
-	          url.port = base.port;
-	          url.path = arraySlice(base.path);
-	          url.query = '';
-	          state = QUERY;
-	        } else if (chr == '#') {
-	          url.username = base.username;
-	          url.password = base.password;
-	          url.host = base.host;
-	          url.port = base.port;
-	          url.path = arraySlice(base.path);
-	          url.query = base.query;
-	          url.fragment = '';
-	          state = FRAGMENT;
-	        } else {
-	          url.username = base.username;
-	          url.password = base.password;
-	          url.host = base.host;
-	          url.port = base.port;
-	          url.path = arraySlice(base.path);
-	          url.path.length--;
-	          state = PATH;
-	          continue;
-	        } break;
-
-	      case RELATIVE_SLASH:
-	        if (isSpecial(url) && (chr == '/' || chr == '\\')) {
-	          state = SPECIAL_AUTHORITY_IGNORE_SLASHES;
-	        } else if (chr == '/') {
-	          state = AUTHORITY;
-	        } else {
-	          url.username = base.username;
-	          url.password = base.password;
-	          url.host = base.host;
-	          url.port = base.port;
-	          state = PATH;
-	          continue;
-	        } break;
-
-	      case SPECIAL_AUTHORITY_SLASHES:
-	        state = SPECIAL_AUTHORITY_IGNORE_SLASHES;
-	        if (chr != '/' || charAt$8(buffer, pointer + 1) != '/') continue;
-	        pointer++;
-	        break;
-
-	      case SPECIAL_AUTHORITY_IGNORE_SLASHES:
-	        if (chr != '/' && chr != '\\') {
-	          state = AUTHORITY;
-	          continue;
-	        } break;
-
-	      case AUTHORITY:
-	        if (chr == '@') {
-	          if (seenAt) buffer = '%40' + buffer;
-	          seenAt = true;
-	          bufferCodePoints = arrayFrom(buffer);
-	          for (var i = 0; i < bufferCodePoints.length; i++) {
-	            var codePoint = bufferCodePoints[i];
-	            if (codePoint == ':' && !seenPasswordToken) {
-	              seenPasswordToken = true;
-	              continue;
-	            }
-	            var encodedCodePoints = percentEncode(codePoint, userinfoPercentEncodeSet);
-	            if (seenPasswordToken) url.password += encodedCodePoints;
-	            else url.username += encodedCodePoints;
-	          }
-	          buffer = '';
-	        } else if (
-	          chr == EOF || chr == '/' || chr == '?' || chr == '#' ||
-	          (chr == '\\' && isSpecial(url))
-	        ) {
-	          if (seenAt && buffer == '') return INVALID_AUTHORITY;
-	          pointer -= arrayFrom(buffer).length + 1;
-	          buffer = '';
-	          state = HOST;
-	        } else buffer += chr;
-	        break;
-
-	      case HOST:
-	      case HOSTNAME:
-	        if (stateOverride && url.scheme == 'file') {
-	          state = FILE_HOST;
-	          continue;
-	        } else if (chr == ':' && !seenBracket) {
-	          if (buffer == '') return INVALID_HOST;
-	          failure = parseHost(url, buffer);
-	          if (failure) return failure;
-	          buffer = '';
-	          state = PORT;
-	          if (stateOverride == HOSTNAME) return;
-	        } else if (
-	          chr == EOF || chr == '/' || chr == '?' || chr == '#' ||
-	          (chr == '\\' && isSpecial(url))
-	        ) {
-	          if (isSpecial(url) && buffer == '') return INVALID_HOST;
-	          if (stateOverride && buffer == '' && (includesCredentials(url) || url.port !== null)) return;
-	          failure = parseHost(url, buffer);
-	          if (failure) return failure;
-	          buffer = '';
-	          state = PATH_START;
-	          if (stateOverride) return;
-	          continue;
-	        } else {
-	          if (chr == '[') seenBracket = true;
-	          else if (chr == ']') seenBracket = false;
-	          buffer += chr;
-	        } break;
-
-	      case PORT:
-	        if (exec$5(DIGIT, chr)) {
-	          buffer += chr;
-	        } else if (
-	          chr == EOF || chr == '/' || chr == '?' || chr == '#' ||
-	          (chr == '\\' && isSpecial(url)) ||
-	          stateOverride
-	        ) {
-	          if (buffer != '') {
-	            var port = parseInt$1(buffer, 10);
-	            if (port > 0xFFFF) return INVALID_PORT;
-	            url.port = (isSpecial(url) && port === specialSchemes[url.scheme]) ? null : port;
-	            buffer = '';
-	          }
-	          if (stateOverride) return;
-	          state = PATH_START;
-	          continue;
-	        } else return INVALID_PORT;
-	        break;
-
-	      case FILE:
-	        url.scheme = 'file';
-	        if (chr == '/' || chr == '\\') state = FILE_SLASH;
-	        else if (base && base.scheme == 'file') {
 	          if (chr == EOF) {
+	            url.username = base.username;
+	            url.password = base.password;
 	            url.host = base.host;
-	            url.path = arraySlice(base.path);
+	            url.port = base.port;
+	            url.path = arraySliceSimple(base.path);
 	            url.query = base.query;
+	          } else if (chr == '/' || (chr == '\\' && url.isSpecial())) {
+	            state = RELATIVE_SLASH;
 	          } else if (chr == '?') {
+	            url.username = base.username;
+	            url.password = base.password;
 	            url.host = base.host;
-	            url.path = arraySlice(base.path);
+	            url.port = base.port;
+	            url.path = arraySliceSimple(base.path);
 	            url.query = '';
 	            state = QUERY;
 	          } else if (chr == '#') {
+	            url.username = base.username;
+	            url.password = base.password;
 	            url.host = base.host;
-	            url.path = arraySlice(base.path);
+	            url.port = base.port;
+	            url.path = arraySliceSimple(base.path);
 	            url.query = base.query;
 	            url.fragment = '';
 	            state = FRAGMENT;
 	          } else {
-	            if (!startsWithWindowsDriveLetter(join$5(arraySlice(codePoints, pointer), ''))) {
-	              url.host = base.host;
-	              url.path = arraySlice(base.path);
-	              shortenURLsPath(url);
-	            }
+	            url.username = base.username;
+	            url.password = base.password;
+	            url.host = base.host;
+	            url.port = base.port;
+	            url.path = arraySliceSimple(base.path);
+	            url.path.length--;
 	            state = PATH;
 	            continue;
-	          }
-	        } else {
-	          state = PATH;
-	          continue;
-	        } break;
+	          } break;
 
-	      case FILE_SLASH:
-	        if (chr == '/' || chr == '\\') {
-	          state = FILE_HOST;
-	          break;
-	        }
-	        if (base && base.scheme == 'file' && !startsWithWindowsDriveLetter(join$5(arraySlice(codePoints, pointer), ''))) {
-	          if (isWindowsDriveLetter(base.path[0], true)) push$a(url.path, base.path[0]);
-	          else url.host = base.host;
-	        }
-	        state = PATH;
-	        continue;
-
-	      case FILE_HOST:
-	        if (chr == EOF || chr == '/' || chr == '\\' || chr == '?' || chr == '#') {
-	          if (!stateOverride && isWindowsDriveLetter(buffer)) {
-	            state = PATH;
-	          } else if (buffer == '') {
-	            url.host = '';
-	            if (stateOverride) return;
-	            state = PATH_START;
+	        case RELATIVE_SLASH:
+	          if (url.isSpecial() && (chr == '/' || chr == '\\')) {
+	            state = SPECIAL_AUTHORITY_IGNORE_SLASHES;
+	          } else if (chr == '/') {
+	            state = AUTHORITY;
 	          } else {
-	            failure = parseHost(url, buffer);
+	            url.username = base.username;
+	            url.password = base.password;
+	            url.host = base.host;
+	            url.port = base.port;
+	            state = PATH;
+	            continue;
+	          } break;
+
+	        case SPECIAL_AUTHORITY_SLASHES:
+	          state = SPECIAL_AUTHORITY_IGNORE_SLASHES;
+	          if (chr != '/' || charAt$8(buffer, pointer + 1) != '/') continue;
+	          pointer++;
+	          break;
+
+	        case SPECIAL_AUTHORITY_IGNORE_SLASHES:
+	          if (chr != '/' && chr != '\\') {
+	            state = AUTHORITY;
+	            continue;
+	          } break;
+
+	        case AUTHORITY:
+	          if (chr == '@') {
+	            if (seenAt) buffer = '%40' + buffer;
+	            seenAt = true;
+	            bufferCodePoints = arrayFrom(buffer);
+	            for (var i = 0; i < bufferCodePoints.length; i++) {
+	              var codePoint = bufferCodePoints[i];
+	              if (codePoint == ':' && !seenPasswordToken) {
+	                seenPasswordToken = true;
+	                continue;
+	              }
+	              var encodedCodePoints = percentEncode(codePoint, userinfoPercentEncodeSet);
+	              if (seenPasswordToken) url.password += encodedCodePoints;
+	              else url.username += encodedCodePoints;
+	            }
+	            buffer = '';
+	          } else if (
+	            chr == EOF || chr == '/' || chr == '?' || chr == '#' ||
+	            (chr == '\\' && url.isSpecial())
+	          ) {
+	            if (seenAt && buffer == '') return INVALID_AUTHORITY;
+	            pointer -= arrayFrom(buffer).length + 1;
+	            buffer = '';
+	            state = HOST;
+	          } else buffer += chr;
+	          break;
+
+	        case HOST:
+	        case HOSTNAME:
+	          if (stateOverride && url.scheme == 'file') {
+	            state = FILE_HOST;
+	            continue;
+	          } else if (chr == ':' && !seenBracket) {
+	            if (buffer == '') return INVALID_HOST;
+	            failure = url.parseHost(buffer);
 	            if (failure) return failure;
-	            if (url.host == 'localhost') url.host = '';
-	            if (stateOverride) return;
+	            buffer = '';
+	            state = PORT;
+	            if (stateOverride == HOSTNAME) return;
+	          } else if (
+	            chr == EOF || chr == '/' || chr == '?' || chr == '#' ||
+	            (chr == '\\' && url.isSpecial())
+	          ) {
+	            if (url.isSpecial() && buffer == '') return INVALID_HOST;
+	            if (stateOverride && buffer == '' && (url.includesCredentials() || url.port !== null)) return;
+	            failure = url.parseHost(buffer);
+	            if (failure) return failure;
 	            buffer = '';
 	            state = PATH_START;
-	          } continue;
-	        } else buffer += chr;
-	        break;
+	            if (stateOverride) return;
+	            continue;
+	          } else {
+	            if (chr == '[') seenBracket = true;
+	            else if (chr == ']') seenBracket = false;
+	            buffer += chr;
+	          } break;
 
-	      case PATH_START:
-	        if (isSpecial(url)) {
-	          state = PATH;
-	          if (chr != '/' && chr != '\\') continue;
-	        } else if (!stateOverride && chr == '?') {
-	          url.query = '';
-	          state = QUERY;
-	        } else if (!stateOverride && chr == '#') {
-	          url.fragment = '';
-	          state = FRAGMENT;
-	        } else if (chr != EOF) {
-	          state = PATH;
-	          if (chr != '/') continue;
-	        } break;
-
-	      case PATH:
-	        if (
-	          chr == EOF || chr == '/' ||
-	          (chr == '\\' && isSpecial(url)) ||
-	          (!stateOverride && (chr == '?' || chr == '#'))
-	        ) {
-	          if (isDoubleDot(buffer)) {
-	            shortenURLsPath(url);
-	            if (chr != '/' && !(chr == '\\' && isSpecial(url))) {
-	              push$a(url.path, '');
+	        case PORT:
+	          if (exec$5(DIGIT, chr)) {
+	            buffer += chr;
+	          } else if (
+	            chr == EOF || chr == '/' || chr == '?' || chr == '#' ||
+	            (chr == '\\' && url.isSpecial()) ||
+	            stateOverride
+	          ) {
+	            if (buffer != '') {
+	              var port = parseInt$1(buffer, 10);
+	              if (port > 0xFFFF) return INVALID_PORT;
+	              url.port = (url.isSpecial() && port === specialSchemes[url.scheme]) ? null : port;
+	              buffer = '';
 	            }
-	          } else if (isSingleDot(buffer)) {
-	            if (chr != '/' && !(chr == '\\' && isSpecial(url))) {
-	              push$a(url.path, '');
+	            if (stateOverride) return;
+	            state = PATH_START;
+	            continue;
+	          } else return INVALID_PORT;
+	          break;
+
+	        case FILE:
+	          url.scheme = 'file';
+	          if (chr == '/' || chr == '\\') state = FILE_SLASH;
+	          else if (base && base.scheme == 'file') {
+	            if (chr == EOF) {
+	              url.host = base.host;
+	              url.path = arraySliceSimple(base.path);
+	              url.query = base.query;
+	            } else if (chr == '?') {
+	              url.host = base.host;
+	              url.path = arraySliceSimple(base.path);
+	              url.query = '';
+	              state = QUERY;
+	            } else if (chr == '#') {
+	              url.host = base.host;
+	              url.path = arraySliceSimple(base.path);
+	              url.query = base.query;
+	              url.fragment = '';
+	              state = FRAGMENT;
+	            } else {
+	              if (!startsWithWindowsDriveLetter(join$5(arraySliceSimple(codePoints, pointer), ''))) {
+	                url.host = base.host;
+	                url.path = arraySliceSimple(base.path);
+	                url.shortenPath();
+	              }
+	              state = PATH;
+	              continue;
 	            }
 	          } else {
-	            if (url.scheme == 'file' && !url.path.length && isWindowsDriveLetter(buffer)) {
-	              if (url.host) url.host = '';
-	              buffer = charAt$8(buffer, 0) + ':'; // normalize windows drive letter
-	            }
-	            push$a(url.path, buffer);
+	            state = PATH;
+	            continue;
+	          } break;
+
+	        case FILE_SLASH:
+	          if (chr == '/' || chr == '\\') {
+	            state = FILE_HOST;
+	            break;
 	          }
-	          buffer = '';
-	          if (url.scheme == 'file' && (chr == EOF || chr == '?' || chr == '#')) {
-	            while (url.path.length > 1 && url.path[0] === '') {
-	              shift$1(url.path);
-	            }
+	          if (base && base.scheme == 'file' && !startsWithWindowsDriveLetter(join$5(arraySliceSimple(codePoints, pointer), ''))) {
+	            if (isWindowsDriveLetter(base.path[0], true)) push$a(url.path, base.path[0]);
+	            else url.host = base.host;
 	          }
+	          state = PATH;
+	          continue;
+
+	        case FILE_HOST:
+	          if (chr == EOF || chr == '/' || chr == '\\' || chr == '?' || chr == '#') {
+	            if (!stateOverride && isWindowsDriveLetter(buffer)) {
+	              state = PATH;
+	            } else if (buffer == '') {
+	              url.host = '';
+	              if (stateOverride) return;
+	              state = PATH_START;
+	            } else {
+	              failure = url.parseHost(buffer);
+	              if (failure) return failure;
+	              if (url.host == 'localhost') url.host = '';
+	              if (stateOverride) return;
+	              buffer = '';
+	              state = PATH_START;
+	            } continue;
+	          } else buffer += chr;
+	          break;
+
+	        case PATH_START:
+	          if (url.isSpecial()) {
+	            state = PATH;
+	            if (chr != '/' && chr != '\\') continue;
+	          } else if (!stateOverride && chr == '?') {
+	            url.query = '';
+	            state = QUERY;
+	          } else if (!stateOverride && chr == '#') {
+	            url.fragment = '';
+	            state = FRAGMENT;
+	          } else if (chr != EOF) {
+	            state = PATH;
+	            if (chr != '/') continue;
+	          } break;
+
+	        case PATH:
+	          if (
+	            chr == EOF || chr == '/' ||
+	            (chr == '\\' && url.isSpecial()) ||
+	            (!stateOverride && (chr == '?' || chr == '#'))
+	          ) {
+	            if (isDoubleDot(buffer)) {
+	              url.shortenPath();
+	              if (chr != '/' && !(chr == '\\' && url.isSpecial())) {
+	                push$a(url.path, '');
+	              }
+	            } else if (isSingleDot(buffer)) {
+	              if (chr != '/' && !(chr == '\\' && url.isSpecial())) {
+	                push$a(url.path, '');
+	              }
+	            } else {
+	              if (url.scheme == 'file' && !url.path.length && isWindowsDriveLetter(buffer)) {
+	                if (url.host) url.host = '';
+	                buffer = charAt$8(buffer, 0) + ':'; // normalize windows drive letter
+	              }
+	              push$a(url.path, buffer);
+	            }
+	            buffer = '';
+	            if (url.scheme == 'file' && (chr == EOF || chr == '?' || chr == '#')) {
+	              while (url.path.length > 1 && url.path[0] === '') {
+	                shift$1(url.path);
+	              }
+	            }
+	            if (chr == '?') {
+	              url.query = '';
+	              state = QUERY;
+	            } else if (chr == '#') {
+	              url.fragment = '';
+	              state = FRAGMENT;
+	            }
+	          } else {
+	            buffer += percentEncode(chr, pathPercentEncodeSet);
+	          } break;
+
+	        case CANNOT_BE_A_BASE_URL_PATH:
 	          if (chr == '?') {
 	            url.query = '';
 	            state = QUERY;
 	          } else if (chr == '#') {
 	            url.fragment = '';
 	            state = FRAGMENT;
-	          }
-	        } else {
-	          buffer += percentEncode(chr, pathPercentEncodeSet);
-	        } break;
+	          } else if (chr != EOF) {
+	            url.path[0] += percentEncode(chr, C0ControlPercentEncodeSet);
+	          } break;
 
-	      case CANNOT_BE_A_BASE_URL_PATH:
-	        if (chr == '?') {
-	          url.query = '';
-	          state = QUERY;
-	        } else if (chr == '#') {
-	          url.fragment = '';
-	          state = FRAGMENT;
-	        } else if (chr != EOF) {
-	          url.path[0] += percentEncode(chr, C0ControlPercentEncodeSet);
-	        } break;
+	        case QUERY:
+	          if (!stateOverride && chr == '#') {
+	            url.fragment = '';
+	            state = FRAGMENT;
+	          } else if (chr != EOF) {
+	            if (chr == "'" && url.isSpecial()) url.query += '%27';
+	            else if (chr == '#') url.query += '%23';
+	            else url.query += percentEncode(chr, C0ControlPercentEncodeSet);
+	          } break;
 
-	      case QUERY:
-	        if (!stateOverride && chr == '#') {
-	          url.fragment = '';
-	          state = FRAGMENT;
-	        } else if (chr != EOF) {
-	          if (chr == "'" && isSpecial(url)) url.query += '%27';
-	          else if (chr == '#') url.query += '%23';
-	          else url.query += percentEncode(chr, C0ControlPercentEncodeSet);
-	        } break;
+	        case FRAGMENT:
+	          if (chr != EOF) url.fragment += percentEncode(chr, fragmentPercentEncodeSet);
+	          break;
+	      }
 
-	      case FRAGMENT:
-	        if (chr != EOF) url.fragment += percentEncode(chr, fragmentPercentEncodeSet);
-	        break;
+	      pointer++;
 	    }
-
-	    pointer++;
+	  },
+	  // https://url.spec.whatwg.org/#host-parsing
+	  parseHost: function (input) {
+	    var result, codePoints, index;
+	    if (charAt$8(input, 0) == '[') {
+	      if (charAt$8(input, input.length - 1) != ']') return INVALID_HOST;
+	      result = parseIPv6(stringSlice$c(input, 1, -1));
+	      if (!result) return INVALID_HOST;
+	      this.host = result;
+	    // opaque host
+	    } else if (!this.isSpecial()) {
+	      if (exec$5(FORBIDDEN_HOST_CODE_POINT_EXCLUDING_PERCENT, input)) return INVALID_HOST;
+	      result = '';
+	      codePoints = arrayFrom(input);
+	      for (index = 0; index < codePoints.length; index++) {
+	        result += percentEncode(codePoints[index], C0ControlPercentEncodeSet);
+	      }
+	      this.host = result;
+	    } else {
+	      input = stringPunycodeToAscii(input);
+	      if (exec$5(FORBIDDEN_HOST_CODE_POINT, input)) return INVALID_HOST;
+	      result = parseIPv4(input);
+	      if (result === null) return INVALID_HOST;
+	      this.host = result;
+	    }
+	  },
+	  // https://url.spec.whatwg.org/#cannot-have-a-username-password-port
+	  cannotHaveUsernamePasswordPort: function () {
+	    return !this.host || this.cannotBeABaseURL || this.scheme == 'file';
+	  },
+	  // https://url.spec.whatwg.org/#include-credentials
+	  includesCredentials: function () {
+	    return this.username != '' || this.password != '';
+	  },
+	  // https://url.spec.whatwg.org/#is-special
+	  isSpecial: function () {
+	    return hasOwnProperty_1(specialSchemes, this.scheme);
+	  },
+	  // https://url.spec.whatwg.org/#shorten-a-urls-path
+	  shortenPath: function () {
+	    var path = this.path;
+	    var pathSize = path.length;
+	    if (pathSize && (this.scheme != 'file' || pathSize != 1 || !isWindowsDriveLetter(path[0], true))) {
+	      path.length--;
+	    }
+	  },
+	  // https://url.spec.whatwg.org/#concept-url-serializer
+	  serialize: function () {
+	    var url = this;
+	    var scheme = url.scheme;
+	    var username = url.username;
+	    var password = url.password;
+	    var host = url.host;
+	    var port = url.port;
+	    var path = url.path;
+	    var query = url.query;
+	    var fragment = url.fragment;
+	    var output = scheme + ':';
+	    if (host !== null) {
+	      output += '//';
+	      if (url.includesCredentials()) {
+	        output += username + (password ? ':' + password : '') + '@';
+	      }
+	      output += serializeHost(host);
+	      if (port !== null) output += ':' + port;
+	    } else if (scheme == 'file') output += '//';
+	    output += url.cannotBeABaseURL ? path[0] : path.length ? '/' + join$5(path, '/') : '';
+	    if (query !== null) output += '?' + query;
+	    if (fragment !== null) output += '#' + fragment;
+	    return output;
+	  },
+	  // https://url.spec.whatwg.org/#dom-url-href
+	  setHref: function (href) {
+	    var failure = this.parse(href);
+	    if (failure) throw TypeError$o(failure);
+	    this.searchParams.update();
+	  },
+	  // https://url.spec.whatwg.org/#dom-url-origin
+	  getOrigin: function () {
+	    var scheme = this.scheme;
+	    var port = this.port;
+	    if (scheme == 'blob') try {
+	      return new URLConstructor(scheme.path[0]).origin;
+	    } catch (error) {
+	      return 'null';
+	    }
+	    if (scheme == 'file' || !this.isSpecial()) return 'null';
+	    return scheme + '://' + serializeHost(this.host) + (port !== null ? ':' + port : '');
+	  },
+	  // https://url.spec.whatwg.org/#dom-url-protocol
+	  getProtocol: function () {
+	    return this.scheme + ':';
+	  },
+	  setProtocol: function (protocol) {
+	    this.parse(toString_1(protocol) + ':', SCHEME_START);
+	  },
+	  // https://url.spec.whatwg.org/#dom-url-username
+	  getUsername: function () {
+	    return this.username;
+	  },
+	  setUsername: function (username) {
+	    var codePoints = arrayFrom(toString_1(username));
+	    if (this.cannotHaveUsernamePasswordPort()) return;
+	    this.username = '';
+	    for (var i = 0; i < codePoints.length; i++) {
+	      this.username += percentEncode(codePoints[i], userinfoPercentEncodeSet);
+	    }
+	  },
+	  // https://url.spec.whatwg.org/#dom-url-password
+	  getPassword: function () {
+	    return this.password;
+	  },
+	  setPassword: function (password) {
+	    var codePoints = arrayFrom(toString_1(password));
+	    if (this.cannotHaveUsernamePasswordPort()) return;
+	    this.password = '';
+	    for (var i = 0; i < codePoints.length; i++) {
+	      this.password += percentEncode(codePoints[i], userinfoPercentEncodeSet);
+	    }
+	  },
+	  // https://url.spec.whatwg.org/#dom-url-host
+	  getHost: function () {
+	    var host = this.host;
+	    var port = this.port;
+	    return host === null ? ''
+	      : port === null ? serializeHost(host)
+	      : serializeHost(host) + ':' + port;
+	  },
+	  setHost: function (host) {
+	    if (this.cannotBeABaseURL) return;
+	    this.parse(host, HOST);
+	  },
+	  // https://url.spec.whatwg.org/#dom-url-hostname
+	  getHostname: function () {
+	    var host = this.host;
+	    return host === null ? '' : serializeHost(host);
+	  },
+	  setHostname: function (hostname) {
+	    if (this.cannotBeABaseURL) return;
+	    this.parse(hostname, HOSTNAME);
+	  },
+	  // https://url.spec.whatwg.org/#dom-url-port
+	  getPort: function () {
+	    var port = this.port;
+	    return port === null ? '' : toString_1(port);
+	  },
+	  setPort: function (port) {
+	    if (this.cannotHaveUsernamePasswordPort()) return;
+	    port = toString_1(port);
+	    if (port == '') this.port = null;
+	    else this.parse(port, PORT);
+	  },
+	  // https://url.spec.whatwg.org/#dom-url-pathname
+	  getPathname: function () {
+	    var path = this.path;
+	    return this.cannotBeABaseURL ? path[0] : path.length ? '/' + join$5(path, '/') : '';
+	  },
+	  setPathname: function (pathname) {
+	    if (this.cannotBeABaseURL) return;
+	    this.path = [];
+	    this.parse(pathname, PATH_START);
+	  },
+	  // https://url.spec.whatwg.org/#dom-url-search
+	  getSearch: function () {
+	    var query = this.query;
+	    return query ? '?' + query : '';
+	  },
+	  setSearch: function (search) {
+	    search = toString_1(search);
+	    if (search == '') {
+	      this.query = null;
+	    } else {
+	      if ('?' == charAt$8(search, 0)) search = stringSlice$c(search, 1);
+	      this.query = '';
+	      this.parse(search, QUERY);
+	    }
+	    this.searchParams.update();
+	  },
+	  // https://url.spec.whatwg.org/#dom-url-searchparams
+	  getSearchParams: function () {
+	    return this.searchParams.facade;
+	  },
+	  // https://url.spec.whatwg.org/#dom-url-hash
+	  getHash: function () {
+	    var fragment = this.fragment;
+	    return fragment ? '#' + fragment : '';
+	  },
+	  setHash: function (hash) {
+	    hash = toString_1(hash);
+	    if (hash == '') {
+	      this.fragment = null;
+	      return;
+	    }
+	    if ('#' == charAt$8(hash, 0)) hash = stringSlice$c(hash, 1);
+	    this.fragment = '';
+	    this.parse(hash, FRAGMENT);
+	  },
+	  update: function () {
+	    this.query = this.searchParams.serialize() || null;
 	  }
 	};
 
@@ -45842,252 +46095,89 @@
 	var URLConstructor = function URL(url /* , base */) {
 	  var that = anInstance(this, URLPrototype);
 	  var base = arguments.length > 1 ? arguments[1] : undefined;
-	  var urlString = toString_1(url);
-	  var state = setInternalState$7(that, { type: 'URL' });
-	  var baseState, failure;
-	  if (base !== undefined) {
-	    try {
-	      baseState = getInternalURLState(base);
-	    } catch (error) {
-	      failure = parseURL(baseState = {}, toString_1(base));
-	      if (failure) throw TypeError$o(failure);
-	    }
-	  }
-	  failure = parseURL(state, urlString, null, baseState);
-	  if (failure) throw TypeError$o(failure);
-	  var searchParams = state.searchParams = new URLSearchParams$1();
-	  var searchParamsState = getInternalSearchParamsState(searchParams);
-	  searchParamsState.updateSearchParams(state.query);
-	  searchParamsState.updateURL = function () {
-	    state.query = toString_1(searchParams) || null;
-	  };
+	  var state = setInternalState$7(that, new URLState(url, false, base));
 	  if (!descriptors) {
-	    that.href = functionCall(serializeURL, that);
-	    that.origin = functionCall(getOrigin, that);
-	    that.protocol = functionCall(getProtocol, that);
-	    that.username = functionCall(getUsername, that);
-	    that.password = functionCall(getPassword, that);
-	    that.host = functionCall(getHost, that);
-	    that.hostname = functionCall(getHostname, that);
-	    that.port = functionCall(getPort, that);
-	    that.pathname = functionCall(getPathname, that);
-	    that.search = functionCall(getSearch, that);
-	    that.searchParams = functionCall(getSearchParams, that);
-	    that.hash = functionCall(getHash, that);
+	    that.href = state.serialize();
+	    that.origin = state.getOrigin();
+	    that.protocol = state.getProtocol();
+	    that.username = state.getUsername();
+	    that.password = state.getPassword();
+	    that.host = state.getHost();
+	    that.hostname = state.getHostname();
+	    that.port = state.getPort();
+	    that.pathname = state.getPathname();
+	    that.search = state.getSearch();
+	    that.searchParams = state.getSearchParams();
+	    that.hash = state.getHash();
 	  }
 	};
 
 	var URLPrototype = URLConstructor.prototype;
 
-	var serializeURL = function () {
-	  var url = getInternalURLState(this);
-	  var scheme = url.scheme;
-	  var username = url.username;
-	  var password = url.password;
-	  var host = url.host;
-	  var port = url.port;
-	  var path = url.path;
-	  var query = url.query;
-	  var fragment = url.fragment;
-	  var output = scheme + ':';
-	  if (host !== null) {
-	    output += '//';
-	    if (includesCredentials(url)) {
-	      output += username + (password ? ':' + password : '') + '@';
-	    }
-	    output += serializeHost(host);
-	    if (port !== null) output += ':' + port;
-	  } else if (scheme == 'file') output += '//';
-	  output += url.cannotBeABaseURL ? path[0] : path.length ? '/' + join$5(path, '/') : '';
-	  if (query !== null) output += '?' + query;
-	  if (fragment !== null) output += '#' + fragment;
-	  return output;
-	};
-
-	var getOrigin = function () {
-	  var url = getInternalURLState(this);
-	  var scheme = url.scheme;
-	  var port = url.port;
-	  if (scheme == 'blob') try {
-	    return new URLConstructor(scheme.path[0]).origin;
-	  } catch (error) {
-	    return 'null';
-	  }
-	  if (scheme == 'file' || !isSpecial(url)) return 'null';
-	  return scheme + '://' + serializeHost(url.host) + (port !== null ? ':' + port : '');
-	};
-
-	var getProtocol = function () {
-	  return getInternalURLState(this).scheme + ':';
-	};
-
-	var getUsername = function () {
-	  return getInternalURLState(this).username;
-	};
-
-	var getPassword = function () {
-	  return getInternalURLState(this).password;
-	};
-
-	var getHost = function () {
-	  var url = getInternalURLState(this);
-	  var host = url.host;
-	  var port = url.port;
-	  return host === null ? ''
-	    : port === null ? serializeHost(host)
-	    : serializeHost(host) + ':' + port;
-	};
-
-	var getHostname = function () {
-	  var host = getInternalURLState(this).host;
-	  return host === null ? '' : serializeHost(host);
-	};
-
-	var getPort = function () {
-	  var port = getInternalURLState(this).port;
-	  return port === null ? '' : toString_1(port);
-	};
-
-	var getPathname = function () {
-	  var url = getInternalURLState(this);
-	  var path = url.path;
-	  return url.cannotBeABaseURL ? path[0] : path.length ? '/' + join$5(path, '/') : '';
-	};
-
-	var getSearch = function () {
-	  var query = getInternalURLState(this).query;
-	  return query ? '?' + query : '';
-	};
-
-	var getSearchParams = function () {
-	  return getInternalURLState(this).searchParams;
-	};
-
-	var getHash = function () {
-	  var fragment = getInternalURLState(this).fragment;
-	  return fragment ? '#' + fragment : '';
-	};
-
 	var accessorDescriptor = function (getter, setter) {
-	  return { get: getter, set: setter, configurable: true, enumerable: true };
+	  return {
+	    get: function () {
+	      return getInternalURLState(this)[getter]();
+	    },
+	    set: setter && function (value) {
+	      return getInternalURLState(this)[setter](value);
+	    },
+	    configurable: true,
+	    enumerable: true
+	  };
 	};
 
 	if (descriptors) {
 	  objectDefineProperties(URLPrototype, {
 	    // `URL.prototype.href` accessors pair
 	    // https://url.spec.whatwg.org/#dom-url-href
-	    href: accessorDescriptor(serializeURL, function (href) {
-	      var url = getInternalURLState(this);
-	      var urlString = toString_1(href);
-	      var failure = parseURL(url, urlString);
-	      if (failure) throw TypeError$o(failure);
-	      getInternalSearchParamsState(url.searchParams).updateSearchParams(url.query);
-	    }),
+	    href: accessorDescriptor('serialize', 'setHref'),
 	    // `URL.prototype.origin` getter
 	    // https://url.spec.whatwg.org/#dom-url-origin
-	    origin: accessorDescriptor(getOrigin),
+	    origin: accessorDescriptor('getOrigin'),
 	    // `URL.prototype.protocol` accessors pair
 	    // https://url.spec.whatwg.org/#dom-url-protocol
-	    protocol: accessorDescriptor(getProtocol, function (protocol) {
-	      var url = getInternalURLState(this);
-	      parseURL(url, toString_1(protocol) + ':', SCHEME_START);
-	    }),
+	    protocol: accessorDescriptor('getProtocol', 'setProtocol'),
 	    // `URL.prototype.username` accessors pair
 	    // https://url.spec.whatwg.org/#dom-url-username
-	    username: accessorDescriptor(getUsername, function (username) {
-	      var url = getInternalURLState(this);
-	      var codePoints = arrayFrom(toString_1(username));
-	      if (cannotHaveUsernamePasswordPort(url)) return;
-	      url.username = '';
-	      for (var i = 0; i < codePoints.length; i++) {
-	        url.username += percentEncode(codePoints[i], userinfoPercentEncodeSet);
-	      }
-	    }),
+	    username: accessorDescriptor('getUsername', 'setUsername'),
 	    // `URL.prototype.password` accessors pair
 	    // https://url.spec.whatwg.org/#dom-url-password
-	    password: accessorDescriptor(getPassword, function (password) {
-	      var url = getInternalURLState(this);
-	      var codePoints = arrayFrom(toString_1(password));
-	      if (cannotHaveUsernamePasswordPort(url)) return;
-	      url.password = '';
-	      for (var i = 0; i < codePoints.length; i++) {
-	        url.password += percentEncode(codePoints[i], userinfoPercentEncodeSet);
-	      }
-	    }),
+	    password: accessorDescriptor('getPassword', 'setPassword'),
 	    // `URL.prototype.host` accessors pair
 	    // https://url.spec.whatwg.org/#dom-url-host
-	    host: accessorDescriptor(getHost, function (host) {
-	      var url = getInternalURLState(this);
-	      if (url.cannotBeABaseURL) return;
-	      parseURL(url, toString_1(host), HOST);
-	    }),
+	    host: accessorDescriptor('getHost', 'setHost'),
 	    // `URL.prototype.hostname` accessors pair
 	    // https://url.spec.whatwg.org/#dom-url-hostname
-	    hostname: accessorDescriptor(getHostname, function (hostname) {
-	      var url = getInternalURLState(this);
-	      if (url.cannotBeABaseURL) return;
-	      parseURL(url, toString_1(hostname), HOSTNAME);
-	    }),
+	    hostname: accessorDescriptor('getHostname', 'setHostname'),
 	    // `URL.prototype.port` accessors pair
 	    // https://url.spec.whatwg.org/#dom-url-port
-	    port: accessorDescriptor(getPort, function (port) {
-	      var url = getInternalURLState(this);
-	      if (cannotHaveUsernamePasswordPort(url)) return;
-	      port = toString_1(port);
-	      if (port == '') url.port = null;
-	      else parseURL(url, port, PORT);
-	    }),
+	    port: accessorDescriptor('getPort', 'setPort'),
 	    // `URL.prototype.pathname` accessors pair
 	    // https://url.spec.whatwg.org/#dom-url-pathname
-	    pathname: accessorDescriptor(getPathname, function (pathname) {
-	      var url = getInternalURLState(this);
-	      if (url.cannotBeABaseURL) return;
-	      url.path = [];
-	      parseURL(url, toString_1(pathname), PATH_START);
-	    }),
+	    pathname: accessorDescriptor('getPathname', 'setPathname'),
 	    // `URL.prototype.search` accessors pair
 	    // https://url.spec.whatwg.org/#dom-url-search
-	    search: accessorDescriptor(getSearch, function (search) {
-	      var url = getInternalURLState(this);
-	      search = toString_1(search);
-	      if (search == '') {
-	        url.query = null;
-	      } else {
-	        if ('?' == charAt$8(search, 0)) search = stringSlice$c(search, 1);
-	        url.query = '';
-	        parseURL(url, search, QUERY);
-	      }
-	      getInternalSearchParamsState(url.searchParams).updateSearchParams(url.query);
-	    }),
+	    search: accessorDescriptor('getSearch', 'setSearch'),
 	    // `URL.prototype.searchParams` getter
 	    // https://url.spec.whatwg.org/#dom-url-searchparams
-	    searchParams: accessorDescriptor(getSearchParams),
+	    searchParams: accessorDescriptor('getSearchParams'),
 	    // `URL.prototype.hash` accessors pair
 	    // https://url.spec.whatwg.org/#dom-url-hash
-	    hash: accessorDescriptor(getHash, function (hash) {
-	      var url = getInternalURLState(this);
-	      hash = toString_1(hash);
-	      if (hash == '') {
-	        url.fragment = null;
-	        return;
-	      }
-	      if ('#' == charAt$8(hash, 0)) hash = stringSlice$c(hash, 1);
-	      url.fragment = '';
-	      parseURL(url, hash, FRAGMENT);
-	    })
+	    hash: accessorDescriptor('getHash', 'setHash')
 	  });
 	}
 
 	// `URL.prototype.toJSON` method
 	// https://url.spec.whatwg.org/#dom-url-tojson
 	redefine(URLPrototype, 'toJSON', function toJSON() {
-	  return functionCall(serializeURL, this);
+	  return getInternalURLState(this).serialize();
 	}, { enumerable: true });
 
 	// `URL.prototype.toString` method
 	// https://url.spec.whatwg.org/#URL-stringification-behavior
 	redefine(URLPrototype, 'toString', function toString() {
-	  return functionCall(serializeURL, this);
+	  return getInternalURLState(this).serialize();
 	}, { enumerable: true });
 
 	if (NativeURL) {
@@ -59056,7 +59146,7 @@
 	  return array;
 	}
 
-	var defineProperty$b = function () {
+	var defineProperty$c = function () {
 	  try {
 	    var func = getNative(Object, 'defineProperty');
 	    func({}, '', {});
@@ -59075,8 +59165,8 @@
 	 */
 
 	function baseAssignValue(object, key, value) {
-	  if (key == '__proto__' && defineProperty$b) {
-	    defineProperty$b(object, key, {
+	  if (key == '__proto__' && defineProperty$c) {
+	    defineProperty$c(object, key, {
 	      'configurable': true,
 	      'enumerable': true,
 	      'value': value,
@@ -60424,8 +60514,8 @@
 	 * @returns {Function} Returns `func`.
 	 */
 
-	var baseSetToString = !defineProperty$b ? identity$5 : function (func, string) {
-	  return defineProperty$b(func, 'toString', {
+	var baseSetToString = !defineProperty$c ? identity$5 : function (func, string) {
+	  return defineProperty$c(func, 'toString', {
 	    'configurable': true,
 	    'enumerable': false,
 	    'value': constant$4(string),
@@ -82966,7 +83056,7 @@
 	      // show this feature again
 	      fetch(window.APIROOT + '/__ignoreFeature?' + new URLSearchParams({
 	        reportedBy: (window.__user || {}).display_name,
-	        id: id,
+	        id: "t".concat(id),
 	        sector: _datum.__datasetid__
 	      }).toString());
 	      return;
@@ -103728,7 +103818,7 @@
 	};
 	tinyqueue["default"] = _default$2;
 
-	var max$5 = Math.max;
+	var max$6 = Math.max;
 	var min$a = Math.min;
 	var contourId = 0;
 
@@ -103763,8 +103853,8 @@
 	        y = s1[1];
 	    bbox[0] = min$a(bbox[0], x);
 	    bbox[1] = min$a(bbox[1], y);
-	    bbox[2] = max$5(bbox[2], x);
-	    bbox[3] = max$5(bbox[3], y); // Pushing it so the queue is sorted from left to right,
+	    bbox[2] = max$6(bbox[2], x);
+	    bbox[3] = max$6(bbox[3], y); // Pushing it so the queue is sorted from left to right,
 	    // with object on the left having the highest priority.
 
 	    Q.push(e1);
