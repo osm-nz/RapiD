@@ -248,7 +248,7 @@ export function uiRapidFeatureInspector(context, keybinding) {
       // show this feature again
       fetch(window.APIROOT + '/__ignoreFeature?' + (new URLSearchParams({
         reportedBy: (window.__user || {}).display_name,
-        id,
+        id: `t${id}`,
         sector: _datum.__datasetid__
       }).toString()));
       return;
