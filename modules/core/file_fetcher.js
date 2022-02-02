@@ -1,3 +1,5 @@
+import { customData } from './custom';
+
 let _mainFileFetcher = coreFileFetcher(); // singleton
 
 export { _mainFileFetcher as fileFetcher };
@@ -61,6 +63,19 @@ export function coreFileFetcher() {
           if (response.status === 204 || response.status === 205) return;  // No Content, Reset Content
           return response.json();
         })
+
+        // merge in our custom presets
+        .then(original => {
+          const custom = customData[which];
+          if (!custom) return original;
+
+          if (Array.isArray(original)) {
+            return [...original, ...custom];
+          } else /* object */ {
+            return Object.assign({}, original, custom);
+          }
+        })
+
         .then(result => {
           delete _inflight[url];
           if (!result) {

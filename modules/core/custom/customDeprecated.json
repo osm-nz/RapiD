@@ -1,0 +1,21 @@
+[
+    {
+        "old": { "man_made": "dolphin" },
+        "replace": {
+            "man_made": "dolphin",
+            "seamark:type": "mooring",
+            "seamark:mooring:category": "dolphin"
+        }
+    },
+    {
+        "old": { "emergency": "lifeboat_station" },
+        "replace": {
+            "emergency": "lifeboat_station",
+            "seamark:type": "rescue_station"
+        }
+    },
+    {
+        "old": { "landuse": "aquaculture" },
+        "replace": { "landuse": "aquaculture", "seamark:type": "marine_farm" }
+    }
+]

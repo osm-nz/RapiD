@@ -1,0 +1,333 @@
+{
+    "amenity/marae": {
+        "icon": "maki-town-hall",
+        "fields": ["name", "operator", "address", "website"],
+        "moreFields": ["email", "phone", "wheelchair"],
+        "geometry": ["point", "area"],
+        "tags": {
+            "amenity": "marae"
+        },
+        "name": "Marae"
+    },
+    "natural/fumarole": {
+        "icon": "maki-water",
+        "fields": ["name"],
+        "geometry": ["point"],
+        "tags": {
+            "natural": "fumarole"
+        },
+        "terms": [
+            "fumarole",
+            "erupting spring",
+            "geiser",
+            "gieser",
+            "guyser",
+            "hot water",
+            "hydrogeology",
+            "hydrothermal explosion",
+            "steam"
+        ],
+        "name": "Fumarole"
+    },
+    "natural/sinkhole": {
+        "icon": "temaki-trench",
+        "fields": ["name"],
+        "geometry": ["point", "vertex"],
+        "tags": {
+            "natural": "sinkhole"
+        },
+        "terms": ["sinkhole", "hole"],
+        "name": "Sinkhole"
+    },
+    "man_made/offshore_platform": {
+        "icon": "temaki-oil_well",
+        "fields": [
+            "name",
+            "seamark/platform/category",
+            "seamark/platform/product"
+        ],
+        "moreFields": [],
+        "geometry": ["point", "vertex", "area"],
+        "tags": {
+            "seamark:type": "platform"
+        },
+        "addTags": {
+            "seamark:type": "platform",
+            "man_made": "offshore_platform"
+        },
+        "terms": [
+            "oil rig",
+            "offshore platform",
+            "platform",
+            "drilling rig",
+            "bore",
+            "drilling rig",
+            "oil derrick",
+            "oil drill",
+            "oil horse",
+            "oil rig",
+            "oil pump",
+            "petroleum well",
+            "pumpjack"
+        ],
+        "name": "Offshore Platform"
+    },
+
+    "emergency/lifeboat_station": {
+        "icon": "temaki-boat_tour",
+        "fields": [
+            "name",
+            "operator",
+            "seamark/rescue_station/category",
+            "address",
+            "building_area",
+            "phone",
+            "website"
+        ],
+        "moreFields": ["email", "fax", "gnis/feature_id", "wheelchair"],
+        "geometry": ["point", "area"],
+        "terms": [
+            "boat rescue",
+            "lifeboat",
+            "rescue",
+            "search and rescue",
+            "life saving"
+        ],
+        "tags": {
+            "emergency": "lifeboat_station",
+            "seamark:type": "rescue_station"
+        },
+        "name": "Lifeboat Station"
+    },
+
+    "waterway/soakhole": {
+        "icon": "maki-circle-stroked",
+        "fields": ["name"],
+        "geometry": ["point", "vertex"],
+        "tags": {
+            "waterway": "soakhole"
+        },
+        "terms": ["soakhole", "hole"],
+        "name": "Soakhole"
+    },
+    "waterway/sluice_gate": {
+        "icon": "maki-dam",
+        "fields": ["name"],
+        "geometry": ["point", "vertex"],
+        "tags": {
+            "waterway": "sluice_gate"
+        },
+        "terms": ["sluice gate", "gate", "floodgate", "flood gate"],
+        "name": "Sluice Gate"
+    },
+
+    "seamark/ski_access_lane_marker": {
+        "icon": "temaki-silo",
+        "geometry": ["point", "vertex"],
+        "terms": [
+            "ski lane",
+            "Ski Access Lane",
+            "access lane",
+            "speed",
+            "jetski"
+        ],
+        "fields": [
+            "seamark/beacon_special_purpose/category",
+            "seamark/beacon_special_purpose/colour",
+            "seamark/beacon_special_purpose/colour_pattern",
+            "seamark/beacon_special_purpose/shape",
+            "seamark/topmark/shape",
+            "seamark/topmark/colour"
+        ],
+        "tags": {
+            "seamark:type": "beacon_special_purpose",
+            "seamark:beacon_special_purpose:category": "recreation_zone",
+            "seamark:beacon_special_purpose:colour_pattern": "horizontal",
+            "seamark:beacon_special_purpose:shape": "pile"
+        },
+        "addTags": {
+            "seamark:beacon_special_purpose:colour": "black;orange;black;orange"
+        },
+        "name": "Ski Access Lane Marker"
+    },
+    "seamark/ski_access_lane": {
+        "icon": "temaki-boat",
+        "geometry": ["area"],
+        "terms": [
+            "ski lane",
+            "Ski Access Lane",
+            "access lane",
+            "speed",
+            "jetski"
+        ],
+        "tags": {
+            "seamark:restricted_area:category": "water_skiing",
+            "seamark:type": "restricted_area"
+        },
+        "name": "Ski Access Lane"
+    },
+    "seamark/seaplane_landing_area": {
+        "icon": "maki-airport",
+        "fields": ["ref", "operator"],
+        "geometry": ["point", "area"],
+        "terms": [
+            "seaplane",
+            "seaplane landing",
+            "seaport",
+            "airport",
+            "water runway"
+        ],
+        "tags": {
+            "seamark:type": "seaplane_landing_area"
+        },
+        "name": "Seaplane Landing Area"
+    },
+    "seamark/rocks": {
+        "icon": "temaki-boulder2",
+        "fields": ["name", "seamark/rock/water_level"],
+        "geometry": ["point", "area"],
+        "terms": ["boulder", "stone", "rock"],
+        "tags": {
+            "seamark:type": "rock"
+        },
+        "name": "Marine Rock"
+    },
+    "seamark/recommended_track": {
+        "icon": "temaki-ferry",
+        "fields": [
+            "seamark/recommended_track/category",
+            "seamark/recommended_track/traffic_flow"
+        ],
+        "geometry": ["line"],
+        "terms": ["navigation line", "line", "marine", "route", "boat"],
+        "tags": {
+            "seamark:type": "recommended_track"
+        },
+        "name": "Recommended Maritime Track"
+    },
+    "seamark/pile": {
+        "icon": "temaki-silo",
+        "fields": ["seamark/pile/category"],
+        "geometry": ["point", "vertex"],
+        "terms": ["pile"],
+        "tags": {
+            "seamark:type": "pile"
+        },
+        "name": "Pile"
+    },
+    "seamark/obstruction": {
+        "icon": "maki-roadblock",
+        "fields": [
+            "seamark/obstruction/category",
+            "seamark/obstruction/water_level"
+        ],
+        "moreFields": [
+            "seamark/obstruction/surface",
+            "depth",
+            "depth/exposition",
+            "depth/source_quality",
+            "depth/technique",
+            "depth/accuracy"
+        ],
+        "geometry": ["point", "area"],
+        "terms": ["obstruction", "obstacle", "hazard", "block", "barrier"],
+        "tags": {
+            "seamark:type": "obstruction"
+        },
+        "name": "Marine Obstruction"
+    },
+    "seamark/navigation_line": {
+        "icon": "maki-lighthouse",
+        "fields": ["seamark/navigation_line/category"],
+        "geometry": ["line"],
+        "terms": ["navigation line", "line", "marine", "route", "boat"],
+        "tags": {
+            "seamark:type": "navigation_line"
+        },
+        "name": "Maritime Navigation Line"
+    },
+    "seamark/mooring_dolphin": {
+        "icon": "temaki-horn_cleat",
+        "fields": ["ref", "operator", "seamark/mooring/category"],
+        "moreFields": ["seamark/mooring/shape", "seamark/mooring/colour"],
+        "geometry": ["point", "vertex"],
+        "terms": ["dolphin", "pile", "bollard", "buoy", "post"],
+        "tags": {
+            "seamark:type": "mooring",
+            "seamark:mooring:category": "dolphin"
+        },
+        "addTags": {
+            "man_made": "dolphin"
+        },
+        "name": "Mooring Dolphin"
+    },
+    "seamark/buoy_special_purpose": {
+        "icon": "temaki-buoy",
+        "fields": [
+            "seamark/buoy_special_purpose/category",
+            "seamark/buoy_special_purpose/colour",
+            "seamark/buoy_special_purpose/colour_pattern",
+            "seamark/buoy_special_purpose/shape",
+            "seamark/topmark/shape",
+            "seamark/topmark/colour"
+        ],
+        "geometry": ["point", "vertex"],
+        "terms": ["buoy", "special buoy", "danger buoy"],
+        "tags": {
+            "seamark:type": "buoy_special_purpose"
+        },
+        "name": "Special Purpose Buoy"
+    },
+    "seamark/buoy_isolated_danger": {
+        "icon": "temaki-buoy",
+        "fields": [
+            "seamark/buoy_isolated_danger/colour",
+            "seamark/buoy_isolated_danger/colour_pattern",
+            "seamark/buoy_isolated_danger/shape",
+            "seamark/topmark/shape",
+            "seamark/topmark/colour"
+        ],
+        "geometry": ["point", "vertex"],
+        "terms": ["buoy", "danger buoy"],
+        "tags": {
+            "seamark:type": "buoy_isolated_danger"
+        },
+        "name": "Danger Buoy"
+    },
+    "seamark/beacon_special_purpose": {
+        "icon": "maki-communications-tower",
+        "fields": [
+            "seamark/beacon_special_purpose/category",
+            "seamark/beacon_special_purpose/colour",
+            "seamark/beacon_special_purpose/colour_pattern",
+            "seamark/beacon_special_purpose/shape",
+            "seamark/topmark/shape",
+            "seamark/topmark/colour"
+        ],
+        "geometry": ["point", "vertex"],
+        "terms": [
+            "beacon",
+            "special beacon",
+            "danger beacon",
+            "channel marker"
+        ],
+        "tags": {
+            "seamark:type": "beacon_special_purpose"
+        },
+        "name": "Generic Nautical Marker"
+    },
+    "seamark/anchorage": {
+        "icon": "maki-harbor",
+        "fields": ["seamark/anchorage/category", "seamark/anchorage/status"],
+        "moreFields": [
+            "seamark/anchorage/period_start",
+            "seamark/anchorage/period_end"
+        ],
+        "geometry": ["point", "area"],
+        "terms": ["dolphin", "pile", "bollard", "buoy", "post"],
+        "tags": {
+            "seamark:type": "anchorage"
+        },
+        "name": "Anchorage Area"
+    }
+}

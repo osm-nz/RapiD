@@ -1,0 +1,782 @@
+{
+    "seamark/topmark/colour": {
+        "key": "seamark:topmark:colour",
+        "type": "combo",
+        "label": "Topmark Colour",
+        "strings": {
+            "options": {
+                "white": "White",
+                "black": "Black",
+                "red": "Red",
+                "green": "Green",
+                "blue": "Blue",
+                "yellow": "Yellow",
+                "grey": "Grey",
+                "brown": "Brown",
+                "amber": "Amber",
+                "violet": "Violet",
+                "orange": "Orange",
+                "magenta": "Magenta",
+                "pink": "Pink"
+            }
+        }
+    },
+    "seamark/topmark/shape": {
+        "key": "seamark:topmark:shape",
+        "type": "combo",
+        "label": "Topmark Shape",
+        "strings": {
+            "options": {
+                "cone, point up": "Cone, point up",
+                "cone, point down": "Cone, point down",
+                "sphere": "Sphere",
+                "2 spheres": "2 spheres",
+                "cylinder": "Cylinder (can)",
+                "board": "Board",
+                "x-shape": "X-shape (St. Andrew's cross)",
+                "cross": "Upright cross (St George's cross)",
+                "cube, point up": "Cube, point up",
+                "2 cones point together": "2 cones, point to point",
+                "2 cones base together": "2 cones, base to base",
+                "rhombus": "Rhombus (diamond)",
+                "2 cones up": "2 cones (points upward)",
+                "2 cones down": "2 cones (points downward)",
+                "besom, point up": "Besom, point up (broom or perch)",
+                "besom, point down": "Besom, point down (broom or perch)",
+                "flag": "Flag",
+                "sphere over rhombus": "Sphere over rhombus",
+                "square": "Square",
+                "rectangle, horizontal": "Rectangle, horizontal",
+                "rectangle, vertical": "Rectangle, vertical",
+                "trapezium, up": "Trapezium, up",
+                "trapezium, down": "Trapezium, down",
+                "triangle, point up": "Triangle, point up",
+                "triangle, point down": "Triangle, point down",
+                "circle": "Circle",
+                "2 upright crosses": "Two upright crosses (one over the other)",
+                "t-shape": "T-shape",
+                "triangle, point up over circle": "Triangle pointing up over a circle",
+                "upright cross over circle": "Upright cross over a circle",
+                "rhombus over circle": "Rhombus over a circle",
+                "circle over triangle, point up\t": "Circle over a triangle pointing up",
+                "other": "Other shape (see INFORM)"
+            }
+        }
+    },
+
+    "historic/wreck/type": {
+        "key": "wreck:type",
+        "type": "combo",
+        "label": "Wreck Type"
+    },
+
+    "seamark/anchorage/category": {
+        "key": "seamark:anchorage:category",
+        "type": "combo",
+        "label": "Category",
+        "strings": {
+            "options": {
+                "unrestricted": "Unrestricted anchorage",
+                "deep_water": "Deep water anchorage",
+                "tanker": "Tanker anchorage",
+                "explosives": "Explosives anchorage",
+                "quarantine": "Quarantine anchorage",
+                "seaplane": "Sea-plane anchorage",
+                "small_craft": "Small craft anchorage",
+                "small_craft_mooring": "Small craft mooring area",
+                "24_hour": "Anchorage for periods up to 24 hours",
+                "limited_period": "Anchorage for a limited period of time",
+                "pushing": "Anchorage for pushing-navigation vessels",
+                "non_pushing": "Anchorage for other vessels than pushing-navigation vessels",
+                "dry_cargo": "Anchorage for dry cargo vessels",
+                "raft": "Anchorage for rafts"
+            }
+        }
+    },
+
+    "seamark/anchorage/period_end": {
+        "key": "seamark:anchorage:period_end",
+        "type": "text",
+        "label": "Active Period End",
+        "placeholder": "YYYY-MM-DD"
+    },
+
+    "seamark/anchorage/period_start": {
+        "key": "seamark:anchorage:period_start",
+        "type": "text",
+        "label": "Active Period Start",
+        "placeholder": "YYYY-MM-DD"
+    },
+
+    "seamark/anchorage/status": {
+        "key": "seamark:anchorage:status",
+        "type": "combo",
+        "label": "Status",
+        "strings": {
+            "options": {
+                "permanent": "Permanent",
+                "occasional": "Occasional",
+                "recommended": "Recommended",
+                "not_in_use": "Not in use",
+                "intermittent": "Periodic/intermittent",
+                "reserved": "Reserved",
+                "temporary": "Temporary",
+                "private": "Private",
+                "mandatory": "Mandatory",
+                "destroyed": "Destroyed/ruined",
+                "extinguished": "Extinguished",
+                "illuminated": "Illuminated",
+                "historic": "Historic",
+                "public": "Public",
+                "synchronized": "Synchronized",
+                "watched": "Watched",
+                "unwatched": "Un-watched",
+                "existence_doubtful": "Existence doubtful",
+                "on_request": " on request",
+                "drop_away": "Drop away",
+                "rising": "Rising",
+                "increasing": "Increasing",
+                "decreasing": "Decreasing",
+                "strong": "Strong",
+                "good": "Good",
+                "moderate": "Moderate",
+                "poor": "Poor"
+            }
+        }
+    },
+
+    "depth/accuracy": {
+        "key": "depth:accuracy",
+        "type": "number",
+        "label": "Depth Accuracy (Meters)"
+    },
+    "depth/exposition": {
+        "key": "depth:exposition",
+        "type": "combo",
+        "label": "Depth Exposition",
+        "strings": {
+            "options": {
+                "within_range": "Within the range of depth of the surrounding depth area",
+                "shoaler": "Shoaler than the range of depth of the surrounding depth area",
+                "deeper": "Deeper than the range of depth of the surrounding depth area"
+            }
+        }
+    },
+    "depth/source_quality": {
+        "key": "depth:source_quality",
+        "type": "combo",
+        "label": "Depth Quality",
+        "strings": {
+            "options": {
+                "known": "Depth known",
+                "unknown": "Depth unknown",
+                "doubtful": "Doubtful sounding",
+                "unreliable": "Unreliable sounding",
+                "no_bottom": "No bottom found at value shown",
+                "least_depth_known": "Least depth known",
+                "least_depth_unknown": "Least depth unknown, safe clearance at value shown",
+                "not_surveyed": "Value reported (not surveyed)",
+                "not_confirmed": "Value reported (not confirmed)",
+                "maintained": "Maintained depth",
+                "not_maintained": "Not regularly maintained"
+            }
+        }
+    },
+    "depth/technique": {
+        "key": "depth:technique",
+        "type": "combo",
+        "label": "Depth Sounding Technique",
+        "strings": {
+            "options": {
+                "echo": "Found by echo- sounder",
+                "sonar": "Swept by side-scan sonar",
+                "multi-beam": "Found by multi-beam",
+                "diver": "Found by diver",
+                "lead-line": "Found by lead-line",
+                "wire-drag": "Swept by wire-drag",
+                "laser": "Found by laser",
+                "acoustic": "Swept by vertical acoustic system",
+                "electromagnetic": "Found by electromagnetic sensor",
+                "photogrammetry": "Photogrammetry",
+                "satellite_imagery": "Satellite imagery",
+                "levelling": "Found by levelling",
+                "computer_generated": "Computer generated"
+            }
+        }
+    },
+
+    "seamark/beacon_special_purpose/category": {
+        "key": "seamark:beacon_special_purpose:category",
+        "type": "combo",
+        "label": "Mark Category",
+        "strings": {
+            "options": {
+                "firing_danger_area": "Firing danger mark",
+                "target": "Target mark",
+                "marker_ship": "Marker ship mark",
+                "degaussing_range": "Degaussing range mark",
+                "barge": "Barge mark",
+                "cable": "Cable mark",
+                "spoil_ground": "Spoil ground mark",
+                "outfall": "Outfall mark",
+                "odas": "ODAS",
+                "recording": "Recording mark",
+                "seaplane_anchorage": "Seaplane anchorage mark",
+                "recreation_zone": "Recreation zone mark",
+                "private": "Private mark",
+                "mooring": "Mooring mark",
+                "lanby": "LANBY",
+                "leading": "Leading mark",
+                "measured_distance": "Measured distance mark",
+                "notice": "Notice mark",
+                "tss": "TSS mark",
+                "no_anchoring": "Anchoring prohibited mark",
+                "no_berthing": "Berthing prohibited mark",
+                "no_overtaking": "Overtaking prohibited mark",
+                "no_two-way_traffic": "Two-way traffic prohibited mark",
+                "reduced_wake": "Reduced wake mark",
+                "speed_limit": "Speed limit mark",
+                "stop": "Stop mark",
+                "warning": "General warning mark",
+                "sound_ship_siren": "Sound ships siren mark",
+                "restricted_vertical_clearance": "Restricted vertical clearance mark",
+                "maximum_vessel_draught": "Maximum vessel's draught mark",
+                "restricted_horizontal_clearance": "Restricted horizontal clearance mark",
+                "strong_current": "Strong current warning mark",
+                "berthing": "Berthing permitted mark",
+                "overhead_power_cable": "Overhead power cable mark",
+                "channel_edge_gradient": "Channel edge gradient mark",
+                "telephone": "Telephone mark",
+                "ferry_crossing": "Ferry crossing mark",
+                "marine_traffic_lights": "Marine traffic lights",
+                "pipeline": "Pipeline mark",
+                "anchorage": "Anchorage mark",
+                "clearing": "Clearing mark",
+                "control": "Control mark",
+                "diving": "Diving mark",
+                "refuge_beacon": "Refuge beacon",
+                "foul_ground": "Foul ground mark",
+                "yachting": "Yachting mark",
+                "heliport": "Heliport mark",
+                "gps": "GPS mark",
+                "seaplane_landing": "Seaplane landing mark",
+                "no_entry": "Entry prohibited mark",
+                "work_in_progress": "Work in progress mark",
+                "unknown_purpose": "Mark with unknown purpose",
+                "wellhead": "Wellhead mark",
+                "channel_separation": "Channel separation mark",
+                "marine_farm": "Marine farm mark",
+                "artificial_reef": "Artificial reef mark",
+                "ice": "Ice Mark",
+                "nature_reserve": "Nature Reserve Mark",
+                "fish_aggregator": "Fish Aggregating Device",
+                "wreck": "Wreck mark",
+                "customs": "Customs Mark",
+                "causeway": "Causeway Mark",
+                "wave_recorder": "Wave Recorder",
+                "no_jetski": "Jetski Prohibited"
+            }
+        }
+    },
+
+    "seamark/beacon_special_purpose/colour_pattern": {
+        "key": "seamark:beacon_special_purpose:colour_pattern",
+        "type": "combo",
+        "label": "Marker Colour Pattern",
+        "strings": {
+            "options": {
+                "horizontal": "Horizontal stripes",
+                "vertical": "Vertical stripes",
+                "diagonal": "Diagonal stripes",
+                "squared": "Squared",
+                "stripes": "Stripes (direction unknown)",
+                "border": "Border stripe",
+                "cross": "Vertical cross",
+                "saltire": "Diagonal cross"
+            }
+        }
+    },
+
+    "seamark/beacon_special_purpose/colour": {
+        "key": "seamark:beacon_special_purpose:colour",
+        "type": "semiCombo",
+        "label": "Marker Colour",
+        "strings": {
+            "options": {
+                "white": "White",
+                "black": "Black",
+                "red": "Red",
+                "green": "Green",
+                "blue": "Blue",
+                "yellow": "Yellow",
+                "grey": "Grey",
+                "brown": "Brown",
+                "amber": "Amber",
+                "violet": "Violet",
+                "orange": "Orange",
+                "magenta": "Magenta",
+                "pink": "Pink"
+            }
+        }
+    },
+
+    "seamark/beacon_special_purpose/shape": {
+        "key": "seamark:beacon_special_purpose:shape",
+        "type": "combo",
+        "label": "Structure",
+        "strings": {
+            "options": {
+                "pole": "Pole",
+                "withy": "Withy",
+                "tower": "Beacon tower",
+                "lattice": "Lattice beacon",
+                "pile": "Pile beacon",
+                "cairn": "Cairn",
+                "buoyant": "Buoyant beacon"
+            }
+        }
+    },
+
+    "seamark/buoy_isolated_danger/colour_pattern": {
+        "key": "seamark:buoy_isolated_danger:colour_pattern",
+        "type": "combo",
+        "label": "Buoy Colour Pattern",
+        "strings": {
+            "options": {
+                "horizontal": "Horizontal stripes",
+                "vertical": "Vertical stripes",
+                "diagonal": "Diagonal stripes",
+                "squared": "Squared",
+                "stripes": "Stripes (direction unknown)",
+                "border": "Border stripe",
+                "cross": "Vertical cross",
+                "saltire": "Diagonal cross"
+            }
+        }
+    },
+
+    "seamark/buoy_isolated_danger/colour": {
+        "key": "seamark:buoy_isolated_danger:colour",
+        "type": "semiCombo",
+        "label": "Buoy Colour",
+        "strings": {
+            "options": {
+                "white": "White",
+                "black": "Black",
+                "red": "Red",
+                "green": "Green",
+                "blue": "Blue",
+                "yellow": "Yellow",
+                "grey": "Grey",
+                "brown": "Brown",
+                "amber": "Amber",
+                "violet": "Violet",
+                "orange": "Orange",
+                "magenta": "Magenta",
+                "pink": "Pink"
+            }
+        }
+    },
+    "seamark/buoy_isolated_danger/shape": {
+        "key": "seamark:buoy_isolated_danger:shape",
+        "type": "combo",
+        "label": "Buoy Shape",
+        "strings": {
+            "options": {
+                "conical": "Conical (nun, ogival)",
+                "can": "Can (cylindrical)",
+                "spherical": "Spherical",
+                "pillar": "Pillar",
+                "spar": "Spar (spindle)",
+                "barrel": "Barrel (tun)",
+                "super-buoy": "Super-buoy",
+                "ice_buoy": "Ice buoy"
+            }
+        }
+    },
+
+    "seamark/buoy_special_purpose/category": {
+        "key": "seamark:buoy_special_purpose:category",
+        "type": "combo",
+        "label": "Buoy Category",
+        "strings": {
+            "options": {
+                "firing_danger_area": "Firing danger mark",
+                "target": "Target mark",
+                "marker_ship": "Marker ship mark",
+                "degaussing_range": "Degaussing range mark",
+                "barge": "Barge mark",
+                "cable": "Cable mark",
+                "spoil_ground": "Spoil ground mark",
+                "outfall": "Outfall mark",
+                "odas": "ODAS",
+                "recording": "Recording mark",
+                "seaplane_anchorage": "Seaplane anchorage mark",
+                "recreation_zone": "Recreation zone mark",
+                "private": "Private mark",
+                "mooring": "Mooring mark",
+                "lanby": "LANBY",
+                "leading": "Leading mark",
+                "measured_distance": "Measured distance mark",
+                "notice": "Notice mark",
+                "tss": "TSS mark",
+                "no_anchoring": "Anchoring prohibited mark",
+                "no_berthing": "Berthing prohibited mark",
+                "no_overtaking": "Overtaking prohibited mark",
+                "no_two-way_traffic": "Two-way traffic prohibited mark",
+                "reduced_wake": "Reduced wake mark",
+                "speed_limit": "Speed limit mark",
+                "stop": "Stop mark",
+                "warning": "General warning mark",
+                "sound_ship_siren": "Sound ships siren mark",
+                "restricted_vertical_clearance": "Restricted vertical clearance mark",
+                "maximum_vessel_draught": "Maximum vessel's draught mark",
+                "restricted_horizontal_clearance": "Restricted horizontal clearance mark",
+                "strong_current": "Strong current warning mark",
+                "berthing": "Berthing permitted mark",
+                "overhead_power_cable": "Overhead power cable mark",
+                "channel_edge_gradient": "Channel edge gradient mark",
+                "telephone": "Telephone mark",
+                "ferry_crossing": "Ferry crossing mark",
+                "marine_traffic_lights": "Marine traffic lights",
+                "pipeline": "Pipeline mark",
+                "anchorage": "Anchorage mark",
+                "clearing": "Clearing mark",
+                "control": "Control mark",
+                "diving": "Diving mark",
+                "refuge_beacon": "Refuge beacon",
+                "foul_ground": "Foul ground mark",
+                "yachting": "Yachting mark",
+                "heliport": "Heliport mark",
+                "gps": "GPS mark",
+                "seaplane_landing": "Seaplane landing mark",
+                "no_entry": "Entry prohibited mark",
+                "work_in_progress": "Work in progress mark",
+                "unknown_purpose": "Mark with unknown purpose",
+                "wellhead": "Wellhead mark",
+                "channel_separation": "Channel separation mark",
+                "marine_farm": "Marine farm mark",
+                "artificial_reef": "Artificial reef mark",
+                "ice": "Ice Mark",
+                "nature_reserve": "Nature Reserve Mark",
+                "fish_aggregator": "Fish Aggregating Device",
+                "wreck": "Wreck mark",
+                "customs": "Customs Mark",
+                "causeway": "Causeway Mark",
+                "wave_recorder": "Wave Recorder",
+                "no_jetski": "Jetski Prohibited"
+            }
+        }
+    },
+
+    "seamark/buoy_special_purpose/colour_pattern": {
+        "key": "seamark:buoy_special_purpose:colour_pattern",
+        "type": "combo",
+        "label": "Buoy Colour Pattern",
+        "strings": {
+            "options": {
+                "horizontal": "Horizontal stripes",
+                "vertical": "Vertical stripes",
+                "diagonal": "Diagonal stripes",
+                "squared": "Squared",
+                "stripes": "Stripes (direction unknown)",
+                "border": "Border stripe",
+                "cross": "Vertical cross",
+                "saltire": "Diagonal cross"
+            }
+        }
+    },
+
+    "seamark/buoy_special_purpose/colour": {
+        "key": "seamark:buoy_special_purpose:colour",
+        "type": "semiCombo",
+        "label": "Buoy Colour",
+        "strings": {
+            "options": {
+                "white": "White",
+                "black": "Black",
+                "red": "Red",
+                "green": "Green",
+                "blue": "Blue",
+                "yellow": "Yellow",
+                "grey": "Grey",
+                "brown": "Brown",
+                "amber": "Amber",
+                "violet": "Violet",
+                "orange": "Orange",
+                "magenta": "Magenta",
+                "pink": "Pink"
+            }
+        }
+    },
+
+    "seamark/buoy_special_purpose/shape": {
+        "key": "seamark:buoy_special_purpose:shape",
+        "type": "combo",
+        "label": "Buoy Shape",
+        "strings": {
+            "options": {
+                "conical": "Conical (nun, ogival)",
+                "can": "Can (cylindrical)",
+                "spherical": "Spherical",
+                "pillar": "Pillar",
+                "spar": "Spar (spindle)",
+                "barrel": "Barrel (tun)",
+                "super-buoy": "Super-buoy",
+                "ice_buoy": "Ice buoy"
+            }
+        }
+    },
+
+    "seamark/mooring/colour": {
+        "key": "seamark:mooring:colour",
+        "type": "combo",
+        "label": "Colour",
+        "strings": {
+            "options": {
+                "white": "White",
+                "black": "Black",
+                "red": "Red",
+                "green": "Green",
+                "blue": "Blue",
+                "yellow": "Yellow",
+                "grey": "Grey",
+                "brown": "Brown",
+                "amber": "Amber",
+                "violet": "Violet",
+                "orange": "Orange",
+                "magenta": "Magenta",
+                "pink": "Pink"
+            }
+        }
+    },
+
+    "seamark/mooring/shape": {
+        "key": "seamark:mooring:shape",
+        "type": "combo",
+        "label": "Shape",
+        "strings": {
+            "options": {
+                "conical": "Conical (nun, ogival)",
+                "can": "Can (cylindrical)",
+                "spherical": "Spherical",
+                "pillar": "Pillar",
+                "spar": "Spar (spindle)",
+                "barrel": "Barrel (tun)",
+                "super-buoy": "Super-buoy",
+                "ice_buoy": "Ice buoy"
+            }
+        }
+    },
+
+    "seamark/navigation_line/category": {
+        "key": "seamark:navigation_line:category",
+        "type": "combo",
+        "label": "Category",
+        "strings": {
+            "options": {
+                "clearing": "Clearing line",
+                "transit": "Transit line",
+                "leading": "Leading line bearing a recommended track"
+            }
+        }
+    },
+
+    "seamark/obstruction/category": {
+        "key": "seamark:obstruction:category",
+        "type": "combo",
+        "label": "Category",
+        "strings": {
+            "options": {
+                "stump": "Snag/stump",
+                "wellhead": "Wellhead",
+                "diffuser": "Diffuser",
+                "crib": "Crib",
+                "fish_haven": "Fish haven",
+                "foul_area": "Foul area",
+                "foul_ground": "Foul ground",
+                "ice_boom": "Ice boom",
+                "ground_tackle": "Ground tackle",
+                "boom": "Boom"
+            }
+        }
+    },
+
+    "seamark/obstruction/surface": {
+        "key": "seamark:obstruction:surface",
+        "type": "combo",
+        "label": "Obstruction Surface",
+        "strings": {
+            "options": {
+                "mud": "Mud",
+                "clay": "Clay",
+                "silt": "Silt",
+                "sand": "Sand",
+                "stone": "Stone",
+                "gravel": "Gravel",
+                "pebbles": "Pebbles",
+                "cobbles": "Cobbles",
+                "rock": "Rock",
+                "marsh": "Marsh",
+                "lava": "Lava",
+                "snow": "Snow",
+                "ice": "Ice",
+                "coral": "Coral",
+                "swamp": "Swamp",
+                "bog": "Bog/moor",
+                "shells": "Shells",
+                "boulder": "Boulder"
+            }
+        }
+    },
+
+    "seamark/obstruction/water_level": {
+        "key": "seamark:obstruction:water_level",
+        "type": "combo",
+        "label": "Water Level",
+        "strings": {
+            "options": {
+                "part-submerged": "Partly submerged at high water",
+                "dry": "Always dry",
+                "submerged": "Always under water/submerged",
+                "covers": "Covers and uncovers",
+                "awash": "Awash",
+                "floods": "Subject to inundation or flooding",
+                "floating": "Floating",
+                "above_mwl": "Above mean water level",
+                "below_mwl": "Below mean water level"
+            }
+        }
+    },
+
+    "seamark/pile/category": {
+        "key": "seamark:pile:category",
+        "type": "combo",
+        "label": "Category",
+        "strings": {
+            "options": {
+                "stake": "Stake",
+                "snag": "Snag",
+                "post": "Post",
+                "tripodal": "Tripodal"
+            }
+        }
+    },
+
+    "seamark/platform/category": {
+        "key": "seamark:platform:category",
+        "type": "combo",
+        "label": "Category",
+        "strings": {
+            "options": {
+                "oil": "Oil derrick/rig",
+                "production": "Production platform",
+                "observation": "Observation/research platform",
+                "alp": "Articulated loading platform (alp)",
+                "salm": "Single anchor leg mooring (salm)",
+                "mooring": "Mooring tower",
+                "artificial_island": "Artificial island",
+                "fpso": "FPSO: floating production, storage and off-loading vessel",
+                "accommodation": "Accommodation platform",
+                "nccb": "NCCB: navigation, communication and control buoy"
+            }
+        }
+    },
+
+    "seamark/platform/product": {
+        "key": "seamark:platform:product",
+        "type": "semiCombo",
+        "label": "Product",
+        "strings": {
+            "options": {
+                "oil": "Oil",
+                "gas": "Gas",
+                "water": "Water",
+                "stone": "Stone",
+                "coal": "Coal",
+                "ore": "Ore",
+                "chemicals": "Chemicals",
+                "drinking_water": "Drinking water",
+                "milk": "Milk",
+                "bauxite": "Bauxite",
+                "coke": "Coke",
+                "iron_ingots": "Iron ingots",
+                "salt": "Salt",
+                "sand": "Sand",
+                "timber": "Timber",
+                "sawdust": "Sawdust/wood chips",
+                "scrap metal": "Scrap metal",
+                "lng": "Liquified natural gas (LNG)",
+                "lpg": "Liquified petroleum gas (LPG)",
+                "wine": "Wine",
+                "cement": "Cement",
+                "grain": "Grain"
+            }
+        }
+    },
+
+    "seamark/recommended_track/category": {
+        "key": "seamark:recommended_track:category",
+        "type": "combo",
+        "label": "Category",
+        "strings": {
+            "options": {
+                "fixed_marks": "Based on a system of fixed marks",
+                "no_fixed_marks": "Not based on a system of fixed marks"
+            }
+        }
+    },
+
+    "seamark/recommended_track/traffic_flow": {
+        "key": "seamark:recommended_track:traffic_flow",
+        "type": "combo",
+        "label": "Traffic Flow",
+        "strings": {
+            "options": {
+                "inbound": "Inbound",
+                "outbound": "Outbound",
+                "one-way": "One-way",
+                "two-way": "Two-way"
+            }
+        }
+    },
+
+    "seamark/rescue_station/category": {
+        "key": "seamark:rescue_station:category",
+        "type": "semiCombo",
+        "label": "Amenities",
+        "strings": {
+            "options": {
+                "lifeboat": "Lifeboat (on Land)",
+                "lifeboat_on_mooring": "Lifeboat (at a Mooring)",
+                "radio": "Radio",
+                "first_aid": "First aid",
+                "seaplane": "Seaplane",
+                "aircraft": "Aircraft",
+                "hovercraft": "Hovercraft",
+                "refuge_shipwrecked": "Shipwreck Refuge",
+                "refuge_intertidal": " Intertidal Refuge",
+                "tug": "Salvage tug"
+            }
+        }
+    },
+
+    "seamark/rock/water_level": {
+        "key": "seamark:rock:water_level",
+        "type": "combo",
+        "label": "Water Level",
+        "strings": {
+            "options": {
+                "part-submerged": "Partly submerged at high water",
+                "dry": "Always dry",
+                "submerged": "Always under water/submerged",
+                "covers": "Covers and uncovers",
+                "awash": "Awash",
+                "floods": "Subject to inundation or flooding",
+                "floating": "Floating",
+                "above_mwl": "Above mean water level",
+                "below_mwl": "Below mean water level"
+            }
+        }
+    }
+}
