@@ -1,3 +1,21 @@
+// btoa/atob are not URL-safe and crash when provided some UTF-8 characters
+window.toBase64 = (text) =>
+  btoa(
+    encodeURIComponent(text).replace(/%([0-9A-F]{2})/g, (_, g1) =>
+      String.fromCharCode(+`0x${g1}`),
+    )
+  )
+    .replace(/[=]/g, '')
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_');
+window.fromBase64 = (b64) =>
+  decodeURIComponent(
+    atob(b64.replace(/_/g, '/').replace(/-/g, '+'))
+      .split('')
+      .map((c) => `%${`00${c.charCodeAt(0).toString(16)}`.slice(-2)}`)
+      .join(''),
+  );
+
 export * from './actions/index';
 export * from './behavior/index';
 export * from './core/index';

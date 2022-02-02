@@ -103,7 +103,7 @@ export function rendererFeatures(context) {
 
     defineRule('points', function isPoint(tags, geometry) {
         return geometry === 'point';
-    }, 200);
+    }, 300); // increase max points visible on the map
 
     defineRule('traffic_roads', function isTrafficRoad(tags) {
         return traffic_roads[tags.highway];

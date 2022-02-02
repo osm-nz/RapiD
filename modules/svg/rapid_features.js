@@ -177,7 +177,7 @@ export function svgRapidFeatures(projection, context, dispatch) {
     // enter
     let dsPatternsEnter = dsPatterns.enter()
       .append('pattern')
-      .attr('id', d => `fill-${d.id}`)
+      .attr('id', d => `fill-${window.toBase64(d.id)}`)
       .attr('class', 'rapid-fill-pattern')
       .attr('width', 5)
       .attr('height', 15)
@@ -241,7 +241,7 @@ export function svgRapidFeatures(projection, context, dispatch) {
       /* Facebook AI/ML */
       if (dataset.service === 'fbml') {
 
-        service.loadTiles(internalID, projection, rapidContext.getTaskExtent());
+        service.loadTiles(internalID, projection, rapidContext.getTaskExtent(), context);
         let pathData = service
           .intersects(internalID, context.map().extent())
           .filter(d => d.type === 'way' && !_actioned.has(d.id) && !_actioned.has(d.__origid__) )  // see onHistoryRestore()
@@ -277,7 +277,7 @@ export function svgRapidFeatures(projection, context, dispatch) {
 
       /* ESRI ArcGIS */
       } else if (dataset.service === 'esri') {
-        service.loadTiles(internalID, projection);
+        service.loadTiles(internalID, projection, null, context);
         let visibleData = service
           .intersects(internalID, context.map().extent())
           .filter(d => !_actioned.has(d.id) && !_actioned.has(d.__origid__) );  // see onHistoryRestore()
@@ -321,7 +321,7 @@ export function svgRapidFeatures(projection, context, dispatch) {
     // enter/update
     paths = paths.enter()
       .append('path')
-      .attr('style', d => isArea(d) ? `fill: url(#fill-${dataset.id})` : null)
+      .attr('style', d => isArea(d) ? `fill: url(#fill-${window.toBase64(dataset.id)})` : null)
       .attr('class', (d, i, nodes) => {
         const currNode = nodes[i];
         const linegroup = currNode.parentNode.__data__;

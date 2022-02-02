@@ -32,17 +32,6 @@ export function uiRapidFeatureToggleDialog(context, AIFeatureToggleKey, featureT
     if (dataset) {
       dataset.enabled = !dataset.enabled;
 
-      // update url hash
-      let hash = utilStringQs(window.location.hash);
-      hash.datasets = Object.values(datasets)
-        .filter(ds => ds.added && ds.enabled)
-        .map(ds => ds.id)
-        .join(',');
-
-      if (!window.mocha) {
-        window.location.replace('#' + utilQsString(hash, true));  // update hash
-      }
-
       context.enter(modeBrowse(context));   // return to browse mode (in case something was selected)
       context.map().pan([0,0]);             // trigger a map redraw
     }
@@ -292,6 +281,7 @@ export function uiRapidFeatureToggleDialog(context, AIFeatureToggleKey, featureT
                 .on('click', (d3_event) => {
                   d3_event.preventDefault();
                   context.map().extent(d.extent);
+                  context.map().zoom(16); // zoom into level 16 when you click "Center the Map [on this dataset]"
                 });
             } else {
               selection

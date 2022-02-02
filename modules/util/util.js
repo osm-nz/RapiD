@@ -87,9 +87,13 @@ export function utilDisplayName(entity, hideNetwork) {
         name = entity.tags['addr:housename'];
     }
 
+    if (!name && entity.tags['ref:linz:address_id']) {
+        name = `${entity.tags['addr:housenumber']} ${entity.tags['addr:street']} 🥝 ${entity.tags['ref:linz:address_id']}`;
+    }
+
     // as a last resort, use the street address as a name
     if (!name && entity.tags['addr:housenumber'] && entity.tags['addr:street']) {
-        name = entity.tags['addr:housenumber'] + ' ' + entity.tags['addr:street'];
+        name = entity.tags['addr:housenumber'] + ' ' + entity.tags['addr:street'] + ' ❌ NO REF';
     }
 
     return name;

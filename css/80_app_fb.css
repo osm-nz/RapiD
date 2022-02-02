@@ -69,6 +69,8 @@ button.rapid-features.layer-off use {
     border-radius: 30px;
     height: 3rem;
 }
+.rapid-inspector button.del-btn, .modal.rapid-modal button.del-btn { background: #f44336!important; }
+.rapid-inspector button.flag-btn, .modal.rapid-modal button.flag-btn { background: #ffa500!important; }
 .rapid-inspector button svg,
 .modal.rapid-modal button svg {
     color: #eee;
@@ -908,6 +910,9 @@ img.rapid-view-manage-dataset-thumbnail {
     border-radius: 14px;
     margin: 10px 0;
     padding: 0 15px;
+}
+.rapid-view-manage-dataset button.rapid-view-manage-dataset-action.locked {
+    background: #f44336!important;
 }
 .rapid-view-manage-dataset-name {
     font-weight: bold;

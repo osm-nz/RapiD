@@ -1,7 +1,7 @@
 import { dispatch as d3_dispatch } from 'd3-dispatch';
 import { select as d3_select } from 'd3-selection';
 import { Extent } from '@id-sdk/math';
-import { utilQsString, utilStringQs } from '@id-sdk/util';
+import { utilStringQs } from '@id-sdk/util';
 import marked from 'marked';
 
 import { t } from '../core/localizer';
@@ -12,12 +12,13 @@ import { svgIcon } from '../svg/icon';
 import { uiCombobox} from './combobox';
 import { utilKeybinding, utilNoAuto, utilRebind } from '../util';
 
+let popupOpen = false;
 
 export function uiRapidViewManageDatasets(context, parentModal) {
   const rapidContext = context.rapidContext();
   const dispatch = d3_dispatch('done');
   const categoryCombo = uiCombobox(context, 'dataset-categories');
-  const MAXRESULTS = 100;
+  const MAXRESULTS = Infinity;
 
   let _content = d3_select(null);
   let _filterText;
@@ -25,8 +26,27 @@ export function uiRapidViewManageDatasets(context, parentModal) {
   let _datasetInfo;
   let _myClose = () => true;   // custom close handler
 
+  function openMap() {
+    // won't work when developing since cross origin window.open
+    if (['localhost', '127.0.0.1'].includes(location.hostname)) return;
+
+    if (!popupOpen) {
+      popupOpen = true;
+      const width = window.outerWidth*0.8;
+      const height = window.outerHeight*0.8;
+      const left = window.outerWidth / 2 - width / 2;
+      const top = window.outerHeight / 2 - height / 2;
+      const w = window.open(location.origin + '/#/map', '', `width=${width},height=${height},left=${left},top=${top}`);
+      w.onunload = () => {
+        popupOpen = false;
+      };
+    }
+  }
+
 
   function render() {
+    openMap();
+
     // Unfortunately `uiModal` is written in a way that there can be only one at a time.
     // So we have to roll our own modal here instead of just creating a second `uiModal`.
     let shaded = context.container().selectAll('.shaded');  // container for the existing modal
@@ -337,16 +357,6 @@ export function uiRapidViewManageDatasets(context, parentModal) {
       .append('div')
       .attr('class', 'rapid-view-manage-dataset-name');
 
-    labelsEnter
-      .append('div')
-      .attr('class', 'rapid-view-manage-dataset-license')
-      .append('a')
-      .attr('class', 'rapid-view-manage-dataset-link')
-      .attr('target', '_blank')
-      .attr('href', d => d.itemURL)
-      .text(t('rapid_feature_toggle.esri.more_info'))
-      .call(svgIcon('#iD-icon-out-link', 'inline'));
-
     let featuredEnter = labelsEnter.selectAll('.rapid-view-manage-dataset-featured')
       .data(d => d.groupCategories.filter(d => d.toLowerCase() === '/categories/featured'))
       .enter()
@@ -374,17 +384,8 @@ export function uiRapidViewManageDatasets(context, parentModal) {
 
     labelsEnter
       .append('button')
-      .attr('class', 'rapid-view-manage-dataset-action')
+      .attr('class', d => 'rapid-view-manage-dataset-action ' + (window.__locked[d.id] ? 'locked' : ''))
       .on('click', toggleDataset);
-
-    let thumbsEnter = datasetsEnter
-      .append('div')
-      .attr('class', 'rapid-view-manage-dataset-thumb');
-
-    thumbsEnter
-      .append('img')
-      .attr('class', 'rapid-view-manage-dataset-thumbnail')
-      .attr('src', d => `https://openstreetmap.maps.arcgis.com/sharing/rest/content/items/${d.id}/info/${d.thumbnail}?w=400`);
 
     // update
     datasets = datasets
@@ -406,6 +407,16 @@ export function uiRapidViewManageDatasets(context, parentModal) {
     const gt = (count > MAXRESULTS && numShown === MAXRESULTS) ? '>' : '';
     _content.selectAll('.rapid-view-manage-filter-results')
       .text(t('rapid_feature_toggle.esri.datasets_found', { num: `${gt}${numShown}` }));
+
+
+  _content.selectAll('.rapid-view-manage-filter-results')
+    .append('button')
+    .style('height', 'auto')
+    .style('line-height', 'normal')
+    .style('padding', '1px 7px')
+    .style('margin-left', '4px')
+    .text(' Open map')
+    .on('click', openMap);
   }
 
 
@@ -427,7 +438,10 @@ export function uiRapidViewManageDatasets(context, parentModal) {
   }
 
 
-  function toggleDataset(d3_event, d) {
+  /**
+   * @param {"isFromPopup" | undefined} source
+   */
+  function toggleDataset(d3_event, d, source) {
     const datasets = rapidContext.datasets();
     const ds = datasets[d.id];
 
@@ -435,6 +449,23 @@ export function uiRapidViewManageDatasets(context, parentModal) {
       ds.added = !ds.added;
 
     } else {  // hasn't been added yet
+
+      // warn if someone else is editting
+      const inUse = window.__locked[d.id];
+      if (inUse && source !== 'isFromPopup') { // don't show this if coming from the popup map bc the user was already warned there
+        const [user, minutesAgo] = inUse;
+        const msg = minutesAgo === 'done'
+          ? 'This dataset may already have been uploaded by someone else!'
+          : `Someone else (${user}) started editing ${d.name} ${minutesAgo} minutes ago. If you continue, you might override or duplicate their work!`;
+
+        if (!confirm(msg)) return;
+      }
+
+      if (d.instructions) {
+        alert(`Special instructions: ${d.instructions}`);
+      }
+
+
       const service = services.esriData;
       if (service) {   // start fetching layer info (the mapping between attributes and tags)
         service.loadLayer(d.id);
@@ -463,6 +494,9 @@ export function uiRapidViewManageDatasets(context, parentModal) {
         dataset.extent = new Extent(d.extent[0], d.extent[1]);
       }
 
+      context.map().extent(dataset.extent);
+      context.map().zoom(16); // zoom into level 16 when you click "Center the Map [on this dataset]"
+
       // Test running building layers through FBML conflation service
       if (isBuildings) {
         dataset.conflated = true;
@@ -483,10 +517,6 @@ export function uiRapidViewManageDatasets(context, parentModal) {
       .filter(ds => ds.added && ds.enabled)
       .map(ds => ds.id)
       .join(',');
-
-    if (!window.mocha) {
-      window.location.replace('#' + utilQsString(hash, true));  // update hash
-    }
 
     _content.call(renderModalContent);
 
@@ -513,6 +543,20 @@ export function uiRapidViewManageDatasets(context, parentModal) {
   function escapeRegex(s) {
     return s.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
   }
+
+  window.addEventListener('message', (event) => {
+    if (typeof event.data === 'string' && event.data.startsWith('ADD_SECTOR=')) {
+      const [, sector] = event.data.split('=');
+      if (!_datasetInfo) {
+        alert('please wait for datasets to load');
+        return;
+      }
+      const d = _datasetInfo.find(x => x.id === sector);
+      console.log('Loaded', d.name);
+      toggleDataset(null, d, 'isFromPopup');
+      setTimeout(_myClose, 500); // short delay need because the modal needs to re-render after toggling the dataset
+    }
+  }, false);
 
   return utilRebind(render, dispatch, 'on');
 }

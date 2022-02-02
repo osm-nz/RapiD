@@ -8,17 +8,34 @@ import { coreGraph, coreTree } from '../core';
 import { osmNode, osmRelation, osmWay } from '../osm';
 import { utilRebind } from '../util';
 
+const DEV = new URLSearchParams(location.hash).get('dev');
+const DEV_CDN = 'http://localhost:5000';
+const PROD_CDN = 'https://linz-addr-cdn.kyle.kiwi';
+const APIROOT = DEV ? DEV_CDN : PROD_CDN;
+window.APIROOT = APIROOT;
 
-const GROUPID = 'bdf6c800b3ae453b9db239e03d7c1727';
-const APIROOT = 'https://openstreetmap.maps.arcgis.com/sharing/rest/content';
-const HOMEROOT = 'https://openstreetmap.maps.arcgis.com/home';
 const TILEZOOM = 14;
 const tiler = new Tiler().zoomRange(TILEZOOM);
 const dispatch = d3_dispatch('loadedData');
 
 let _datasets = {};
-let _gotDatasets = false;
 let _off;
+let _loaded = {};
+
+window._dsState = {};
+window._mostRecentDsId = null;
+
+window.__locked = {};
+fetch(APIROOT+'/__locked')
+  .then(r => r.json())
+  .then(obj => window.__locked = obj)
+  .catch(console.error);
+
+
+function esc(str) {
+  // because btoa/atob is stupid but we need to use it for our data-url gpx extent thing
+  return str.replace(/ā/ig, 'aa').replace(/ē/ig, 'ee').replace(/ī/ig, 'ii').replace(/ō/ig, 'oo').replace(/ū/ig, 'uu');
+}
 
 
 function abortRequest(controller) {
@@ -27,9 +44,8 @@ function abortRequest(controller) {
 
 
 // API
-//https://developers.arcgis.com/rest/users-groups-and-items/search.htm
-function searchURL(start) {
-  return `${APIROOT}/groups/${GROUPID}/search?num=100&start=${start}&sortField=title&sortOrder=asc&f=json`;
+function searchURL() {
+  return `${APIROOT}/index.json?noCache=${Math.random()}`;
   // use to get
   // .results[]
   //   .extent
@@ -40,50 +56,20 @@ function searchURL(start) {
   //   .url (featureServer)
 }
 
-function layerURL(featureServerURL) {
-  return `${featureServerURL}/layers?f=json`;
-  // should return single layer(?)
-  // .layers[0]
-  //   .copyrightText
-  //   .fields
-  //   .geometryType   "esriGeometryPoint" or "esriGeometryPolygon" ?
-}
-
-function itemURL(itemID) {
-  return `${HOMEROOT}/item.html?id=${itemID}`;
-}
 
 function tileURL(dataset, extent) {
-  const layerId = dataset.layer.id;
+  let url = dataset.url;
+  if (DEV) url = url.replace(PROD_CDN, DEV_CDN);
+
   const bbox = extent.toParam();
-  return `${dataset.url}/${layerId}/query?f=geojson&outfields=*&outSR=4326&geometryType=esriGeometryEnvelope&geometry=${bbox}`;
+  return `${url}?geometry=${bbox}&u=${(window.__user || {}).display_name}`;
 }
 
 
-// Add each dataset to _datasets, create internal state
-function parseDataset(ds) {
-  if (_datasets[ds.id]) return;  // unless we've seen it already
-
-  _datasets[ds.id] = ds;
-  ds.graph = coreGraph();
-  ds.tree = coreTree(ds.graph);
-  ds.cache = { inflight: {}, loaded: {}, seen: {}, origIdTile: {} };
-
-  // cleanup the `licenseInfo` field by removing styles  (not used currently)
-  let license = d3_select(document.createElement('div'));
-  license.html(ds.licenseInfo);       // set innerHtml
-  license.selectAll('*')
-    .attr('style', null)
-    .attr('size', null);
-  ds.license_html = license.html();   // get innerHtml
-
-  // generate public link to this item
-  ds.itemURL = itemURL(ds.id);
-}
-
-
-function parseTile(dataset, tile, geojson, callback) {
+function parseTile(dataset, tile, geojson, context, callback) {
   if (!geojson) return callback({ message: 'No GeoJSON', status: -1 });
+
+  if (!window._dsState[dataset.id]) window._dsState[dataset.id] = {};
 
   // expect a FeatureCollection with `features` array
   let results = [];
@@ -101,7 +87,9 @@ function parseFeature(feature, dataset) {
   const props = feature.properties;
   if (!geom || !props) return null;
 
-  const featureID = props[dataset.layer.idfield] || props.OBJECTID || props.FID || props.id;
+
+
+  const featureID = `${props.__action || 'create'}-${feature.id}`;
   if (!featureID) return null;
 
   // skip if we've seen this feature already on another tile
@@ -109,13 +97,20 @@ function parseFeature(feature, dataset) {
   dataset.cache.seen[featureID] = true;
 
   const id = `${dataset.id}-${featureID}`;
-  const meta = { __fbid__: id, __origid__: id, __service__: 'esri', __datasetid__: dataset.id };
+  const meta = { __fbid__: id, __origid__: id, __service__: 'esri', __datasetid__: dataset.id, __featureid__: featureID };
   let entities = [];
   let nodemap = new Map();
 
   // Point:  make a single node
   if (geom.type === 'Point') {
-    return [ new osmNode({ loc: geom.coordinates, tags: parseTags(props) }, meta) ];
+    const node = new osmNode({ loc: geom.coordinates, tags: parseTags(props) }, meta);
+
+    // for normal address points
+    if (window._dsState[dataset.id][featureID] !== 'done') {
+      window._dsState[dataset.id][featureID] = { feat: node, geo: geom.coordinates };
+    }
+
+    return [node];
 
   // LineString:  make nodes, single way
   } else if (geom.type === 'LineString') {
@@ -124,6 +119,12 @@ function parseFeature(feature, dataset) {
 
     const w = new osmWay({ nodes: nodelist, tags: parseTags(props) }, meta);
     entities.push(w);
+
+    // for the location-wrong line, or any imported LineString
+    if (window._dsState[dataset.id][featureID] !== 'done') {
+      window._dsState[dataset.id][featureID] = { feat: w, geo: geom.coordinates[0] };
+    }
+
     return entities;
 
   // Polygon:  make nodes, way(s), possibly a relation
@@ -142,10 +143,18 @@ function parseFeature(feature, dataset) {
     });
 
     if (ways.length === 1) {  // single ring, assign tags and return
-      entities.push(
-        ways[0].update( Object.assign({ tags: parseTags(props) }, meta) )
-      );
+      const updatedWay = ways[0].update( Object.assign({ tags: parseTags(props) }, meta) );
+      entities.push(updatedWay);
+
+      // for address-modification diamonds, or importing a Plygon
+      if (window._dsState[dataset.id][featureID] !== 'done') {
+        window._dsState[dataset.id][featureID] = { feat: updatedWay, geo: geom.coordinates[0][0] };
+      }
+
     } else {  // multiple rings, make a multipolygon relation with inner/outer members
+
+      // 🚨 I'm pretty sure this logic is untested
+
       const members = ways.map((w, i) => {
         entities.push(w);
         return { id: w.id, role: (i === 0 ? 'outer' : 'inner'), type: 'way' };
@@ -153,6 +162,45 @@ function parseFeature(feature, dataset) {
       const tags = Object.assign(parseTags(props), { type: 'multipolygon' });
       const r = new osmRelation({ members: members, tags: tags }, meta);
       entities.push(r);
+
+      if (window._dsState[dataset.id][featureID] !== 'done') {
+        window._dsState[dataset.id][featureID] = { feat: r, geo: geom.coordinates[0][0] };
+      }
+    }
+
+    return entities;
+  } else if (geom.type === 'MultiPolygon') {
+    /** @type {osmWay[][]} */
+    let relationMembers = [];
+
+    geom.coordinates.forEach((member, memberNum) => {
+      relationMembers[memberNum] = [];
+      member.forEach(ring => {
+        const nodelist = parseCoordinates(ring);
+        if (nodelist.length < 3) return null;
+
+        const first = nodelist[0];
+        const last = nodelist[nodelist.length - 1];
+        if (first !== last) nodelist.push(first);   // sanity check, ensure rings are closed
+
+        const w = new osmWay({ nodes: nodelist });
+        relationMembers[memberNum].push(w);
+      });
+    });
+
+    const members = relationMembers.flatMap(ways => {
+      return ways.map((w, i) => {
+        entities.push(w);
+        return { id: w.id, role: (i === 0 ? 'outer' : 'inner'), type: 'way' };
+      });
+    });
+
+    const tags = Object.assign(parseTags(props), { type: 'multipolygon' });
+    const r = new osmRelation({ members: members, tags: tags }, meta);
+    entities.push(r);
+
+    if (window._dsState[dataset.id][featureID] !== 'done') {
+      window._dsState[dataset.id][featureID] = { feat: r, geo: geom.coordinates[0][0][0] };
     }
 
     return entities;
@@ -177,14 +225,14 @@ function parseFeature(feature, dataset) {
   function parseTags(props) {
     let tags = {};
     Object.keys(props).forEach(prop => {
-      const k = clean(dataset.layer.tagmap[prop]);
+      const k = clean(dataset.layer.tagmap[prop] || prop);
       const v = clean(props[prop]);
       if (k && v) {
         tags[k] = v;
       }
     });
 
-    tags.source = `esri/${dataset.name}`;
+    // tags.source = `esri/${dataset.name}`;
     return tags;
   }
 
@@ -234,8 +282,10 @@ export default {
   },
 
 
-  loadTiles: function (datasetID, projection) {
+  loadTiles: function (datasetID, projection, _taskExtent, context) {
     if (_off) return;
+
+    window._mostRecentDsId = datasetID;
 
     // `loadDatasets` and `loadLayer` are asynchronous,
     // so ensure both have completed before we start requesting tiles.
@@ -248,6 +298,7 @@ export default {
     const proj = new Projection().transform(projection.transform()).dimensions(projection.clipExtent());
     const tiles = tiler.getTiles(proj).tiles;
 
+
     // abort inflight requests that are no longer needed
     Object.keys(cache.inflight).forEach(k => {
       const wanted = tiles.find(tile => tile.id === k);
@@ -257,6 +308,36 @@ export default {
       }
     });
 
+
+    if (!_loaded[datasetID]) {
+      const [[minLng, minLat], [maxLng, maxLat]] = ds.extent;
+      const xml = `<gpx xmlns="http://www.topografix.com/GPX/1/1" creator="LINZ Addr" version="1.1">
+      <metadata>
+        <link href="https://github.com/hotosm/tasking-manager">
+          <text>LINZ Addr</text>
+        </link>
+        <time>2021-03-08T22:14:43.088005</time>
+      </metadata>
+      <trk>
+        <name>Extent of the ${esc(ds.name)} data</name>
+        <trkseg>
+        <trkpt lat="${minLat-0.0003}" lon="${minLng-0.0003}"/>
+        <trkpt lat="${maxLat+0.0003}" lon="${minLng-0.0003}"/>
+        <trkpt lat="${maxLat+0.0003}" lon="${maxLng+0.0003}"/>
+        <trkpt lat="${minLat-0.0003}" lon="${maxLng+0.0003}"/>
+        <trkpt lat="${minLat-0.0003}" lon="${minLng-0.0003}"/>
+        </trkseg>
+      </trk>
+      <wpt lat="${minLat-0.0003}" lon="${minLng-0.0003}"/>
+      <wpt lat="${maxLat+0.0003}" lon="${minLng-0.0003}"/>
+      <wpt lat="${maxLat+0.0003}" lon="${maxLng+0.0003}"/>
+      <wpt lat="${minLat-0.0003}" lon="${maxLng+0.0003}"/>
+      <wpt lat="${minLat-0.0003}" lon="${minLng-0.0003}"/>
+      </gpx>`;
+      const url = `data:text/xml;base64,${btoa(xml)}`;
+      context.layers().layer('data').url(url);
+    }
+
     tiles.forEach(tile => {
       if (cache.loaded[tile.id] || cache.inflight[tile.id]) return;
 
@@ -265,9 +346,11 @@ export default {
 
       d3_json(url, { signal: controller.signal })
         .then(geojson => {
+          _loaded[datasetID] = { name: ds.name, source: ds.source };
+
           delete cache.inflight[tile.id];
           if (!geojson) throw new Error('no geojson');
-          parseTile(ds, tile, geojson, (err, results) => {
+          parseTile(ds, tile, geojson, context, (err, results) => {
             if (err) throw new Error(err);
             graph.rebase(results, [graph], true);
             tree.rebase(results, true);
@@ -275,73 +358,52 @@ export default {
             dispatch.call('loadedData');
           });
         })
-        .catch(() => { /* ignore */ });
+        .catch(console.error); // eslint-disable-line no-console
 
       cache.inflight[tile.id] = controller;
     });
   },
 
 
-  loadDatasets: function () {
-    if (_gotDatasets) {
+  loadDatasets: function () {    // eventually pass search params?
+    if (Object.keys(_datasets).length) {   // for now, if we have fetched datasets, return them
       return Promise.resolve(_datasets);
-
-    } else {
-      return new Promise((resolve, reject) => {
-        let start = 1;
-        fetchMore(start);
-
-        function fetchMore(start) {
-          d3_json(searchURL(start))
-            .then(json => {
-              (json.results || []).forEach(ds => parseDataset(ds));
-
-              if (json.nextStart > 0) {
-                fetchMore(json.nextStart);   // fetch next page
-              } else {
-                _gotDatasets = true;   // no more pages
-                resolve(_datasets);
-              }
-            })
-            .catch(err => {
-              _gotDatasets = false;
-              reject(err);
-            });
-        }
-      });
-    }
-  },
-
-
-  loadLayer: function (datasetID) {
-    let ds = _datasets[datasetID];
-    if (!ds || !ds.url) {
-      return Promise.reject(`Unknown datasetID: ${datasetID}`);
-    } else if (ds.layer) {
-      return Promise.resolve(ds.layer);
     }
 
-    return d3_json(layerURL(ds.url))
+    const that = this;
+    return d3_json(searchURL())
       .then(json => {
-        if (!json.layers || !json.layers.length) {
-          throw new Error(`Missing layer info for datasetID: ${datasetID}`);
-        }
+        (json.results || []).forEach(ds => {   // add each one to _datasets, create internal state
+          if (_datasets[ds.id]) return;        // unless we've seen it already
+          _datasets[ds.id] = ds;
+          ds.graph = coreGraph();
+          ds.tree = coreTree(ds.graph);
+          ds.cache = { inflight: {}, loaded: {}, seen: {}, origIdTile: {} };
 
-        ds.layer = json.layers[0];  // should return a single layer
+          // cleanup the `licenseInfo` field by removing styles  (not used currently)
+          let license = d3_select(document.createElement('div'));
+          license.html(ds.licenseInfo);       // set innerHtml
+          license.selectAll('*')
+            .attr('style', null)
+            .attr('size', null);
+          ds.license_html = license.html();   // get innerHtml
 
-        // Use the field metadata to map to OSM tags
-        let tagmap = {};
-        ds.layer.fields.forEach(f => {
-          if (f.type === 'esriFieldTypeOID') {  // this is an id field, remember it
-            ds.layer.idfield = f.name;
-          }
-          if (!f.editable) return;   // 1. keep "editable" fields only
-          tagmap[f.name] = f.alias;  // 2. field `name` -> OSM tag (stored in `alias`)
+          // preload the layer info (or we could wait do this once the user actually clicks 'add to map')
+          that.loadLayer(ds.id);
         });
-        ds.layer.tagmap = tagmap;
-
-        return ds.layer;
+        return _datasets;
       })
       .catch(() => { /* ignore */ });
+  },
+
+  getLoadedDatasetIDs: () => Object.keys(_loaded),
+  getLoadedDatasetNames: () => Object.values(_loaded).map(x => x.name),
+  getLoadedDatasetSources: () => [...new Set(Object.values(_loaded).map(x => x.source))],
+  resetLoadedDatasets: () => { _loaded = {}; },
+
+  loadLayer: function (datasetID) {
+    // does nothing usefull since we've structured our API smarter so we don't need this
+    const ds = _datasets[datasetID];
+    ds.layer = { tagmap:{} };
   }
 };

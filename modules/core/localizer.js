@@ -178,7 +178,7 @@ const fullCoverageIndex = _localeCodes.length - 1;  // load them all
         }
 
         let locale = _localeCode;
-        if (locale.toLowerCase() === 'en-us') locale = 'en';
+        if (locale.toLowerCase().startsWith('en')) locale = 'en';
         _languageNames = _localeStrings.general[locale].languageNames;
         _scriptNames = _localeStrings.general[locale].scriptNames;
 
@@ -191,7 +191,7 @@ const fullCoverageIndex = _localeCodes.length - 1;  // load them all
     localizer.loadLocale = (locale, scopeId, directory) => {
 
         // US English is the default
-        if (locale.toLowerCase() === 'en-us') locale = 'en';
+        if (locale.toLowerCase().startsWith('en')) locale = 'en';
 
         if (_localeStrings[scopeId] && _localeStrings[scopeId][locale]) {    // already loaded
             return Promise.resolve(locale);
@@ -260,7 +260,7 @@ const fullCoverageIndex = _localeCodes.length - 1;  // load them all
 
         let stringsKey = locale;
         // US English is the default
-        if (stringsKey.toLowerCase() === 'en-us') stringsKey = 'en';
+        if (stringsKey.toLowerCase().startsWith('en')) stringsKey = 'en';
         let result = _localeStrings && _localeStrings[scopeId] && _localeStrings[scopeId][stringsKey];
 
         while (result !== undefined && path.length) {

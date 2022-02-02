@@ -89,11 +89,14 @@ export function uiCommit(context) {
             prefs('commentDate', Date.now());
         }
 
-        var detected = utilDetect();
+        let comment = services.esriData.getLoadedDatasetNames().join(', ');
+
         var tags = {
-            comment: prefs('comment') || '',
-            created_by: context.cleanTagValue('RapiD ' + context.rapidContext().version),
-            host: context.cleanTagValue(detected.host),
+            comment: prefs('comment') || (comment.includes('Address Update') ? comment : `Import ${comment}`),
+            created_by: context.cleanTagValue('LINZ Data Import ' + context.rapidContext().version),
+            host: context.cleanTagValue('https://github.com/osm-nz/linz-address-import'),
+            source: context.cleanTagValue('https://wiki.osm.org/LINZ'),
+            attribution: context.cleanTagValue('https://wiki.openstreetmap.org/wiki/Contributors#LINZ'),
             locale: context.cleanTagValue(localizer.localeCode())
         };
 
@@ -408,6 +411,9 @@ export function uiCommit(context) {
                         // remove any empty keys before upload
                         if (!key) delete context.changeset.tags[key];
                     }
+
+                    fetch(window.APIROOT+'/__done/'+services.esriData.getLoadedDatasetIDs().join(',') + '?u=' + (window.__user || {}).display_name);
+                    services.esriData.resetLoadedDatasets();
 
                     context.uploader().save(context.changeset);
                 }

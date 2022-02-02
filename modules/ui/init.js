@@ -448,7 +448,7 @@ export function uiInit(context) {
 //               } else if (prefs('sawRapidSplash')) {
 //                    context.container()
 //                        .call(uiRapidWhatsNew(context));
-                } else if (osm && osm.authenticated()) {
+                } else { // show the splash screen every time the webpage opens
                     context.container()
                         .call(uiRapidSplash(context));
                 }

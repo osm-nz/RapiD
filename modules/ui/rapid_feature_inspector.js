@@ -1,19 +1,18 @@
 import { select as d3_select } from 'd3-selection';
 import { t } from '../core/localizer';
 
-import { actionNoop, actionRapidAcceptFeature } from '../actions';
+import { actionNoop, actionRapidAcceptFeature, actionChangeTags, actionDeleteNode } from '../actions';
 import { modeBrowse, modeSelect } from '../modes';
 import { services } from '../services';
 import { svgIcon } from '../svg';
 import { uiFlash } from './flash';
 import { uiTooltip } from './tooltip';
-import { uiRapidFirstEditDialog } from './rapid_first_edit_dialog';
 
+const MAP = { n: 'node', r: 'relation', w: 'way' };
 
 export function uiRapidFeatureInspector(context, keybinding) {
   const rapidContext = context.rapidContext();
-  const showPowerUser = rapidContext.showPowerUser;
-  const ACCEPT_FEATURES_LIMIT = showPowerUser ? Infinity : 50;
+  const ACCEPT_FEATURES_LIMIT = Infinity;
   let _datum;
 
 
@@ -27,9 +26,116 @@ export function uiRapidFeatureInspector(context, keybinding) {
     return aiFeatureAccepts.length >= ACCEPT_FEATURES_LIMIT;
   }
 
+  /** @param {string} osmId */
+  function addCheckDate(osmId) {
+    const graph = context.graph();
+
+    if (!graph.hasEntity(osmId)) {
+      context.ui().flash
+        .iconName('#iD-icon-no')
+        .label('Looks like this node has not loaded yet or has been deleted')();
+      return; // not loaded yet or already deleted;
+    }
+
+    const osmFeature = graph.entity(osmId);
+
+    context.perform(
+      actionChangeTags(osmFeature.id, Object.assign({
+        check_date: new Date().toISOString().split('T')[0]
+      }, osmFeature.tags)),
+      t('operations.change_tags.annotation')
+    );
+  }
+
+  /**
+   * @param {string} osmId
+   * @returns {boolean} OK
+   */
+  function deleteAddr(osmId) {
+    const graph = context.graph();
+
+    if (!graph.hasEntity(osmId)) {
+      context.ui().flash
+        .iconName('#iD-icon-no')
+        .label('Looks like this node hasn\'t downloaded yet, or has already been deleted')();
+      return false; // not loaded yet or already deleted;
+    }
+
+    context.perform(
+      actionDeleteNode(osmId),
+      t('operations.delete.annotation.point')
+    );
+    return true;
+  }
+
+  /**
+   * @param {string} osmId
+   * @param {Record<string, string>} _tags
+   * @returns {boolean} OK - whether the operation was sucessful
+   */
+  function editAddr(osmId, _tags) {
+    // clone just in case
+    const tags = Object.assign({}, _tags);
+
+    const graph = context.graph();
+
+    if (!graph.hasEntity(osmId)) {
+      context.ui().flash
+        .iconName('#iD-icon-no')
+        .label('Looks like this node hasn\'t downloaded yet')();
+      return false; // not loaded yet so abort
+    }
+
+    const osmFeature = graph.entity(osmId);
+
+    const newTags = Object.assign({}, osmFeature.tags, tags);
+
+    for (const k in newTags) if (newTags[k] === '🗑️') delete newTags[k];
+    delete newTags.__action;
+
+    context.perform(
+      actionChangeTags(osmFeature.id, newTags),
+      t('operations.change_tags.annotation')
+    );
+
+    return true; // OK
+  }
+
 
   function onAcceptFeature() {
     if (!_datum) return;
+    const [osmAction, osmId] = _datum.__featureid__.split('-');
+
+    if (osmAction === 'create') {
+      // cool. just continue on.
+    } else if (osmAction === 'move') {
+
+      // grab the two-node way from the rapid graph to find its endpoints
+      const rapidGraph = services.esriData.graph(_datum.__datasetid__);
+      const fromLoc = rapidGraph.entity(_datum.nodes[0]).loc;
+      const toLoc = rapidGraph.entity(_datum.nodes[1]).loc;
+
+      // grab the real node from the the real graph
+      const realOsmNode = context.graph().entity(osmId);
+
+      const ok = window.__moveNodeHook(realOsmNode, fromLoc, toLoc);
+
+      if (ok) return onIgnoreFeature(true);
+      else return;
+
+    } else if (osmAction === 'edit') {
+      const ok = editAddr(osmId, _datum.tags);
+
+      if (ok) return onIgnoreFeature(true);
+      else return;
+    } else if (osmAction === 'delete') {
+      const ok = deleteAddr(osmId);
+      if (ok) return onIgnoreFeature(true);
+      else return;
+    } else {
+      console.error('Invalid osmAction', osmAction);
+      return;
+    }
 
     if (isAddFeatureDisabled()) {
       const flash = uiFlash(context)
@@ -55,33 +161,30 @@ export function uiRapidFeatureInspector(context, keybinding) {
 
     const service = _datum.__service__ === 'esri' ? services.esriData : services.fbMLRoads;
     const graph = service.graph(_datum.__datasetid__);
-    const sourceTag = _datum.tags && _datum.tags.source;
-    if (sourceTag) annotation.source = sourceTag;
-
     context.perform(actionRapidAcceptFeature(_datum.id, graph), annotation);
     context.enter(modeSelect(context, [_datum.id]));
 
     if (context.inIntro()) return;
 
     // remember sources for later when we prepare the changeset
-    rapidContext.sources.add('mapwithai');    // always add 'mapwithai'
-    if (sourceTag && /^esri/.test(sourceTag)) {
-      rapidContext.sources.add('esri');       // add 'esri' for esri sources
+    const source = _datum.tags && _datum.tags.source;
+    if (source) {
+      rapidContext.sources.add(source);
     }
+
+    // mark as done
+    window._dsState[_datum.__datasetid__][_datum.__featureid__] = 'done';
 
     if (window.sessionStorage.getItem('acknowledgedLogin') === 'true') return;
     window.sessionStorage.setItem('acknowledgedLogin', 'true');
 
-    const osm = context.connection();
-    if (!osm.authenticated()) {
-      context.container()
-        .call(uiRapidFirstEditDialog(context));
-    }
   }
 
 
-  function onIgnoreFeature() {
+  /** @param {boolean} fromAccept */
+  function onIgnoreFeature(fromAccept) {
     if (!_datum) return;
+    const [osmAction, osmId] = _datum.__featureid__.split('-');
 
     const annotation = {
       type: 'rapid_ignore_feature',
@@ -91,6 +194,25 @@ export function uiRapidFeatureInspector(context, keybinding) {
     };
     context.perform(actionNoop(), annotation);
     context.enter(modeBrowse(context));
+
+    window._dsState[_datum.__datasetid__][_datum.__featureid__] = 'done';
+
+    if (fromAccept === true) return;
+
+    if (osmAction === 'create') {
+      // the user cancelled a create action, so we tell the API to not
+      // show this feature again
+
+      fetch(window.APIROOT + '/__ignoreFeature?' + (new URLSearchParams({
+        reportedBy: (window.__user || {}).display_name,
+        id: `t${osmId}`, // for creates, this isn't the osmId. It's whatever ID the conflation service used.
+        sector: _datum.__datasetid__
+      }).toString()));
+      return;
+    } else {
+      // if the user cancelled anything except create (edit, move, or delete), then add a check_date tag.
+      addCheckDate(osmId);
+    }
   }
 
 
@@ -161,7 +283,9 @@ export function uiRapidFeatureInspector(context, keybinding) {
       .attr('class', 'tag-heading')
       .text(t('rapid_feature_inspector.tags'));
 
-    const tagEntries = Object.keys(tags).map(k => ({ key: k, value: tags[k] }) );
+    const tagEntries = Object.keys(tags)
+      .map(k => ({ key: k, value: tags[k] }) )
+      .filter(kv => kv.key !== '__action');
 
     tagEntries.forEach(e => {
       let entryDiv = tagBagEnter.append('div')
@@ -170,6 +294,8 @@ export function uiRapidFeatureInspector(context, keybinding) {
       entryDiv.append('div').attr('class', 'tag-key').text(e.key);
       entryDiv.append('div').attr('class', 'tag-value').text(e.value);
     });
+
+    // FIXME: use the NSI/deprecated tags UI here.
   }
 
 
@@ -224,19 +350,67 @@ export function uiRapidFeatureInspector(context, keybinding) {
       .call(featureInfo)
       .call(tagInfo);
 
+    const action = (_datum && _datum.tags && _datum.tags.__action) || 'create';
+
+    let recentlyEditted = false;
+    try {
+      if (action === 'edit') {
+        const id = _datum.__featureid__.split('-')[1];
+        if (context.graph().hasEntity(id)) {
+          const entity = context.graph().entity(id);
+          const daysAgo = (new Date() - new Date(entity.timestamp))/1000/60/60/24;
+          if (daysAgo < 30) {
+            recentlyEditted = [entity, daysAgo];
+          }
+        }
+      }
+    } catch (ex) { console.error(ex); }
+
+    const acceptMessages = {
+      move: 'Move this address',
+      create: t('rapid_feature_inspector.option_accept.label'),
+      edit: 'Edit this address',
+      delete: 'Delete this address'
+    };
+    const acceptDescriptions = {
+      move: 'Move the existing node to the new proposed location',
+      create: t('rapid_feature_inspector.option_accept.description'),
+      edit: 'Update the tags on this node with the suggested changes',
+      delete: 'Remove this node from OSM'
+    };
+    const ignoreMessages = {
+      move: 'Do not move',
+      create:  t('rapid_feature_inspector.option_ignore.label'),
+      edit: 'Do not edit',
+      delete: 'Do not delete',
+    };
+    const mainMessages = {
+      move: '✨ This node is in the wrong location! Do you want to move it?',
+      delete: '🗑️ This node has been deleted by LINZ! Do you want to delete it from OSM?',
+      edit: '🔢 Some tags need changing on the address under this diamond!',
+      create: t('rapid_feature_inspector.prompt')
+    };
+    const headerMessages = {
+      move: 'Move',
+      delete: 'Delete',
+      edit: 'Edit',
+      create: 'Create',
+    };
 
     // Choices
     const choiceData = [
       {
         key: 'accept',
         iconName: '#iD-icon-rapid-plus-circle',
-        label: t('rapid_feature_inspector.option_accept.label'),
-        description: t('rapid_feature_inspector.option_accept.description'),
-        onClick: onAcceptFeature
+        label: acceptMessages[action],
+        description: acceptDescriptions[action],
+        onClick: onAcceptFeature,
+        flag: !!recentlyEditted,
+        isDelete: action === 'action',
       }, {
         key: 'ignore',
         iconName: '#iD-icon-rapid-minus-circle',
-        label: t('rapid_feature_inspector.option_ignore.label'),
+        label: ignoreMessages[action],
         description: t('rapid_feature_inspector.option_ignore.description'),
         onClick: onIgnoreFeature
       }
@@ -251,8 +425,20 @@ export function uiRapidFeatureInspector(context, keybinding) {
       .attr('class', 'rapid-inspector-choices');
 
     choicesEnter
+      .append('h3')
+      .text(headerMessages[action]);
+
+    choicesEnter
       .append('p')
-      .text(t('rapid_feature_inspector.prompt'));
+      .text(mainMessages[action]);
+
+    if (recentlyEditted) {
+      const osmUrl = `https://openstreetmap.org/${MAP[recentlyEditted[0].id[0]]}/${recentlyEditted[0].id.slice(1)}`;
+      choicesEnter
+        .append('p')
+        .html(`Last editted by <strong>${recentlyEditted[0].user}</strong> <a href="${osmUrl}" target="_blank">${Math.round(recentlyEditted[1])} days ago</a>`);
+
+    }
 
     choicesEnter.selectAll('.rapid-inspector-choice')
       .data(choiceData, d => d.key)
@@ -281,7 +467,7 @@ export function uiRapidFeatureInspector(context, keybinding) {
     const onClick = d.onClick;
     let choiceButton = choiceWrap
       .append('button')
-      .attr('class', `choice-button choice-button-${d.key} ${disableClass}`)
+      .attr('class', `choice-button choice-button-${d.key} ${disableClass} ${d.isDelete ? 'del-btn' : ''} ${d.flag ? 'flag-btn' : ''}`)
       .on('click', onClick);
 
     // build tooltips

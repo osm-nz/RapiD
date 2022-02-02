@@ -5,6 +5,7 @@ export function osmIsInterestingTag(key) {
         key !== 'odbl' &&
         key.indexOf('source:') !== 0 &&
         key.indexOf('source_ref') !== 0 && // purposely exclude colon
+        !key.startsWith('ref:') && // a feature with only a ref tag is not interesting
         key.indexOf('tiger:') !== 0;
 }
 
@@ -17,6 +18,9 @@ export function osmSetAreaKeys(value) {
 export function osmTagSuggestingArea(tags) {
     if (tags.area === 'yes') return { area: 'yes' };
     if (tags.area === 'no') return null;
+
+    // these are always diamonds, drawn around the feature
+    if (tags.__action === 'edit' || tags.__action === 'delete') return true;
 
     // `highway` and `railway` are typically linear features, but there
     // are a few exceptions that should be treated as areas, even in the
@@ -114,7 +118,10 @@ export var osmOneWayTags = {
         'river': true,
         'stream': true,
         'tidal_channel': true
-    }
+    },
+    'seamark:type': {
+        'separation_lane': true,
+    },
 };
 
 // solid and smooth surfaces akin to the assumed default road surface in OSM
@@ -156,6 +163,7 @@ export var osmRightSideIsInsideTags = {
         'city_wall': true,
     },
     'man_made': {
+        'video_wall': true,
         'embankment': true
     },
     'waterway': {

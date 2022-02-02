@@ -1,28 +1,21 @@
-[![build](https://github.com/facebookincubator/RapiD/workflows/build/badge.svg)](https://github.com/facebookincubator/RapiD/actions?query=workflow%3A%22build%22)
+# RapiD
 
-# RapiD - an enhanced version of iD for mapping with AI.
+[![build](https://github.com/osm-nz/RapiD/workflows/build/badge.svg)](https://github.com/osm-nz/RapiD/actions?query=workflow%3A%22build%22)
 
-RapiD is an extension of the [iD editor](https://github.com/openstreetmap/iD) for mapping on [OpenStreetMap](https://www.openstreetmap.org/). It is enhanced with AI-generated roads from the Facebook Map With AI service to make adding and editing roads quick and simple for anyone to use. It also includes data integrity checks to ensure that new map edits are consistent and accurate. To learn about all the enhanced features RapiD provides, please check out our [Change Log](CHANGELOG.md) and [training document](https://github.com/facebookmicrosites/Open-Mapping-At-Facebook/wiki#editing-in-rapid).
+This is fork of RapiD for the [LINZ Address import & LINZ data import](https://github.com/osm-nz/linz-address-import) project. See that repository for details.
 
-For basic information about the iD editor (architecture, build and installation instructions, etc.), please refer to the [iD github repo](https://github.com/openstreetmap/iD). RapiD shares the same building and installation process as iD.
+Do _not_ commit changes to the `/dist` folder. Instead, the CI will automatically build and deploy the latest version of the `linz-addr-mainline` branch.
 
-## Participate!
+To update this fork to include the latest changes from RapiD and iD, go [here](https://github.com/osm-nz/RapiD/compare/linz-addr-mainline...facebookincubator:main) and click <kbd>Create pull request</kbd>
 
-* Read the project [Code of Conduct](CODE_OF_CONDUCT.md) and [Contributing Guide](CONTRIBUTING.md) to learn about how to contribute.
-* See [open issues in the issue tracker](https://github.com/facebookincubator/RapiD/issues?state=open) if you're looking to help on issues.
-* To help with internationalization, please follow the [general translating page in iD repo](https://github.com/openstreetmap/iD/blob/develop/CONTRIBUTING.md#translating).
+To view all the changes made in this fork vs Rapid, [click here](https://github.com/osm-nz/RapiD/compare/main...linz-addr-mainline)
 
-We're available to chat!  Ping us on the `#mapwithai_feedback` channel on either:
-* [OpenStreetMap US Slack](https://slack.openstreetmap.us/)
-* [HOTOSM Slack](https://slack.hotosm.org/)
+Branches:
 
-## Country Data Requests
-To request RapiD data for other countries, please submit [a new issue](https://github.com/facebookincubator/RapiD/issues/new).
+- v2: `linz-addr-mainline` (current)
+- v1: `linz-addr-mainline-v1`
 
-## Available Countries for AI-generated Roads
-Please refer to this [list of Available Countries](https://github.com/facebookmicrosites/Open-Mapping-At-Facebook/wiki/Available-Countries). If you would like to request roads for a new country, please [create an issue here](https://github.com/facebookincubator/RapiD/issues). We track all the requests and our progress on [this page](COUNTRY_REQUESTS.md).
+To develop:
 
-## License
-
-RapiD is available under the [ISC License](https://opensource.org/licenses/ISC).
-See the [LICENSE.md](LICENSE.md) file for more details.
+- `NODE_OPTIONS="--experimental-json-modules" yarn all` if you change the data folder
+- `yarn quickstart`

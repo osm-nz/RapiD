@@ -6,6 +6,14 @@
     ]
   },
   {
+    "countryCodes": ["nz"],
+    "format": [
+      ["housenumber", "street"],
+      ["suburb", "hamlet"],
+      ["city", "postcode"]
+    ]
+  },
+  {
     "countryCodes": ["au"],
     "format": [
       ["unit","housenumber", "street"],

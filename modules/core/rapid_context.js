@@ -1,7 +1,6 @@
 import { dispatch as d3_dispatch } from 'd3-dispatch';
 import { gpx } from '@tmcw/togeojson';
 import { Extent } from '@id-sdk/math';
-import { utilQsString, utilStringQs } from '@id-sdk/util';
 
 import { localizer, t } from '../core/localizer';
 import { services } from '../services';
@@ -11,7 +10,7 @@ import { utilRebind } from '../util';
 export function coreRapidContext(context) {
   const dispatch = d3_dispatch('task_extent_set');
   let _rapidContext = {};
-  _rapidContext.version = '1.1.8';
+  _rapidContext.version = '2.0.0';
   _rapidContext.showPowerUser = context.initialHashParams.poweruser === 'true';
 
   function distinct(value, index, self) {
@@ -113,7 +112,7 @@ export function coreRapidContext(context) {
           'fbRoads': {
             id: 'fbRoads',
             beta: false,
-            added: true,         // whether it should appear in the list
+            added: false,         // whether it should appear in the list
             enabled: false,      // whether the user has checked it on
             conflated: true,
             service: 'fbml',
@@ -124,7 +123,7 @@ export function coreRapidContext(context) {
           'msBuildings': {
             id: 'msBuildings',
             beta: false,
-            added: true,         // whether it should appear in the list
+            added: false,         // whether it should appear in the list
             enabled: false,      // whether the user has checked it on
             conflated: true,
             service: 'fbml',
@@ -135,14 +134,7 @@ export function coreRapidContext(context) {
         };
 
         // Parse enabled datasets from url hash
-        let enabled = context.initialHashParams.datasets || '';
-        if (!context.initialHashParams.hasOwnProperty('datasets')) {
-          let hash = utilStringQs(window.location.hash);
-          enabled = hash.datasets = 'fbRoads,msBuildings';  // assign default
-          if (!window.mocha) {
-            window.location.replace('#' + utilQsString(hash, true));  // update hash
-          }
-        }
+        let enabled = '';
 
         let toLoad = new Set();
         enabled.split(',').forEach(id => {

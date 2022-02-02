@@ -418,6 +418,28 @@ export function uiSectionDataLayers(context) {
             .append('span')
             .html(t.html('map_data.history_panel.title'));
 
+        var progressPanelLabelEnter = panelsListEnter
+            .append('li')
+            .attr('class', 'progress-panel-toggle-item')
+            .append('label')
+            .call(uiTooltip()
+                .title('Shows the import status panel')
+                .keys([uiCmd('⌘⇧' + t('info_panels.progress.key'))])
+                .placement('top')
+            );
+
+        progressPanelLabelEnter
+            .append('input')
+            .attr('type', 'checkbox')
+            .on('change', function(d3_event) {
+                d3_event.preventDefault();
+                context.ui().info.toggle('progress');
+            });
+
+        progressPanelLabelEnter
+            .append('span')
+            .html('Show Import Progress Panel');
+
         var measurementPanelLabelEnter = panelsListEnter
             .append('li')
             .attr('class', 'measurement-panel-toggle-item')

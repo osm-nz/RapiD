@@ -269,7 +269,7 @@ en:
           to_vertex: Merged a point with a point in a way.
           to_line: Moved a point to a line.
           to_area: Moved a point to an area.
-      relation: These features can't be connected because they have conflicting relation roles.
+      relation: These features can't be connected because they're 🥝 LINZ addresses or have conflicting relation roles.
       restriction: "These features can't be connected because it would damage a \"{relation}\" relation."
     disconnect:
       title: Disconnect
@@ -314,7 +314,7 @@ en:
       not_eligible: These features can't be merged.
       not_adjacent: These features can't be merged because their endpoints aren't connected.
       damage_relation: "These features can't be merged because it would damage a \"{relation}\" relation."
-      relation: These features can't be merged because they have conflicting relation roles.
+      relation: These features can't be merged because they're 🥝 LINZ addresses or have conflicting relation roles.
       incomplete_relation: These features can't be merged because at least one hasn't been fully downloaded.
       conflicting_tags: These features can't be merged because some of their tags have conflicting values.
       conflicting_relations: These features can't be merged because they belong to conflicting relations.
@@ -347,6 +347,19 @@ en:
       not_downloaded:
         single: This feature can't be moved because parts of it have not yet been downloaded.
         multiple: These features can't be moved because parts of them have not yet been downloaded.
+    follow:
+      key: F
+      error:
+        needs_more_initial_nodes: This feature can't follow another feature because it isn't connected to enough consecutive points along another feature. Add another point manually to continue.
+        intersection_of_multiple_ways:
+          line: This feature can't follow a line because multiple lines are connected to the last two points. Add another point manually to continue.
+          area: This feature can't follow an area because multiple areas are connected to the last two points. Add another point manually to continue.
+          generic: This feature can't follow another feature because multiple features are connected to the last two points. Add another point manually to continue.
+        intersection_of_different_ways:
+          line: This feature can't follow the line because it is only connected at a single point. Add another point manually to continue.
+          area: This feature can't follow the area because it is only connected at a single point. Add another point manually to continue.
+          generic: This feature can't follow the other feature because they are only connected at a single point. Add another point manually to continue.
+        unknown: This feature can't follow another feature.
     reflect:
       title:
         long: Flip Long
@@ -631,7 +644,7 @@ en:
       show_vintage: Show Vintage
       hide_vintage: Hide Vintage
     history:
-      key: H
+      key: 8
       title: History
       no_history: "No History (New Feature)"
       version: Version
@@ -645,6 +658,8 @@ en:
       note_created_date: Created Date
       note_created_user: Created By
       note_link_text: Note on openstreetmap.org
+    progress:
+      key: 8
     location:
       key: L
       title: Location
@@ -803,7 +818,7 @@ en:
   map_data:
     title: Map Data
     description: Map Data
-    key: F
+    key: U
     data_layers: Data Layers
     layers:
       osm:
@@ -838,7 +853,7 @@ en:
       tooltip: Show geometry values for the selection.
     style_options: Style Options
     highlight_edits:
-      key: G
+      key: H
     map_features: Map Features
     autohidden: "These features have been automatically hidden because too many would be shown on the screen.  You can zoom in to edit them."
     osmhidden: "These features have been automatically hidden because the OpenStreetMap layer is hidden."
@@ -1044,11 +1059,11 @@ en:
     dev: dev
   rapid_multiselect: Multiple Selection
   rapid_splash:
-    welcome: Introducing AI-assisted mapping!
-    text: "Select the {rapidicon} option to start the RapiD walkthrough. If you're new to OSM and haven't mapped before, select the first {walkthrough} option. Finally, click the last {edit} option if you want to get straight to mapping. You can always access the walkthrough later from the help menu."
+    welcome: LINZ Data Import
+    text: "Once you close this popup, click the {rapidicon} icon to select a dataset and start importing data. See the [wiki page](https://wiki.openstreetmap.org/wiki/Import/New_Zealand_Street_Addresses_(2021)) for more info. If you prefer to use JOSM, see [this page](https://osm-nz.github.io/josm)."
     walkthrough: "Start the whole walkthrough"
     skip_to_rapid: "Learn about RapiD!"
-    start: "No thanks, just start mapping"
+    start: "Start"
   rapid_whats_new:
     welcome: What's New- Esri Datasets in {rapidicon}
     text: "Come check out our latest experimental feature - Esri datasets that are useable from within {rapidicon}!\nLearn more about it [here](https://tech.fb.com/osm-ready-data-sets/)."
@@ -1090,8 +1105,8 @@ en:
       label: Microsoft Buildings
       license_markdown: "[license](https://github.com/microsoft/USBuildingFootprints/blob/master/LICENCE-DATA)"
     esri:
-      title: ArcGIS Datasets
-      about: "These datasets have been provided as open data by the ArcGIS user community for the purpose of improving OpenStreetMap.<br/>You can learn more by visiting [the RapiD Guide](https://github.com/facebookmicrosites/Open-Mapping-At-Facebook/wiki/Esri-ArcGIS-FAQ) or [Esri/ArcGIS dataset page on the OSM Wiki](https://wiki.openstreetmap.org/wiki/Esri/ArcGIS_Datasets)."
+      title: LINZ Address Points
+      about: "This data has been grouped into suburbs."
       filter_datasets: filter datasets
       any_type: any type
       clear_filters: Clear Filters
@@ -1102,12 +1117,12 @@ en:
       remove: Remove
       add_to_map: Add Dataset
       more_info: More Info
-      license_markdown: "[license](https://wiki.openstreetmap.org/wiki/Esri/ArcGIS_Datasets#License)"
+      license_markdown: "[license](https://wiki.openstreetmap.org/wiki/LINZ#Data_License)"
   rapid_poweruser_features:
     beta: Beta Feature
     heading:
-      label: RapiD Power User Features
-      description: "for RapiD Insiders"
+      label: Power User Features
+      description: ""
     previewDatasets:
       label: Show preview datasets
       description: Preview datasets are still in review and not available for all users
@@ -1526,7 +1541,7 @@ en:
     upload_explanation_with_user: "Your comments as {user} will be publicly visible to all OpenStreetMap users."
   help:
     title: Help
-    key: H
+    key: 9
     help:
       title: Help
       welcome: "Welcome to the RapiD editor for [OpenStreetMap](https://www.openstreetmap.org/). RapiD is an enhanced version of the [iD editor](https://github.com/openstreetmap/iD). With this editor you can update OpenStreetMap right from your web browser."
@@ -2496,6 +2511,7 @@ en:
         split: "Split features at the selected points"
         reverse: "Reverse selected features"
         move: "Move selected features"
+        follow: "Follow a line or area"
         nudge: "Nudge selected features"
         nudge_more: "Nudge selected features by a lot"
         scale: "Scale selected features"

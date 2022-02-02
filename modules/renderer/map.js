@@ -175,6 +175,8 @@ export function rendererMap(context) {
             .call(drawLayers)
             .selectAll('.surface');
 
+        surface.classed('highlight-edited', true); // enable the highlight-edited-features UI by default
+
         surface
             .call(drawLabels.observe)
             .call(_doubleUpHandler)
