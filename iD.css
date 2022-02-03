@@ -2840,17 +2840,31 @@
     top: -25px;
 }
 
-.ideditor .mly-wrapper .AttributionContainer .AttributionIconContainer .AttributionMapillaryLogo {
-    margin-top: 3px;
+.ideditor .mly-wrapper .mapillary-attribution-container {
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-box-align: center;
+        -ms-flex-align: center;
+            align-items: center;
 }
 
-.ideditor .mly-wrapper .AttributionContainer .AttributionImageContainer {
-    color: #fff;
-    font-size: 10px;
-    font-weight: 300;
-    overflow: hidden;
+.ideditor .mly-wrapper .mapillary-attribution-container .mapillary-attribution-icon-container {
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-box-align: center;
+        -ms-flex-align: center;
+            align-items: center;
 }
 
+.ideditor .mly-wrapper .mapillary-attribution-container .mapillary-attribution-username {
+    display: none;
+}
+
+.ideditor .mly-wrapper .mapillary-attribution-container .mapillary-attribution-date {
+    margin-right: 6px;
+}
 
 /* OpenStreetCam viewer */
 .ideditor .osc-wrapper {
@@ -3845,6 +3859,27 @@
             flex: 0 0 36px;
 }
 
+/* dark scrollbars */
+.ideditor .modal.rapid-modal {
+    scrollbar-width: thin;
+    scrollbar-color: #aaa #555;
+}
+.ideditor .modal.rapid-modal ::-webkit-scrollbar {
+    width: 10px;
+}
+.ideditor .modal.rapid-modal ::-webkit-scrollbar-track {
+    background: #444;
+}
+.ideditor .modal.rapid-modal ::-webkit-scrollbar-thumb {
+    background-color: #da26d3;
+    border-radius: 6px;
+    border: 0;
+}
+.ideditor .modal.rapid-modal ::-webkit-scrollbar-thumb:hover {
+    background-color: #c6d;
+    cursor: pointer;
+}
+
 
 /* Toggle Features */
 .ideditor .modal.rapid-modal .modal-section.rapid-checkbox {
@@ -4148,6 +4183,7 @@ hide this one and style something on top of it.  */
     width: 80%;
     min-width: 600px;
     max-width: 1000px;
+    min-height: 85%;
 }
 .ideditor .modal.rapid-modal.modal-view-manage p {
     font-size: 12px;
@@ -4221,41 +4257,78 @@ hide this one and style something on top of it.  */
     border-bottom: 1px solid #aaaa;
     color: #fff;
 }
-.ideditor .rapid-view-manage-filter-wrap {
+.ideditor .rapid-view-manage-filter-search-wrap,
+.ideditor .rapid-view-manage-filter-type-wrap {
     position: relative;
     -webkit-box-flex: 1;
         -ms-flex: 1;
             flex: 1;
     padding: 0 5px;
 }
-.ideditor .rapid-view-manage-filter-wrap .icon {
+.ideditor .rapid-view-manage-filter-search-wrap > .icon {
     position: absolute;
     left: 16px;
-    top: 10px;
+    top: 11px;
     color: #aaa;
     width: 16px;
     height: 16px;
 }
-.ideditor .rapid-view-manage-filter-input {
+.ideditor .rapid-view-manage-filter-search,
+.ideditor .rapid-view-manage-filter-type {
     background: #444;
     color: #ddd;
-    padding: 4px 12px 4px 40px;
+    padding: 4px 12px;
     border-radius: 10px;
     border: 1px solid #333;
     font-size: 16px;
-    width: 75%;
+    width: 90%;
 }
-.ideditor .rapid-view-manage-filter-input:focus,
-.ideditor .rapid-view-manage-filter-input:active {
+.ideditor .rapid-view-manage-filter-search {
+    padding: 4px 12px 4px 40px;
+}
+.ideditor .rapid-view-manage-filter-search:focus,
+.ideditor .rapid-view-manage-filter-search:active,
+.ideditor .rapid-view-manage-filter-type:focus,
+.ideditor .rapid-view-manage-filter-type:active {
     background: #444;
     color: #eee;
     outline: none;
     border: 1px solid #aaa;
 }
+
+.ideditor div.combobox.combobox-dataset-categories {
+    background: #333;
+    color: #ddd;
+    border: 1px solid #222;
+}
+
+.ideditor div.combobox.combobox-dataset-categories a {
+    color: #ddd;
+    border-top: 1px solid #222;
+}
+
+.ideditor div.combobox.combobox-dataset-categories a.selected,
+.ideditor div.combobox.combobox-dataset-categories a:active,
+.ideditor div.combobox.combobox-dataset-categories a:focus {
+    color: #eee;
+    background: #3c3c3c;
+}
+@media (hover: hover) {
+    .ideditor div.combobox.combobox-dataset-categories a:hover {
+        color: #eee;
+        background: #3c3c3c;
+    }
+}
+
+.ideditor .rapid-view-manage-filter-clear a {
+    padding: 15px;
+    font-size: 14px;
+}
+
 .ideditor .rapid-view-manage-filter-results {
     -webkit-box-flex: 1;
-        -ms-flex: 1;
-            flex: 1;
+        -ms-flex: 1 1 200px;
+            flex: 1 1 200px;
     padding: 0 5px;
     text-align: end;
     font-size: 20px;
@@ -4273,6 +4346,24 @@ hide this one and style something on top of it.  */
         -ms-flex-align: stretch;
             align-items: stretch;
     overflow-y: auto;
+}
+
+/* give this section height, even when its contents are hidden */
+.ideditor .rapid-view-manage-datasets-status,
+.ideditor .rapid-view-manage-datasets {
+    -webkit-box-flex: 1;
+        -ms-flex: 1 1 9999px;
+            flex: 1 1 9999px;
+}
+
+.ideditor .rapid-view-manage-datasets-status {
+    font-size: 20px;
+    text-align: center;
+    margin: 50px;
+}
+.ideditor .rapid-view-manage-datasets-spinner {
+    -webkit-filter: brightness(2)contrast(0.8);
+            filter: brightness(2)contrast(0.8);
 }
 
 .ideditor .rapid-view-manage-datasets {
@@ -4295,7 +4386,7 @@ hide this one and style something on top of it.  */
     -webkit-box-flex: 0;
         -ms-flex: 0 1 50%;
             flex: 0 1 50%;
-    padding: 10px 20px;
+    padding: 15px 25px;
     margin-bottom: 10px;
     color: #eee;
     display: -webkit-box;
@@ -4337,12 +4428,27 @@ hide this one and style something on top of it.  */
 }
 .ideditor .rapid-view-manage-dataset-name {
     font-weight: bold;
+    font-size: 14px;
+    margin-bottom: 3px;
 }
 .ideditor .rapid-view-manage-dataset-license {
     display: inline-block;
 }
 .ideditor .rapid-view-manage-dataset-beta {
     font-size: 10px;
+}
+.ideditor .rapid-view-manage-dataset-featured {
+    display: inline-block;
+    font-size: 11px;
+    background: #a21;
+    color: #dcdcdc;
+    padding: 1px 7px;
+    border-radius: 5px;
+    margin: 0px 10px;
+    line-height: 1.5;
+}
+.ideditor .rapid-view-manage-dataset-featured span {
+    margin: 0px 3px;
 }
 
 /* Colorpicker popup */
@@ -5679,13 +5785,22 @@ hide this one and style something on top of it.  */
     visibility: visible;
 }
 .ideditor .preset-icon-container.showing-img *:not(.image-icon) {
-    visibility: hidden;
+    display: none;
 }
 
 .ideditor .preset-icon-point-border path {
     stroke: #333;
     stroke-width: 1.2;
     fill: transparent;
+}
+
+.ideditor .preset-icon-category-border path {
+    stroke: #999;
+    stroke-width: 1px;
+    fill: transparent;
+    -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+    vector-effect: non-scaling-stroke;
 }
 
 .ideditor .preset-icon-line {
@@ -5772,7 +5887,7 @@ hide this one and style something on top of it.  */
         -ms-transform: scale(0.4);
             transform: scale(0.4);
 }
-.ideditor .preset-icon.framed.line-geom .icon,
+.ideditor .preset-icon.framed.line-geom:not(.category) .icon,
 .ideditor .preset-icon.framed.route-geom .icon {
     top: 20%;
     -webkit-transform: translateY(-30%) scale(0.4);
@@ -5789,7 +5904,7 @@ hide this one and style something on top of it.  */
         -ms-transform: scale(0.74);
             transform: scale(0.74);
 }
-.ideditor .preset-icon-iD.framed.line-geom .icon,
+.ideditor .preset-icon-iD.framed.line-geom:not(.category) .icon,
 .ideditor .preset-icon-iD.framed.route-geom .icon {
     -webkit-transform: translateY(-30%) scale(0.74);
         -ms-transform: translateY(-30%) scale(0.74);
@@ -6274,6 +6389,13 @@ hide this one and style something on top of it.  */
     display: none;
 }
 
+.ideditor .form-field-input-combo input.raw-value {
+    font-family: monospace;
+}
+.ideditor .form-field-input-combo input.known-value {
+    color: #7092ff;
+}
+
 .ideditor .form-field-input-multicombo ul.chiplist {
     padding: 5px 8px 5px 8px;
     background: #fff;
@@ -6308,6 +6430,7 @@ hide this one and style something on top of it.  */
     background-color: #eff2f7;
     border: 1px solid #ccd5e3;
     max-width: 100%;
+    color: #7092ff;
 }
 .ideditor[dir='ltr'] .form-field-input-multicombo li.chip {
     padding: 2px 0px 2px 5px;
@@ -6324,6 +6447,10 @@ hide this one and style something on top of it.  */
     z-index: 3000;
     cursor: -webkit-grabbing;
     cursor: grabbing;
+}
+.ideditor .form-field-input-multicombo li.chip.raw-value {
+    font-family: monospace;
+    color: #333;
 }
 .ideditor .form-field-input-multicombo li.mixed {
     border-color: #eff2f7;
@@ -6590,29 +6717,29 @@ hide this one and style something on top of it.  */
 }
 
 
-/* Field - Maxspeed
+/* Field - roadspeed
 ------------------------------------------------------- */
-.ideditor .form-field-input-maxspeed input.maxspeed-number {
+.ideditor .form-field-input-roadspeed input.roadspeed-number {
     -ms-flex-preferred-size: 0;
         flex-basis: 0;
 }
-.ideditor .form-field-input-maxspeed input.maxspeed-unit {
+.ideditor .form-field-input-roadspeed input.roadspeed-unit {
     -webkit-box-flex: 0;
         -ms-flex: 0 1 auto;
             flex: 0 1 auto;
     width: 80px;
 }
-.ideditor[dir='ltr'] .form-field-input-maxspeed > input:first-of-type {
+.ideditor[dir='ltr'] .form-field-input-roadspeed > input:first-of-type {
     border-radius: 0 0 0 4px;
 }
-.ideditor[dir='rtl'] .form-field-input-maxspeed > input:first-of-type {
+.ideditor[dir='rtl'] .form-field-input-roadspeed > input:first-of-type {
     border-radius: 0 0 4px 0;
 }
-.ideditor[dir='ltr'] .form-field-input-maxspeed > input:last-of-type {
+.ideditor[dir='ltr'] .form-field-input-roadspeed > input:last-of-type {
     border-left: 0;
     border-radius: 0 0 4px 0;
 }
-.ideditor[dir='rtl'] .form-field-input-maxspeed > input:last-of-type {
+.ideditor[dir='rtl'] .form-field-input-roadspeed > input:last-of-type {
     border-right: 0;
     border-radius: 0 0 0 4px;
 }
@@ -6964,7 +7091,7 @@ hide this one and style something on top of it.  */
 .ideditor .combobox-caret {
     display: inline-block;
     position: relative;
-    height: 5px;
+    height: 30px;
     width: 30px !important;
     margin-left: -30px;
     -ms-flex-item-align: center;
@@ -6986,6 +7113,11 @@ hide this one and style something on top of it.  */
     border-top: 5px solid #ccc;
     border-left: 5px solid transparent;
     border-right: 5px solid transparent;
+}
+
+.ideditor .combobox .combobox-option.raw-option {
+    font-family: monospace;
+    color: #333;
 }
 
 
@@ -7798,6 +7930,11 @@ hide this one and style something on top of it.  */
             flex-direction: column;
     padding: 5px 0;
     pointer-events: none;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+.ideditor .map-controls::-webkit-scrollbar {
+    display: none;
 }
 .ideditor .map-controls:before {
     content: '';
@@ -8102,13 +8239,13 @@ hide this one and style something on top of it.  */
     -webkit-box-flex: 0;
         -ms-flex: 0 0 auto;
             flex: 0 0 auto;
-    padding: 5px 7px;
+    padding: 2px 3px;
 }
 .ideditor .issue-text .issue-message {
     -webkit-box-flex: 1;
         -ms-flex: 1 1 auto;
             flex: 1 1 auto;
-    padding: 5px 0;
+    padding: 4px 5px;
 }
 .ideditor .issue-label .issue-autofix {
     -webkit-box-flex: 0;
@@ -8150,6 +8287,7 @@ hide this one and style something on top of it.  */
     width: 20px;
     background: #7092ff;
     color: #fff;
+    padding: 0;
 }
 .ideditor button.autofix.action:focus,
 .ideditor button.autofix.action:active,
@@ -8445,6 +8583,9 @@ hide this one and style something on top of it.  */
 }
 
 .ideditor .issue-container:not(.active) ul.issue-fix-list {
+    display: none;
+}
+.ideditor .issue-container:not(.active) .issue-info {
     display: none;
 }
 
@@ -9108,6 +9249,16 @@ hide this one and style something on top of it.  */
 }
 
 
+.ideditor .supersurface .layer.layer-background {
+    z-index: 1;
+}
+.ideditor .supersurface .layer.layer-overlay {
+    z-index: 2;
+}
+.ideditor .supersurface .layer.layer-data {
+    z-index: 3;
+}
+
 /* Map-In-Map
 ------------------------------------------------------- */
 .ideditor .map-in-map {
@@ -9139,6 +9290,14 @@ hide this one and style something on top of it.  */
             user-select: none;
 }
 
+.ideditor .map-in-map-background {
+    position: absolute;
+    z-index: 1;
+}
+.ideditor .map-in-map-overlay {
+    position: absolute;
+    z-index: 2;
+}
 .ideditor .map-in-map-viewport,
 .ideditor .map-in-map-data {
     top: 0;
@@ -9148,19 +9307,20 @@ hide this one and style something on top of it.  */
     width: 100%;
 }
 
-.ideditor .map-in-map-viewport {
-    position: absolute;
-}
-
 .ideditor .map-in-map-data {
     position: relative;
-    z-index: 10;
+    z-index: 3;
+}
+
+.ideditor .map-in-map-viewport {
+    position: absolute;
+    z-index: 4;
 }
 
 .ideditor .map-in-map-bbox {
     fill: none;
     stroke: rgba(255, 255, 0, 0.75);
-    stroke-width: 1;
+    stroke-width: 1.5;
     shape-rendering: crispEdges;
 }
 
@@ -9177,7 +9337,7 @@ hide this one and style something on top of it.  */
     stroke-width: 2;
 }
 .ideditor .map-in-map-data .debug {
-    stroke-width: 1;
+    stroke-width: 1.5;
 }
 
 .ideditor .nocolor { color: rgba(0, 0, 0, 0); }
@@ -9189,7 +9349,7 @@ hide this one and style something on top of it.  */
 .ideditor .magenta { color: rgba(255, 0, 255, 0.75); }
 .ideditor .orange  { color: rgba(255, 153, 0, 0.75); }
 .ideditor .pink    { color: rgba(255, 0, 153, 0.75); }
-.ideditor .purple  { color: rgba(153, 0, 255, 0.75); }
+.ideditor .purple  { color: rgba(153, 85, 255, 0.75); }
 
 .ideditor .debug-legend {
     position: absolute;
@@ -9417,9 +9577,12 @@ hide this one and style something on top of it.  */
         -ms-flex-align: end;
             align-items: flex-end;
     z-index: 0;
+    pointer-events: none;
 }
 
-.ideditor .attribution-wrap * { pointer-events: all; }
+.ideditor .attribution-wrap > * {
+    pointer-events: auto;
+}
 
 .ideditor .attribution-wrap .base-layer-attribution,
 .ideditor .attribution-wrap .overlay-layer-attribution {
@@ -9705,11 +9868,11 @@ hide this one and style something on top of it.  */
 .ideditor .badge .icon {
     vertical-align: baseline;
     width: 11px;
-    height: 11px;
     color: #fff;
     -webkit-box-flex: 0;
         -ms-flex: 0 0 auto;
             flex: 0 0 auto;
+    margin-bottom: 2px;
 }
 
 /* For text (e.g. upcoming events) */
@@ -10465,6 +10628,7 @@ hide this one and style something on top of it.  */
 ------------------------------------------------------- */
 .ideditor .edit-menu {
     position: absolute;
+    z-index: 999;
     display: -webkit-box;
     display: -ms-flexbox;
     display: flex;
