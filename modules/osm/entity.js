@@ -164,6 +164,9 @@ osmEntity.prototype = {
                     // it's quite common to merge lights and topmarks onto other types, so we prefer the non-light non-topmark tag
                     if (t2 && (t1 === 'topmark' || t1 === 'light_minor')) merged[k] = t2;
                     if (t1 && (t2 === 'topmark' || t2 === 'light_minor')) merged[k] = t1;
+                } else if (k === 'man_made' && ([t1, t2].sort().join("-") === "mast-tower")) {
+                    // when merging a mast and a tower, tag it as a tower
+                    merged.man_made = "tower";
                 } else {
                 merged[k] = utilUnicodeCharsTruncated(
                     utilArrayUnion(t1.split(/;\s*/), t2.split(/;\s*/)).join(';'),
