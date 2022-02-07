@@ -3727,7 +3727,7 @@
       "imports": []
     },
     "modules/core/custom/customDiscarded.json": {
-      "bytes": 326,
+      "bytes": 440,
       "imports": []
     },
     "modules/core/custom/customPresets.json": {
@@ -20971,7 +20971,7 @@
       "imports": [],
       "exports": [],
       "inputs": {},
-      "bytes": 5267211
+      "bytes": 5267221
     },
     "dist/iD.js": {
       "imports": [],
@@ -21738,7 +21738,7 @@
           "bytesInOutput": 512
         },
         "modules/core/custom/customDiscarded.json": {
-          "bytesInOutput": 820
+          "bytesInOutput": 1069
         },
         "modules/core/custom/customPresets.json": {
           "bytesInOutput": 9406
@@ -23448,7 +23448,7 @@
           "bytesInOutput": 472
         }
       },
-      "bytes": 3542972
+      "bytes": 3543221
     }
   }
 }

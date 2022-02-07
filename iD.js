@@ -21667,6 +21667,11 @@
   var linz_garmin_road_class = true;
   var linz_sufi = true;
   var linz_RoadID = true;
+  var womo = true;
+  var womo_capacity = true;
+  var womo_fee = true;
+  var womo_name = true;
+  var womo_nz_nr = true;
   var customDiscarded_default = {
     "linz2osm:objectid": linz2osm_objectid,
     "LINZ2OSM:dataset": LINZ2OSM_dataset,
@@ -21678,7 +21683,12 @@
     "linz:garmin_type": linz_garmin_type,
     "linz:garmin_road_class": linz_garmin_road_class,
     "linz:sufi": linz_sufi,
-    "linz:RoadID": linz_RoadID
+    "linz:RoadID": linz_RoadID,
+    womo,
+    "womo:capacity": womo_capacity,
+    "womo:fee": womo_fee,
+    "womo:name": womo_name,
+    "womo:nz:nr": womo_nz_nr
   };
 
   // modules/core/custom/customPresets.json

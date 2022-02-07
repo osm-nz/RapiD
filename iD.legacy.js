@@ -23240,7 +23240,12 @@
     "linz:garmin_type": true,
     "linz:garmin_road_class": true,
     "linz:sufi": true,
-    "linz:RoadID": true
+    "linz:RoadID": true,
+    womo: true,
+    "womo:capacity": true,
+    "womo:fee": true,
+    "womo:name": true,
+    "womo:nz:nr": true
   };
   var preset_presets = {
     "amenity/marae": {
