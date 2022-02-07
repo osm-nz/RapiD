@@ -21250,6 +21250,8 @@
               merged[k] = t2;
             if (t1 && (t2 === "topmark" || t2 === "light_minor"))
               merged[k] = t1;
+          } else if (k === "man_made" && [t1, t2].sort().join("-") === "mast-tower") {
+            merged.man_made = "tower";
           } else {
             merged[k] = utilUnicodeCharsTruncated(utilArrayUnion(t1.split(/;\s*/), t2.split(/;\s*/)).join(";"), 255);
           }

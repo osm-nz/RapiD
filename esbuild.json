@@ -3529,7 +3529,7 @@
       ]
     },
     "modules/osm/entity.js": {
-      "bytes": 7961,
+      "bytes": 8177,
       "imports": [
         {
           "path": "node_modules/@id-sdk/util/built/util.mjs",
@@ -20971,7 +20971,7 @@
       "imports": [],
       "exports": [],
       "inputs": {},
-      "bytes": 5266913
+      "bytes": 5267211
     },
     "dist/iD.js": {
       "imports": [],
@@ -21723,7 +21723,7 @@
           "bytesInOutput": 4214
         },
         "modules/osm/entity.js": {
-          "bytesInOutput": 6479
+          "bytesInOutput": 6605
         },
         "modules/osm/lanes.js": {
           "bytesInOutput": 6994
@@ -23448,7 +23448,7 @@
           "bytesInOutput": 472
         }
       },
-      "bytes": 3542846
+      "bytes": 3542972
     }
   }
 }
