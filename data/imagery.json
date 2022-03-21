@@ -53804,7 +53804,7 @@
     "id": "linz-53382-roads-overlay",
     "name": "LINZ Roads",
     "type": "tms",
-    "template": "https://tiles-a.koordinates.com/services;key=2225d0a163fd4414ba5e8f3596b96608/tiles/v4/layer=53382,style=auto,color=ff0000/{z}/{x}/{y}.png",
+    "template": "https://tiles-a.koordinates.com/services;key=093985d9d2fc46beb30a753cb98ee982/tiles/v4/layer=53382,style=auto,color=ff0000/{z}/{x}/{y}.png",
     "zoomExtent": [0, 21],
     "polygon": [
       [
@@ -53896,7 +53896,7 @@
     "id": "linz-53353-addresses-overlay",
     "name": "LINZ Addresses",
     "type": "tms",
-    "template": "https://tiles-a.koordinates.com/services;key=2225d0a163fd4414ba5e8f3596b96608/tiles/v4/layer=53353,style=auto,color=003399/{z}/{x}/{y}.png",
+    "template": "https://tiles-a.koordinates.com/services;key=093985d9d2fc46beb30a753cb98ee982/tiles/v4/layer=53353,style=auto,color=003399/{z}/{x}/{y}.png",
     "zoomExtent": [0, 21],
     "polygon": [
       [
@@ -53988,7 +53988,7 @@
     "id": "linz-50772-parcels-overlay",
     "name": "LINZ Primary Parcels",
     "type": "tms",
-    "template": "https://tiles-b.koordinates.com/services;key=2225d0a163fd4414ba5e8f3596b96608/tiles/v4/layer=50772,style=auto,color=009933/{z}/{x}/{y}.png",
+    "template": "https://tiles-b.koordinates.com/services;key=093985d9d2fc46beb30a753cb98ee982/tiles/v4/layer=50772,style=auto,color=009933/{z}/{x}/{y}.png",
     "zoomExtent": [0, 21],
     "polygon": [
       [
