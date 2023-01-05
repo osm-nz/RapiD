@@ -23470,6 +23470,14 @@
     }
   };
   var preset_fields = {
+    "NZGB Place ID": {
+      key: "ref:linz:place_id",
+      type: "identifier",
+      label: "NZGB Place ID",
+      urlFormat: "http://gazetteer.linz.govt.nz/place/{value}",
+      pattern: "^[0-9;]{1,}$",
+      universal: true
+    },
     "seamark/topmark/colour": {
       key: "seamark:topmark:colour",
       type: "combo",

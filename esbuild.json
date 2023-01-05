@@ -3735,7 +3735,7 @@
       "imports": []
     },
     "modules/core/custom/customFields.json": {
-      "bytes": 28920,
+      "bytes": 29179,
       "imports": []
     },
     "modules/core/custom/index.js": {
@@ -20971,7 +20971,7 @@
       "imports": [],
       "exports": [],
       "inputs": {},
-      "bytes": 5267221
+      "bytes": 5267230
     },
     "dist/iD.js": {
       "imports": [],
@@ -21744,7 +21744,7 @@
           "bytesInOutput": 9406
         },
         "modules/core/custom/customFields.json": {
-          "bytesInOutput": 25449
+          "bytesInOutput": 25707
         },
         "modules/core/custom/index.js": {
           "bytesInOutput": 191
@@ -23448,7 +23448,7 @@
           "bytesInOutput": 472
         }
       },
-      "bytes": 3543221
+      "bytes": 3543479
     }
   }
 }

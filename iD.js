@@ -22044,6 +22044,14 @@
   };
 
   // modules/core/custom/customFields.json
+  var NZGB_Place_ID = {
+    key: "ref:linz:place_id",
+    type: "identifier",
+    label: "NZGB Place ID",
+    urlFormat: "http://gazetteer.linz.govt.nz/place/{value}",
+    pattern: "^[0-9;]{1,}$",
+    universal: true
+  };
   var seamark_topmark_colour = {
     key: "seamark:topmark:colour",
     type: "combo",
@@ -22796,6 +22804,7 @@
     }
   };
   var customFields_default = {
+    "NZGB Place ID": NZGB_Place_ID,
     "seamark/topmark/colour": seamark_topmark_colour,
     "seamark/topmark/shape": seamark_topmark_shape,
     "historic/wreck/type": historic_wreck_type,
