@@ -125,7 +125,7 @@
   },
   "type": "module",
   "engines": {
-    "node": "^12.20.0 || ^14.13.1 || >=16.0.0"
+    "node": "16.13.2"
   },
   "browserslist": [
     "> 0.2%, last 6 major versions, Firefox ESR, IE 11, maintained node versions"

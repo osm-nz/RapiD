@@ -236,7 +236,6 @@ function writeFaIcons(faIcons) {
       fs.writeFileSync(`svg/fontawesome/${key}.svg`, fontawesome.icon(def).html.toString());
     } catch (error) {
       console.error(`Error: No FontAwesome icon for ${key}`);
-      throw (error);
     }
   });
 }
