@@ -73183,7 +73183,7 @@
       var _getNext = getNext(), next = _getNext.next, zoom = _getNext.zoom;
       if (!next)
         return;
-      context.map().centerZoomEase(next.geo, Math.max(zoom, 18), 0);
+      context.map().centerZoomEase(next.geo, Math.max(zoom, 16), 0);
       context.selectedNoteID(null).selectedErrorID(null).enter(modeRapidSelectFeatures(context, next.feat));
     }
     function redraw(selection2) {
