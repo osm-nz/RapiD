@@ -67,7 +67,7 @@ export function uiPanelProgress(context) {
         const { next, zoom } = getNext();
         if (!next) return;
 
-        context.map().centerZoomEase(next.geo, /* zoom */ Math.max(zoom, 18), /* transition time */ 0);
+        context.map().centerZoomEase(next.geo, /* zoom */ Math.max(zoom, 16), /* transition time */ 0);
 
         // select the RapiD feature to open the sidebar
         context
