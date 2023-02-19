@@ -4422,7 +4422,7 @@
       ]
     },
     "modules/actions/discard_tags.js": {
-      "bytes": 2552,
+      "bytes": 3072,
       "imports": []
     },
     "modules/actions/disconnect.js": {
@@ -20971,7 +20971,7 @@
       "imports": [],
       "exports": [],
       "inputs": {},
-      "bytes": 5267230
+      "bytes": 5267983
     },
     "dist/iD.js": {
       "imports": [],
@@ -21852,7 +21852,7 @@
           "bytesInOutput": 332
         },
         "modules/actions/discard_tags.js": {
-          "bytesInOutput": 2435
+          "bytesInOutput": 2922
         },
         "modules/actions/disconnect.js": {
           "bytesInOutput": 3248
@@ -23448,7 +23448,7 @@
           "bytesInOutput": 472
         }
       },
-      "bytes": 3543479
+      "bytes": 3543966
     }
   }
 }

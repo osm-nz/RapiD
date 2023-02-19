@@ -27405,6 +27405,17 @@
       "http://www.linz.govt.nz/topography/topo-maps/index.aspx": "LINZ",
       "http://www.linz.govt.nz/about-linz/linz-data-service/dataset-information": "LINZ",
       "http://www.stats.govt.nz/browse_for_stats/people_and_communities/Geographic-areas/digital-boundary-files.aspx": "Statistics NZ"
+    },
+    source: {
+      "LINZ & NZ Open GIS": "LINZ",
+      "LINZ;NZ Open GIS": "LINZ",
+      "LINZ/NZOGPS": "LINZ",
+      "LINZ_NZ_Topo50_Gridless_Maps": "LINZ",
+      "Sourced from the LINZ Data Service and licensed for reuse under CC BY 4.0": "LINZ"
+    },
+    "source:ele": {
+      "LINZ Topo50": "LINZ",
+      "Topo50 gridless": "LINZ"
     }
   };
   var json = {
@@ -27445,7 +27456,8 @@
             tags[k] = entity.tags[k];
           }
         }
-        if (didDiscardLinz) {
+        const anyLinzRefTags = tags["ref:linz:topo50_id"] || tags["ref:linz:place_id"] || tags["ref:linz:hydrographic_id"];
+        if (didDiscardLinz && !anyLinzRefTags) {
           if (tags.source) {
             tags.source = [...new Set([didDiscardLinz, ...tags.source.split(";")])].join(";");
           } else {
