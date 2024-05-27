@@ -69689,8 +69689,7 @@
   }
   var oauth = osmAuth({
     url: urlroot,
-    client_id: "DEuM2edgMLAzCSEGZpCbY-JuseBe2MoMD948b20ZE98",
-    client_secret: "TDHDqrE9CRkblkEyzKPBHNvWqf9jhm7AREKg2IDolVo",
+    client_id: window.location.hostname === "127.0.0.1" ? "oPbyNuXQIEh8ZI3zbjVWVmVyIaNB2guU6uLP2gQ3sfs" : "ZkRBVnOoBeMgwSajgG7E2bhgP5bR61knGYxsh9KKaHc",
     scope: "read_prefs write_prefs write_api read_gpx write_notes",
     redirect_uri: redirectPath + "land.html",
     loading: authLoading,
