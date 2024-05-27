@@ -61934,7 +61934,7 @@
       const { next, zoom } = getNext();
       if (!next)
         return;
-      context.map().centerZoomEase(next.geo, Math.max(zoom, 16), 0);
+      context.map().centerZoomEase(next.geo, Math.max(zoom, context.minEditableZoom()), 0);
       context.selectedNoteID(null).selectedErrorID(null).enter(modeRapidSelectFeatures(context, next.feat));
     }
     function redraw(selection2) {
@@ -65226,7 +65226,7 @@
         }
       });
     };
-    let _minEditableZoom = 16;
+    let _minEditableZoom = localStorage.allowEditAtLowZoom ? 14 : 16;
     context.minEditableZoom = function(val) {
       if (!arguments.length)
         return _minEditableZoom;

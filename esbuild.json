@@ -15270,7 +15270,7 @@
       ]
     },
     "modules/ui/panels/progress.js": {
-      "bytes": 3764,
+      "bytes": 3787,
       "imports": [
         {
           "path": "modules/core/localizer.js",
@@ -16484,7 +16484,7 @@
       ]
     },
     "modules/core/context.js": {
-      "bytes": 17306,
+      "bytes": 17345,
       "imports": [
         {
           "path": "node_modules/d3-dispatch/src/index.js",
@@ -20820,7 +20820,7 @@
       "imports": [],
       "exports": [],
       "inputs": {},
-      "bytes": 5123100
+      "bytes": 5123185
     },
     "dist/iD.js": {
       "imports": [],
@@ -22997,7 +22997,7 @@
           "bytesInOutput": 2537
         },
         "modules/ui/panels/progress.js": {
-          "bytesInOutput": 2735
+          "bytesInOutput": 2758
         },
         "modules/ui/info.js": {
           "bytesInOutput": 3253
@@ -23108,7 +23108,7 @@
           "bytesInOutput": 14180
         },
         "modules/core/context.js": {
-          "bytesInOutput": 14569
+          "bytesInOutput": 14608
         },
         "modules/core/index.js": {
           "bytesInOutput": 0
@@ -23252,7 +23252,7 @@
           "bytesInOutput": 472
         }
       },
-      "bytes": 3456747
+      "bytes": 3456809
     }
   }
 }
