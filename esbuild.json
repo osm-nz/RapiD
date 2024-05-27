@@ -17085,7 +17085,7 @@
       "imports": []
     },
     "modules/services/osm.js": {
-      "bytes": 47083,
+      "bytes": 47024,
       "imports": [
         {
           "path": "node_modules/d3-dispatch/src/index.js",
@@ -20820,7 +20820,7 @@
       "imports": [],
       "exports": [],
       "inputs": {},
-      "bytes": 5123191
+      "bytes": 5123100
     },
     "dist/iD.js": {
       "imports": [],
@@ -23165,7 +23165,7 @@
           "bytesInOutput": 11358
         },
         "modules/services/osm.js": {
-          "bytesInOutput": 37836
+          "bytesInOutput": 37775
         },
         "modules/services/osm_wikibase.js": {
           "bytesInOutput": 8422
@@ -23252,7 +23252,7 @@
           "bytesInOutput": 472
         }
       },
-      "bytes": 3456808
+      "bytes": 3456747
     }
   }
 }

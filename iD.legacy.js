@@ -78945,7 +78945,6 @@
   var tiler8 = new Tiler();
   var dispatch9 = dispatch_default("apiStatusChange", "authLoading", "authDone", "change", "loading", "loaded", "loadedNotes");
   var urlroot = "https://www.openstreetmap.org";
-  var redirectPath = window.location.origin + window.location.pathname;
   var q = utilStringQs(window.location.hash);
   var credentialsMode = "omit";
   if (q.hasOwnProperty("osm_api_url")) {
@@ -78956,7 +78955,7 @@
     url: urlroot,
     client_id: window.location.hostname === "127.0.0.1" ? "oPbyNuXQIEh8ZI3zbjVWVmVyIaNB2guU6uLP2gQ3sfs" : "ZkRBVnOoBeMgwSajgG7E2bhgP5bR61knGYxsh9KKaHc",
     scope: "read_prefs write_prefs write_api read_gpx write_notes",
-    redirect_uri: redirectPath + "land.html",
+    redirect_uri: window.location.origin + "/land.html",
     loading: authLoading,
     done: authDone
   });
