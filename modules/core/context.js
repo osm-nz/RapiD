@@ -214,7 +214,7 @@ export function coreContext() {
     });
   };
 
-  let _minEditableZoom = 16;
+  let _minEditableZoom = localStorage.allowEditAtLowZoom ? 14 : 16;
   context.minEditableZoom = function(val) {
     if (!arguments.length) return _minEditableZoom;
     _minEditableZoom = val;
