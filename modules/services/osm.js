@@ -1,9 +1,9 @@
 import { dispatch as d3_dispatch } from 'd3-dispatch';
 import { json as d3_json, xml as d3_xml } from 'd3-fetch';
 import { Extent, Projection, Tiler, geoZoomToScale, vecAdd } from '@id-sdk/math';
-import { utilArrayChunk, utilArrayGroupBy, utilArrayUniq, utilQsString, utilStringQs } from '@id-sdk/util';
+import { utilArrayChunk, utilArrayGroupBy, utilArrayUniq, utilObjectOmit, utilQsString, utilStringQs } from '@id-sdk/util';
 import _throttle from 'lodash-es/throttle';
-import osmAuth from 'osm-auth';
+import { osmAuth } from 'osm-auth';
 import RBush from 'rbush';
 
 import { JXON } from '../util/jxon';
@@ -22,8 +22,11 @@ if (q.hasOwnProperty('osm_api_url')) {
 }
 var oauth = osmAuth({
     url: urlroot,
-    oauth_consumer_key: 'MlAcABGGdqadlgrjpmG6qSQu3bwbAgxC7hW0vRwm',
-    oauth_secret: 'M0g3lCJTvpnwMic0HYYwwTMpVvugNRlkycQL7so5',
+    client_id: window.location.hostname === '127.0.0.1'
+        ? 'oPbyNuXQIEh8ZI3zbjVWVmVyIaNB2guU6uLP2gQ3sfs'
+        : 'ZkRBVnOoBeMgwSajgG7E2bhgP5bR61knGYxsh9KKaHc',
+    scope: 'read_prefs write_prefs write_api read_gpx write_notes',
+    redirect_uri: window.location.origin + '/land.html',
     loading: authLoading,
     done: authDone
 });
@@ -792,7 +795,7 @@ export default {
             var options = {
                 method: 'PUT',
                 path: '/api/0.6/changeset/create',
-                options: { header: { 'Content-Type': 'text/xml' } },
+                headers: { 'Content-Type': 'text/xml' },
                 content: JXON.stringify(changeset.asJXON())
             };
             _changeset.inflight = oauth.xhr(
@@ -813,7 +816,7 @@ export default {
             var options = {
                 method: 'POST',
                 path: '/api/0.6/changeset/' + changesetID + '/upload',
-                options: { header: { 'Content-Type': 'text/xml' } },
+                headers: { 'Content-Type': 'text/xml' },
                 content: JXON.stringify(changeset.osmChangeJXON(changes))
             };
             _changeset.inflight = oauth.xhr(
@@ -839,7 +842,7 @@ export default {
                 oauth.xhr({
                     method: 'PUT',
                     path: '/api/0.6/changeset/' + changeset.id + '/close',
-                    options: { header: { 'Content-Type': 'text/xml' } }
+                    headers: { 'Content-Type': 'text/xml' }
                 }, function() { return true; });
             }
         }
@@ -1275,15 +1278,17 @@ export default {
         }
     },
 
+    getUrlRoot: function() {
+        return urlroot;
+    },
 
-    switch: function(options) {
-        urlroot = options.urlroot;
+    switch: function(newOptions) {
+        urlroot = newOptions.url;
 
-        oauth.options(Object.assign({
-            url: urlroot,
-            loading: authLoading,
-            done: authDone
-        }, options));
+        // Copy the existing options, but omit 'access_token'.
+        // (if we did preauth, access_token won't work on a different server)
+        var oldOptions = utilObjectOmit(oauth.options(), 'access_token');
+        oauth.options(Object.assign(oldOptions, newOptions));
 
         this.reset();
         this.userChangesets(function() {});  // eagerly load user details/changesets
@@ -1393,7 +1398,7 @@ export default {
             that.userChangesets(function() {});  // eagerly load user details/changesets
         }
 
-        return oauth.authenticate(done);
+        oauth.authenticate(done);
     },
 
 

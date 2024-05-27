@@ -47,13 +47,14 @@
             .assetPath('dist/')
             .apiConnections([
               {
-                'urlroot': 'https://www.openstreetmap.org',
-                'oauth_consumer_key': '5A043yRSEugj4DJ5TljuapfnrflWDte8jTOcWLlT',
-                'oauth_secret': 'aB3jKq1TRsCOUrfOIZ6oQMEDmv2ptV76PA54NGLL'
+                url: 'https://www.openstreetmap.org',
+                client_id: window.location.hostname === '127.0.0.1'
+                    ? 'oPbyNuXQIEh8ZI3zbjVWVmVyIaNB2guU6uLP2gQ3sfs'
+                    : 'ZkRBVnOoBeMgwSajgG7E2bhgP5bR61knGYxsh9KKaHc',
               }, {
-                'urlroot': 'https://api06.dev.openstreetmap.org',
-                'oauth_consumer_key': 'zwQZFivccHkLs3a8Rq5CoS412fE5aPCXDw9DZj7R',
-                'oauth_secret': 'aMnOOCwExO2XYtRVWJ1bI9QOdqh1cay2UgpbhA6p'
+                url: 'https://api06.dev.openstreetmap.org',
+                client_id: '4PEI2oq4LkV-3DsYLqVwfuONhww3HIUtRwRYT6JqbT8',
+                client_secret: 'Gjjv9jkw9mvoftQmNIu0X1YvN--6QWzTQdXjQtlS2Yw'
               }
             ])
             .containerNode(container);
