@@ -6766,10 +6766,10 @@
       init_slicedToArray();
       init_typeof();
       var import_regenerator4 = __toModule(require_regenerator());
-      function _createForOfIteratorHelper7(o2, allowArrayLike) {
+      function _createForOfIteratorHelper8(o2, allowArrayLike) {
         var it = typeof Symbol !== "undefined" && o2[Symbol.iterator] || o2["@@iterator"];
         if (!it) {
-          if (Array.isArray(o2) || (it = _unsupportedIterableToArray8(o2)) || allowArrayLike && o2 && typeof o2.length === "number") {
+          if (Array.isArray(o2) || (it = _unsupportedIterableToArray9(o2)) || allowArrayLike && o2 && typeof o2.length === "number") {
             if (it)
               o2 = it;
             var i2 = 0;
@@ -6805,20 +6805,20 @@
           }
         } };
       }
-      function _unsupportedIterableToArray8(o2, minLen) {
+      function _unsupportedIterableToArray9(o2, minLen) {
         if (!o2)
           return;
         if (typeof o2 === "string")
-          return _arrayLikeToArray8(o2, minLen);
+          return _arrayLikeToArray9(o2, minLen);
         var n2 = Object.prototype.toString.call(o2).slice(8, -1);
         if (n2 === "Object" && o2.constructor)
           n2 = o2.constructor.name;
         if (n2 === "Map" || n2 === "Set")
           return Array.from(o2);
         if (n2 === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n2))
-          return _arrayLikeToArray8(o2, minLen);
+          return _arrayLikeToArray9(o2, minLen);
       }
-      function _arrayLikeToArray8(arr, len) {
+      function _arrayLikeToArray9(arr, len) {
         if (len == null || len > arr.length)
           len = arr.length;
         for (var i2 = 0, arr2 = new Array(len); i2 < len; i2++) {
@@ -7036,7 +7036,7 @@
         var u = [["heartRate", "heartRates"], ["Cadence", "cadences"], ["Speed", "speeds"], ["Watts", "watts"]], m = [["TotalTimeSeconds", "totalTimeSeconds"], ["DistanceMeters", "distanceMeters"], ["MaximumSpeed", "maxSpeed"], ["AverageHeartRateBpm", "avgHeartRate"], ["MaximumHeartRateBpm", "maxHeartRate"], ["AvgSpeed", "avgSpeed"], ["AvgWatts", "avgWatts"], ["MaxWatts", "maxWatts"]];
         function p2(e4, o3) {
           var s2 = [];
-          var _iterator = _createForOfIteratorHelper7(o3), _step;
+          var _iterator = _createForOfIteratorHelper8(o3), _step;
           try {
             for (_iterator.s(); !(_step = _iterator.n()).done; ) {
               var _step$value = _slicedToArray(_step.value, 2), _r3 = _step$value[0], _i5 = _step$value[1];
@@ -7079,7 +7079,7 @@
             var _t6 = h(n3[_e10]);
             if (_t6 !== null) {
               o3.push(_t6.coordinates), _t6.time && s2.push(_t6.time), _t6.heartRate && r2.push(_t6.heartRate);
-              var _iterator2 = _createForOfIteratorHelper7(_t6.extensions), _step2;
+              var _iterator2 = _createForOfIteratorHelper8(_t6.extensions), _step2;
               try {
                 for (_iterator2.s(); !(_step2 = _iterator2.n()).done; ) {
                   var _step2$value = _slicedToArray(_step2.value, 2), _o5 = _step2$value[0], _s4 = _step2$value[1];
@@ -7103,7 +7103,7 @@
           var a2;
           var c3 = function(e6) {
             var t2 = {};
-            var _iterator3 = _createForOfIteratorHelper7(e6), _step3;
+            var _iterator3 = _createForOfIteratorHelper8(e6), _step3;
             try {
               for (_iterator3.s(); !(_step3 = _iterator3.n()).done; ) {
                 var _step3$value = _slicedToArray(_step3.value, 2), _n4 = _step3$value[0], _o6 = _step3$value[1];
@@ -7776,20 +7776,20 @@
             _defineProperties2(Constructor, staticProps);
           return Constructor;
         }
-        function _unsupportedIterableToArray8(o2, minLen) {
+        function _unsupportedIterableToArray9(o2, minLen) {
           if (!o2)
             return;
           if (typeof o2 === "string")
-            return _arrayLikeToArray8(o2, minLen);
+            return _arrayLikeToArray9(o2, minLen);
           var n2 = Object.prototype.toString.call(o2).slice(8, -1);
           if (n2 === "Object" && o2.constructor)
             n2 = o2.constructor.name;
           if (n2 === "Map" || n2 === "Set")
             return Array.from(o2);
           if (n2 === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n2))
-            return _arrayLikeToArray8(o2, minLen);
+            return _arrayLikeToArray9(o2, minLen);
         }
-        function _arrayLikeToArray8(arr, len) {
+        function _arrayLikeToArray9(arr, len) {
           if (len == null || len > arr.length)
             len = arr.length;
           for (var i2 = 0, arr2 = new Array(len); i2 < len; i2++) {
@@ -7801,7 +7801,7 @@
           var it = typeof Symbol !== "undefined" && o2[Symbol.iterator] || o2["@@iterator"];
           if (it)
             return (it = it.call(o2)).next.bind(it);
-          if (Array.isArray(o2) || (it = _unsupportedIterableToArray8(o2)) || allowArrayLike && o2 && typeof o2.length === "number") {
+          if (Array.isArray(o2) || (it = _unsupportedIterableToArray9(o2)) || allowArrayLike && o2 && typeof o2.length === "number") {
             if (it)
               o2 = it;
             var i2 = 0;
@@ -31441,6 +31441,66 @@
   }
 
   // modules/osm/node.js
+  function _createForOfIteratorHelper6(o2, allowArrayLike) {
+    var it = typeof Symbol !== "undefined" && o2[Symbol.iterator] || o2["@@iterator"];
+    if (!it) {
+      if (Array.isArray(o2) || (it = _unsupportedIterableToArray7(o2)) || allowArrayLike && o2 && typeof o2.length === "number") {
+        if (it)
+          o2 = it;
+        var i2 = 0;
+        var F = function F2() {
+        };
+        return { s: F, n: function n2() {
+          if (i2 >= o2.length)
+            return { done: true };
+          return { done: false, value: o2[i2++] };
+        }, e: function e3(_e) {
+          throw _e;
+        }, f: F };
+      }
+      throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
+    }
+    var normalCompletion = true, didErr = false, err;
+    return { s: function s() {
+      it = it.call(o2);
+    }, n: function n2() {
+      var step = it.next();
+      normalCompletion = step.done;
+      return step;
+    }, e: function e3(_e2) {
+      didErr = true;
+      err = _e2;
+    }, f: function f2() {
+      try {
+        if (!normalCompletion && it.return != null)
+          it.return();
+      } finally {
+        if (didErr)
+          throw err;
+      }
+    } };
+  }
+  function _unsupportedIterableToArray7(o2, minLen) {
+    if (!o2)
+      return;
+    if (typeof o2 === "string")
+      return _arrayLikeToArray7(o2, minLen);
+    var n2 = Object.prototype.toString.call(o2).slice(8, -1);
+    if (n2 === "Object" && o2.constructor)
+      n2 = o2.constructor.name;
+    if (n2 === "Map" || n2 === "Set")
+      return Array.from(o2);
+    if (n2 === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n2))
+      return _arrayLikeToArray7(o2, minLen);
+  }
+  function _arrayLikeToArray7(arr, len) {
+    if (len == null || len > arr.length)
+      len = arr.length;
+    for (var i2 = 0, arr2 = new Array(len); i2 < len; i2++) {
+      arr2[i2] = arr[i2];
+    }
+    return arr2;
+  }
   function osmNode() {
     if (!(this instanceof osmNode)) {
       return new osmNode().initialize(arguments);
@@ -31450,6 +31510,7 @@
   }
   osmEntity.node = osmNode;
   osmNode.prototype = Object.create(osmEntity.prototype);
+  var SIDES = new Set(["left", "right", "both"]);
   Object.assign(osmNode.prototype, {
     type: "node",
     loc: [9999, 9999],
@@ -31470,12 +31531,23 @@
       return !(Array.isArray(this.loc) && this.loc.length === 2 && this.loc[0] >= -180 && this.loc[0] <= 180 && this.loc[1] >= -90 && this.loc[1] <= 90);
     },
     directions: function directions(resolver, projection2) {
-      var val;
+      var _this = this;
+      var rawValues = [];
       var i2;
       if (this.isHighwayIntersection(resolver) && (this.tags.stop || "").toLowerCase() === "all") {
-        val = "all";
+        rawValues.push({
+          type: "direction",
+          value: "all"
+        });
       } else {
-        val = (this.tags.direction || "").toLowerCase();
+        var _this$tags$side;
+        if (SIDES.has((_this$tags$side = this.tags.side) === null || _this$tags$side === void 0 ? void 0 : _this$tags$side.toLowerCase())) {
+          rawValues.push({
+            type: "side",
+            value: this.tags.side.toLowerCase()
+          });
+        }
+        var val = (this.tags.direction || "").toLowerCase();
         var re2 = /:direction$/i;
         var keys3 = Object.keys(this.tags);
         for (i2 = 0; i2 < keys3.length; i2++) {
@@ -31484,8 +31556,22 @@
             break;
           }
         }
+        var _iterator = _createForOfIteratorHelper6(val.split(";")), _step;
+        try {
+          for (_iterator.s(); !(_step = _iterator.n()).done; ) {
+            var value2 = _step.value;
+            rawValues.push({
+              type: "direction",
+              value: value2
+            });
+          }
+        } catch (err) {
+          _iterator.e(err);
+        } finally {
+          _iterator.f();
+        }
       }
-      if (val === "")
+      if (!rawValues.length)
         return [];
       var cardinal = {
         north: 0,
@@ -31521,22 +31607,26 @@
         northnorthwest: 337,
         nnw: 337
       };
-      var values2 = val.split(";");
       var results = [];
-      values2.forEach(function(v) {
+      rawValues.forEach(function(_ref) {
+        var type3 = _ref.type, v = _ref.value;
         if (cardinal[v] !== void 0) {
           v = cardinal[v];
         }
         if (v !== "" && !isNaN(+v)) {
-          results.push(+v);
+          results.push({
+            type: "direction",
+            angle: +v
+          });
           return;
         }
-        var lookBackward = this.tags["traffic_sign:backward"] || v === "backward" || v === "both" || v === "all";
-        var lookForward = this.tags["traffic_sign:forward"] || v === "forward" || v === "both" || v === "all";
+        var isSide = type3 === "side" && SIDES.has(v);
+        var lookBackward = _this.tags["traffic_sign:backward"] || v === (isSide ? "left" : "backward") || v === "both" || v === "all";
+        var lookForward = _this.tags["traffic_sign:forward"] || v === (isSide ? "right" : "forward") || v === "both" || v === "all";
         if (!lookForward && !lookBackward)
           return;
         var nodeIds = {};
-        resolver.parentWays(this).forEach(function(parent2) {
+        resolver.parentWays(_this).forEach(function(parent2) {
           var nodes = parent2.nodes;
           for (i2 = 0; i2 < nodes.length; i2++) {
             if (nodes[i2] === this.id) {
@@ -31548,14 +31638,19 @@
               }
             }
           }
-        }, this);
+        }, _this);
         Object.keys(nodeIds).forEach(function(nodeId) {
           var a = projection2(this.loc);
           var b2 = projection2(resolver.entity(nodeId).loc);
-          results.push(vecAngle(a, b2) * 180 / Math.PI + 90);
-        }, this);
+          results.push({
+            type: isSide ? "side" : "direction",
+            angle: vecAngle(a, b2) * 180 / Math.PI + (isSide ? 0 : 90)
+          });
+        }, _this);
       }, this);
-      return utilArrayUniq(results);
+      return utilArrayUniqBy(results, function(item) {
+        return item.type + item.angle;
+      });
     },
     isCrossing: function isCrossing() {
       return this.tags.highway === "crossing" || this.tags.railway && this.tags.railway.indexOf("crossing") !== -1;
@@ -47836,6 +47931,8 @@
       addSidedMarker("man_made", "#fff", 0);
       _defsSelection.append("marker").attr("id", "ideditor-viewfield-marker").attr("viewBox", "0 0 16 16").attr("refX", 8).attr("refY", 16).attr("markerWidth", 4).attr("markerHeight", 4).attr("markerUnits", "strokeWidth").attr("orient", "auto").append("path").attr("class", "viewfield-marker-path").attr("d", "M 6,14 C 8,13.4 8,13.4 10,14 L 16,3 C 12,0 4,0 0,3 z").attr("fill", "#333").attr("fill-opacity", "0.75").attr("stroke", "#fff").attr("stroke-width", "0.5px").attr("stroke-opacity", "0.75");
       _defsSelection.append("marker").attr("id", "ideditor-viewfield-marker-wireframe").attr("viewBox", "0 0 16 16").attr("refX", 8).attr("refY", 16).attr("markerWidth", 4).attr("markerHeight", 4).attr("markerUnits", "strokeWidth").attr("orient", "auto").append("path").attr("class", "viewfield-marker-path").attr("d", "M 6,14 C 8,13.4 8,13.4 10,14 L 16,3 C 12,0 4,0 0,3 z").attr("fill", "none").attr("stroke", "#fff").attr("stroke-width", "0.5px").attr("stroke-opacity", "0.75");
+      _defsSelection.append("marker").attr("id", "ideditor-viewfield-marker-side").attr("viewBox", "0 0 16 16").attr("refX", 8).attr("refY", 16).attr("markerWidth", 4).attr("markerHeight", 4).attr("markerUnits", "strokeWidth").attr("orient", "auto").append("path").attr("class", "viewfield-marker-path").attr("d", "M 6 14 C 8 13.4 8 13.4 10 14 L 14 7 L 14 5 L 2 5 L 2 7 Z").attr("fill", "#333").attr("fill-opacity", "0.75").attr("stroke", "#fff").attr("stroke-width", "0.5px").attr("stroke-opacity", "0.75");
+      _defsSelection.append("marker").attr("id", "ideditor-viewfield-marker-side-wireframe").attr("viewBox", "0 0 16 16").attr("refX", 8).attr("refY", 16).attr("markerWidth", 4).attr("markerHeight", 4).attr("markerUnits", "strokeWidth").attr("orient", "auto").append("path").attr("class", "viewfield-marker-path").attr("d", "M 6 14 C 8 13.4 8 13.4 10 14 L 14 7 L 14 5 L 2 5 L 2 7 Z").attr("fill", "none").attr("stroke", "#fff").attr("stroke-width", "0.5px").attr("stroke-opacity", "0.75");
       var patterns2 = _defsSelection.selectAll("pattern").data([
         ["beach", "dots"],
         ["construction", "construction"],
@@ -52803,8 +52900,10 @@
         return osmEntity.key(d);
       });
       viewfields.exit().remove();
-      viewfields.enter().append("path").attr("class", "viewfield").attr("d", "M0,0H0").merge(viewfields).attr("marker-start", "url(#ideditor-viewfield-marker" + (wireframe ? "-wireframe" : "") + ")").attr("transform", function(d) {
-        return "rotate(" + d + ")";
+      viewfields.enter().append("path").attr("class", "viewfield").attr("d", "M0,0H0").merge(viewfields).attr("marker-start", function(d) {
+        return "url(#ideditor-viewfield-marker" + (d.type === "side" ? "-side" : "") + (wireframe ? "-wireframe" : "") + ")";
+      }).attr("transform", function(d) {
+        return "rotate(".concat(d.angle, ")");
       });
     }
     function drawTargets(selection2, graph3, entities, filter2) {
@@ -70953,10 +71052,10 @@
   }
 
   // modules/ui/panels/progress.js
-  function _createForOfIteratorHelper6(o2, allowArrayLike) {
+  function _createForOfIteratorHelper7(o2, allowArrayLike) {
     var it = typeof Symbol !== "undefined" && o2[Symbol.iterator] || o2["@@iterator"];
     if (!it) {
-      if (Array.isArray(o2) || (it = _unsupportedIterableToArray7(o2)) || allowArrayLike && o2 && typeof o2.length === "number") {
+      if (Array.isArray(o2) || (it = _unsupportedIterableToArray8(o2)) || allowArrayLike && o2 && typeof o2.length === "number") {
         if (it)
           o2 = it;
         var i2 = 0;
@@ -70992,20 +71091,20 @@
       }
     } };
   }
-  function _unsupportedIterableToArray7(o2, minLen) {
+  function _unsupportedIterableToArray8(o2, minLen) {
     if (!o2)
       return;
     if (typeof o2 === "string")
-      return _arrayLikeToArray7(o2, minLen);
+      return _arrayLikeToArray8(o2, minLen);
     var n2 = Object.prototype.toString.call(o2).slice(8, -1);
     if (n2 === "Object" && o2.constructor)
       n2 = o2.constructor.name;
     if (n2 === "Map" || n2 === "Set")
       return Array.from(o2);
     if (n2 === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n2))
-      return _arrayLikeToArray7(o2, minLen);
+      return _arrayLikeToArray8(o2, minLen);
   }
-  function _arrayLikeToArray7(arr, len) {
+  function _arrayLikeToArray8(arr, len) {
     if (len == null || len > arr.length)
       len = arr.length;
     for (var i2 = 0, arr2 = new Array(len); i2 < len; i2++) {
@@ -71033,7 +71132,7 @@
   var findNearest = function findNearest2(list, ourLat, ourLng) {
     var closest;
     var closestDistance;
-    var _iterator = _createForOfIteratorHelper6(list), _step;
+    var _iterator = _createForOfIteratorHelper7(list), _step;
     try {
       for (_iterator.s(); !(_step = _iterator.n()).done; ) {
         var item = _step.value;

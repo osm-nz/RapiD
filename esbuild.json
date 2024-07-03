@@ -4294,7 +4294,7 @@
       "imports": []
     },
     "modules/osm/node.js": {
-      "bytes": 7897,
+      "bytes": 8839,
       "imports": [
         {
           "path": "node_modules/@id-sdk/math/built/math.mjs",
@@ -8550,7 +8550,7 @@
       ]
     },
     "modules/svg/defs.js": {
-      "bytes": 8332,
+      "bytes": 9769,
       "imports": [
         {
           "path": "node_modules/d3-fetch/src/index.js",
@@ -10763,7 +10763,7 @@
       ]
     },
     "modules/svg/vertices.js": {
-      "bytes": 17583,
+      "bytes": 17607,
       "imports": [
         {
           "path": "node_modules/fast-deep-equal/index.js",
@@ -20820,7 +20820,7 @@
       "imports": [],
       "exports": [],
       "inputs": {},
-      "bytes": 5123185
+      "bytes": 5126608
     },
     "dist/iD.js": {
       "imports": [],
@@ -21626,7 +21626,7 @@
           "bytesInOutput": 182
         },
         "modules/osm/node.js": {
-          "bytesInOutput": 6266
+          "bytesInOutput": 6949
         },
         "modules/actions/circularize.js": {
           "bytesInOutput": 8537
@@ -22109,7 +22109,7 @@
           "bytesInOutput": 3330
         },
         "modules/svg/defs.js": {
-          "bytesInOutput": 5432
+          "bytesInOutput": 6431
         },
         "modules/svg/keepRight.js": {
           "bytesInOutput": 4856
@@ -22598,7 +22598,7 @@
           "bytesInOutput": 3192
         },
         "modules/svg/vertices.js": {
-          "bytesInOutput": 13029
+          "bytesInOutput": 13043
         },
         "modules/util/bind_once.js": {
           "bytesInOutput": 257
@@ -23252,7 +23252,7 @@
           "bytesInOutput": 472
         }
       },
-      "bytes": 3456809
+      "bytes": 3458505
     }
   }
 }

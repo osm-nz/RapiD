@@ -23968,6 +23968,7 @@
   }
   osmEntity.node = osmNode;
   osmNode.prototype = Object.create(osmEntity.prototype);
+  var SIDES = new Set(["left", "right", "both"]);
   Object.assign(osmNode.prototype, {
     type: "node",
     loc: [9999, 9999],
@@ -23986,12 +23987,21 @@
       return !(Array.isArray(this.loc) && this.loc.length === 2 && this.loc[0] >= -180 && this.loc[0] <= 180 && this.loc[1] >= -90 && this.loc[1] <= 90);
     },
     directions: function(resolver, projection2) {
-      var val;
+      const rawValues = [];
       var i2;
       if (this.isHighwayIntersection(resolver) && (this.tags.stop || "").toLowerCase() === "all") {
-        val = "all";
+        rawValues.push({
+          type: "direction",
+          value: "all"
+        });
       } else {
-        val = (this.tags.direction || "").toLowerCase();
+        if (SIDES.has(this.tags.side?.toLowerCase())) {
+          rawValues.push({
+            type: "side",
+            value: this.tags.side.toLowerCase()
+          });
+        }
+        let val = (this.tags.direction || "").toLowerCase();
         var re2 = /:direction$/i;
         var keys2 = Object.keys(this.tags);
         for (i2 = 0; i2 < keys2.length; i2++) {
@@ -24000,8 +24010,11 @@
             break;
           }
         }
+        for (const value of val.split(";")) {
+          rawValues.push({ type: "direction", value });
+        }
       }
-      if (val === "")
+      if (!rawValues.length)
         return [];
       var cardinal = {
         north: 0,
@@ -24037,18 +24050,18 @@
         northnorthwest: 337,
         nnw: 337
       };
-      var values = val.split(";");
       var results = [];
-      values.forEach(function(v) {
+      rawValues.forEach(({ type: type3, value: v }) => {
         if (cardinal[v] !== void 0) {
           v = cardinal[v];
         }
         if (v !== "" && !isNaN(+v)) {
-          results.push(+v);
+          results.push({ type: "direction", angle: +v });
           return;
         }
-        var lookBackward = this.tags["traffic_sign:backward"] || v === "backward" || v === "both" || v === "all";
-        var lookForward = this.tags["traffic_sign:forward"] || v === "forward" || v === "both" || v === "all";
+        const isSide = type3 === "side" && SIDES.has(v);
+        var lookBackward = this.tags["traffic_sign:backward"] || v === (isSide ? "left" : "backward") || v === "both" || v === "all";
+        var lookForward = this.tags["traffic_sign:forward"] || v === (isSide ? "right" : "forward") || v === "both" || v === "all";
         if (!lookForward && !lookBackward)
           return;
         var nodeIds = {};
@@ -24068,10 +24081,13 @@
         Object.keys(nodeIds).forEach(function(nodeId) {
           var a = projection2(this.loc);
           var b = projection2(resolver.entity(nodeId).loc);
-          results.push(vecAngle(a, b) * 180 / Math.PI + 90);
+          results.push({
+            type: isSide ? "side" : "direction",
+            angle: vecAngle(a, b) * 180 / Math.PI + (isSide ? 0 : 90)
+          });
         }, this);
       }, this);
-      return utilArrayUniq(results);
+      return utilArrayUniqBy(results, (item) => item.type + item.angle);
     },
     isCrossing: function() {
       return this.tags.highway === "crossing" || this.tags.railway && this.tags.railway.indexOf("crossing") !== -1;
@@ -39684,6 +39700,8 @@
       addSidedMarker("man_made", "#fff", 0);
       _defsSelection.append("marker").attr("id", "ideditor-viewfield-marker").attr("viewBox", "0 0 16 16").attr("refX", 8).attr("refY", 16).attr("markerWidth", 4).attr("markerHeight", 4).attr("markerUnits", "strokeWidth").attr("orient", "auto").append("path").attr("class", "viewfield-marker-path").attr("d", "M 6,14 C 8,13.4 8,13.4 10,14 L 16,3 C 12,0 4,0 0,3 z").attr("fill", "#333").attr("fill-opacity", "0.75").attr("stroke", "#fff").attr("stroke-width", "0.5px").attr("stroke-opacity", "0.75");
       _defsSelection.append("marker").attr("id", "ideditor-viewfield-marker-wireframe").attr("viewBox", "0 0 16 16").attr("refX", 8).attr("refY", 16).attr("markerWidth", 4).attr("markerHeight", 4).attr("markerUnits", "strokeWidth").attr("orient", "auto").append("path").attr("class", "viewfield-marker-path").attr("d", "M 6,14 C 8,13.4 8,13.4 10,14 L 16,3 C 12,0 4,0 0,3 z").attr("fill", "none").attr("stroke", "#fff").attr("stroke-width", "0.5px").attr("stroke-opacity", "0.75");
+      _defsSelection.append("marker").attr("id", "ideditor-viewfield-marker-side").attr("viewBox", "0 0 16 16").attr("refX", 8).attr("refY", 16).attr("markerWidth", 4).attr("markerHeight", 4).attr("markerUnits", "strokeWidth").attr("orient", "auto").append("path").attr("class", "viewfield-marker-path").attr("d", "M 6 14 C 8 13.4 8 13.4 10 14 L 14 7 L 14 5 L 2 5 L 2 7 Z").attr("fill", "#333").attr("fill-opacity", "0.75").attr("stroke", "#fff").attr("stroke-width", "0.5px").attr("stroke-opacity", "0.75");
+      _defsSelection.append("marker").attr("id", "ideditor-viewfield-marker-side-wireframe").attr("viewBox", "0 0 16 16").attr("refX", 8).attr("refY", 16).attr("markerWidth", 4).attr("markerHeight", 4).attr("markerUnits", "strokeWidth").attr("orient", "auto").append("path").attr("class", "viewfield-marker-path").attr("d", "M 6 14 C 8 13.4 8 13.4 10 14 L 14 7 L 14 5 L 2 5 L 2 7 Z").attr("fill", "none").attr("stroke", "#fff").attr("stroke-width", "0.5px").attr("stroke-opacity", "0.75");
       var patterns2 = _defsSelection.selectAll("pattern").data([
         ["beach", "dots"],
         ["construction", "construction"],
@@ -44581,9 +44599,7 @@
         return osmEntity.key(d);
       });
       viewfields.exit().remove();
-      viewfields.enter().append("path").attr("class", "viewfield").attr("d", "M0,0H0").merge(viewfields).attr("marker-start", "url(#ideditor-viewfield-marker" + (wireframe ? "-wireframe" : "") + ")").attr("transform", function(d) {
-        return "rotate(" + d + ")";
-      });
+      viewfields.enter().append("path").attr("class", "viewfield").attr("d", "M0,0H0").merge(viewfields).attr("marker-start", (d) => "url(#ideditor-viewfield-marker" + (d.type === "side" ? "-side" : "") + (wireframe ? "-wireframe" : "") + ")").attr("transform", (d) => `rotate(${d.angle})`);
     }
     function drawTargets(selection2, graph, entities, filter2) {
       var targetClass = context.getDebug("target") ? "pink " : "nocolor ";
