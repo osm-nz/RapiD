@@ -74705,7 +74705,7 @@
   // modules/services/esri_data.js
   var DEV = new URLSearchParams(location.hash).get("dev");
   var DEV_CDN = "http://localhost:5000";
-  var PROD_CDN = "https://linz-addr-cdn.kyle.kiwi";
+  var PROD_CDN = "https://osm-nz.github.io/linz-address-import";
   var APIROOT = DEV ? DEV_CDN : PROD_CDN;
   window.APIROOT = APIROOT;
   var TILEZOOM = 14;
@@ -74717,11 +74717,6 @@
   window._dsState = {};
   window._mostRecentDsId = null;
   window.__locked = {};
-  fetch(APIROOT + "/__locked").then(function(r) {
-    return r.json();
-  }).then(function(obj) {
-    return window.__locked = obj;
-  }).catch(console.error);
   function esc(str) {
     return str.replace(/ā/ig, "aa").replace(/ē/ig, "ee").replace(/ī/ig, "ii").replace(/ō/ig, "oo").replace(/ū/ig, "uu");
   }

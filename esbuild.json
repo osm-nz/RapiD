@@ -16622,7 +16622,7 @@
       ]
     },
     "modules/services/esri_data.js": {
-      "bytes": 12665,
+      "bytes": 12564,
       "imports": [
         {
           "path": "node_modules/d3-dispatch/src/index.js",
@@ -20820,7 +20820,7 @@
       "imports": [],
       "exports": [],
       "inputs": {},
-      "bytes": 5126608
+      "bytes": 5126425
     },
     "dist/iD.js": {
       "imports": [],
@@ -23114,7 +23114,7 @@
           "bytesInOutput": 0
         },
         "modules/services/esri_data.js": {
-          "bytesInOutput": 11105
+          "bytesInOutput": 11006
         },
         "modules/services/fb_ai_features.js": {
           "bytesInOutput": 8597
@@ -23252,7 +23252,7 @@
           "bytesInOutput": 472
         }
       },
-      "bytes": 3458505
+      "bytes": 3458406
     }
   }
 }
