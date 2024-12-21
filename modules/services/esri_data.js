@@ -10,7 +10,7 @@ import { utilRebind } from '../util';
 
 const DEV = new URLSearchParams(location.hash).get('dev');
 const DEV_CDN = 'http://localhost:5000';
-const PROD_CDN = 'https://linz-addr-cdn.kyle.kiwi';
+const PROD_CDN = 'https://osm-nz.github.io/linz-address-import';
 const APIROOT = DEV ? DEV_CDN : PROD_CDN;
 window.APIROOT = APIROOT;
 
@@ -26,11 +26,6 @@ window._dsState = {};
 window._mostRecentDsId = null;
 
 window.__locked = {};
-fetch(APIROOT+'/__locked')
-  .then(r => r.json())
-  .then(obj => window.__locked = obj)
-  .catch(console.error);
-
 
 function esc(str) {
   // because btoa/atob is stupid but we need to use it for our data-url gpx extent thing
