@@ -65523,7 +65523,7 @@
 
   // modules/services/esri_data.js
   var DEV = new URLSearchParams(location.hash).get("dev");
-  var DEV_CDN = "http://localhost:5000";
+  var DEV_CDN = "http://localhost:5001";
   var PROD_CDN = "https://osm-nz.github.io/linz-address-import";
   var APIROOT = DEV ? DEV_CDN : PROD_CDN;
   window.APIROOT = APIROOT;
