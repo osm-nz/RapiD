@@ -9,7 +9,7 @@ import { osmNode, osmRelation, osmWay } from '../osm';
 import { utilRebind } from '../util';
 
 const DEV = new URLSearchParams(location.hash).get('dev');
-const DEV_CDN = 'http://localhost:5000';
+const DEV_CDN = 'http://localhost:5001';
 const PROD_CDN = 'https://osm-nz.github.io/linz-address-import';
 const APIROOT = DEV ? DEV_CDN : PROD_CDN;
 window.APIROOT = APIROOT;
