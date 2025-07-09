@@ -17081,7 +17081,7 @@
       ]
     },
     "node_modules/osm-auth/src/osm-auth.mjs": {
-      "bytes": 19864,
+      "bytes": 20369,
       "imports": []
     },
     "modules/services/osm.js": {
@@ -20820,7 +20820,7 @@
       "imports": [],
       "exports": [],
       "inputs": {},
-      "bytes": 5126425
+      "bytes": 5127103
     },
     "dist/iD.js": {
       "imports": [],
@@ -23162,7 +23162,7 @@
           "bytesInOutput": 15242
         },
         "node_modules/osm-auth/src/osm-auth.mjs": {
-          "bytesInOutput": 11358
+          "bytesInOutput": 11658
         },
         "modules/services/osm.js": {
           "bytesInOutput": 37775
@@ -23252,7 +23252,7 @@
           "bytesInOutput": 472
         }
       },
-      "bytes": 3458406
+      "bytes": 3458706
     }
   }
 }

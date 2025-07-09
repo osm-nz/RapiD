@@ -78661,6 +78661,7 @@
   // node_modules/osm-auth/src/osm-auth.mjs
   function osmAuth(o2) {
     var oauth2 = {};
+    var CHANNEL_ID = "osm-api-auth-complete";
     var _store = null;
     try {
       _store = window.localStorage;
@@ -78708,7 +78709,7 @@
       token("oauth_request_token_secret", "");
       return oauth2;
     };
-    oauth2.authenticate = function(callback) {
+    oauth2.authenticate = function(callback, options) {
       if (oauth2.authenticated()) {
         callback(null, oauth2);
         return;
@@ -78719,12 +78720,12 @@
           callback(error);
         } else {
           _generatePkceChallenge(function(pkce) {
-            _authenticate(pkce, popup, callback);
+            _authenticate(pkce, options, popup, callback);
           });
         }
       });
     };
-    oauth2.authenticateAsync = function() {
+    oauth2.authenticateAsync = function(options) {
       if (oauth2.authenticated()) {
         return Promise.resolve(oauth2);
       }
@@ -78742,7 +78743,7 @@
             errback(error);
           } else {
             _generatePkceChallenge(function(pkce) {
-              return _authenticate(pkce, popup, errback);
+              return _authenticate(pkce, options, popup, errback);
             });
           }
         });
@@ -78767,9 +78768,9 @@
         callback(error);
       }
     }
-    function _authenticate(pkce, popup, callback) {
+    function _authenticate(pkce, options, popup, callback) {
       var state = generateState();
-      var url = o2.url + "/oauth2/authorize?" + utilQsString2({
+      var path = "/oauth2/authorize?" + utilQsString2({
         client_id: o2.client_id,
         redirect_uri: o2.redirect_uri,
         response_type: "code",
@@ -78779,6 +78780,7 @@
         code_challenge_method: pkce.code_challenge_method,
         locale: o2.locale || ""
       });
+      var url = options !== null && options !== void 0 && options.switchUser ? "".concat(o2.url, "/logout?referer=").concat(encodeURIComponent("/login?referer=".concat(encodeURIComponent(path)))) : o2.url + path;
       if (o2.singlepage) {
         if (_store.isMocked) {
           var error = new Error("localStorage unavailable, but required in singlepage mode");
@@ -78798,7 +78800,9 @@
         oauth2.popupWindow = popup;
         popup.location = url;
       }
-      window.authComplete = function(url2) {
+      var bc = new BroadcastChannel(CHANNEL_ID);
+      bc.addEventListener("message", function(event) {
+        var url2 = event.data;
         var params2 = utilStringQs2(url2.split("?")[1]);
         if (params2.state !== state) {
           var error2 = new Error("Invalid state");
@@ -78807,8 +78811,8 @@
           return;
         }
         _getAccessToken(params2.code, pkce.code_verifier, accessTokenDone);
-        delete window.authComplete;
-      };
+        bc.close();
+      });
       function accessTokenDone(err, xhr) {
         o2.done();
         if (err) {
