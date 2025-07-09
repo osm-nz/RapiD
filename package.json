@@ -61,7 +61,7 @@
     "lodash-es": "~4.17.15",
     "marked": "~3.0.8",
     "node-diff3": "~3.1.0",
-    "osm-auth": "^2.5.0",
+    "osm-auth": "github:k-yle/osm-auth#kh/auth-broken",
     "pannellum": "2.5.6",
     "pbf": "^3.2.1",
     "polygon-clipping": "~0.15.1",
